@@ -1,6 +1,20 @@
 # 嵌入式代码规范参考
 
 > 本文件由主协议按需加载。EXECUTE 阶段编写代码时读取此文件。
+>
+> **强制前置阅读**：本文规范的根基是 `refs/embedded-architecture.md` 的分层架构（HAL/BSP/Driver/Middleware/Service/App + Ports & Adapters）。**先读分层规范，再读本文细则**。两者矛盾时以 `embedded-architecture.md` 为准。
+
+---
+
+## 顶层硬约束（违反 = 屎山预警）
+
+按 `refs/embedded-architecture.md` 第 0/1/7 节：
+
+1. **应用层（`app_*`）禁止 `#include` 厂商 HAL 头**（如 `stm32f4xx_hal.h` / `gd32f4xx.h` / `esp_system.h`）
+2. **依赖方向单向向下**：App → Service → Middleware → Driver → BSP → HAL（项目级）→ Vendor HAL
+3. **跨层调用必须走 Port（抽象接口）**：禁止 `app_*` 直接调 `bsp_*` 或厂商 API
+4. **命名前缀强制**：`hal_` / `bsp_` / `drv_` / `mid_` / `svc_` / `app_` — 看前缀就知道在哪一层
+5. **`main.c` 只允许 4 件事**：`bsp_init()` → `mid_init()` → `svc_init()` → `app_run()`，不得超过 50 行
 
 ---
 
