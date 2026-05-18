@@ -50,7 +50,9 @@
 9. 记录搜索到的候选驱动/方案，供 INNOVATE 阶段评估
 
 **输出**：以 `[MODE: RESEARCH]` 开头，按"已确认事实 / 证据来源 / 未确认问题"输出；若任务将进入多轮治理，补充 `trace_id` 和建议轮次拆分
-**完成后**：自动进入 INNOVATE 模式
+**完成后**：
+- 若官方 pinout / datasheet / netlist 等关键资料**均不可得** → **暂停**，向用户索取资料，禁止进入 INNOVATE
+- 资料齐备 → 自动进入 INNOVATE 模式
 
 ---
 
@@ -129,7 +131,9 @@ n. [最终操作, verify:<验证标准>, review:true]
 发现占位符 → 立即补全后再输出清单。
 
 **输出**：以 `[MODE: PLAN]` 开头
-**完成后**：自动进入 EXECUTE 模式
+**完成后**：
+- 若实施清单**含任一 `review:true` 项** → **暂停**，展示完整清单并询问用户"是否同意按此清单执行"；用户明确同意后才进入 EXECUTE
+- 若清单**全部为 `review:false`**（纯问答 / 内部计算 / 用户明确无需详细审查）→ 自动进入 EXECUTE
 
 ---
 
@@ -221,7 +225,7 @@ NO IMPLEMENTATION LIST WITHOUT FILE PATHS + VERIFY CRITERIA + REVIEW MARKERS + L
 1. 完整展示本步骤的代码/配置变更与验证证据
 2. 输出审查门提示，等待用户回复
 3. 用户提出修改意见 → 迭代修改后再次展示
-4. 用户确认通过 → 执行自动 Git 存档（`git add -A` → `git commit`，有远端则 `git push`）并记录 commit hash 到 `编辑清单.md`
+4. 用户确认通过 → 执行**本地** Git 存档（显式 `git add <files>` → `git commit`，**不自动 push**）并记录 commit hash 到 `编辑清单.md` / `edits.md`；push 需用户明确指令
 5. 存档完成后关闭审查门，继续下一步
 
 **review:false 流程**：

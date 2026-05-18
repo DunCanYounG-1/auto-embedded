@@ -19,8 +19,10 @@ REM   e.g. run-hook.cmd session-start.py
 REM        run-hook.cmd check-memory-files
 
 if "%~1"=="" (
+    REM Missing script name — fail open (don't block protocol) but emit a
+    REM diagnostic to stderr so misconfigurations are visible in logs.
     echo run-hook.cmd: missing script name >&2
-    exit /b 1
+    exit /b 0
 )
 
 set "HOOK_DIR=%~dp0"
@@ -90,7 +92,15 @@ case "$SCRIPT_NAME" in
         fi
         ;;
     *)
-        # Bash script
-        exec bash "${SCRIPT_DIR}/${SCRIPT_NAME}" "$@"
+        # Bash script — verify the file exists first; fail open if missing
+        if [ ! -f "${SCRIPT_DIR}/${SCRIPT_NAME}" ]; then
+            exit 0
+        fi
+        if command -v bash >/dev/null 2>&1; then
+            exec bash "${SCRIPT_DIR}/${SCRIPT_NAME}" "$@"
+        else
+            # No bash — fail open
+            exit 0
+        fi
         ;;
 esac

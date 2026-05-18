@@ -126,38 +126,21 @@ if SKILL_ROOT is None:
 # Bootstrap content — the bare-minimum iron rules Claude must know BEFORE any
 # user turn. Everything else loads on demand. Keep this under ~60 lines.
 # --------------------------------------------------------------------------- #
-BOOTSTRAP = """# embedded-dev 协议引导（SessionStart 注入）
+BOOTSTRAP = """# embedded-dev 协议引导（SessionStart 注入 / 仅索引，不复刻协议本体）
 
-你正在加载 embedded-dev skill（RIPER-5 嵌入式开发协议）。在响应用户之前，你必须知道以下铁律：
+你正在加载 embedded-dev skill（RIPER-5 嵌入式开发协议）。**收到首个用户消息后**，在判断任务是否属于嵌入式主线之前，先做以下三件事（顺序固定，不要跳）：
 
-## 铁律 1 — 模式声明
-每条回复开头必须用 `[MODE: RESEARCH|INNOVATE|PLAN|EXECUTE|REVIEW]` 声明当前阶段。
+1. **读取 SKILL.md**（协议本体，权威来源）— 用 Read 工具读，不要凭记忆假设
+2. **环境自检（一次）**：通过 Bash 工具运行
+   test -f /dev/null && echo "[embedded-dev] hooks env: ok" || echo "[embedded-dev] hooks env: degraded"
+   若 degraded（Windows 缺 Git Bash 等），向用户告知 hooks 已静默失效但协议主流程仍由你手动遵守
+3. **检测四文件磁盘记忆**（中英双轨）：若工程根目录存在 项目规划清单.md/plan.md、编辑清单.md/edits.md、硬件资源表.md/hw-resources.md、研究发现.md/findings.md 任一，**响应前必须读取最新内容**
 
-## 铁律 2 — 证据先于声明（Iron Law）
-没有运行验证命令拿到证据，不得声称完成。"应该 / 理论上 / 大概 / 差不多" 禁用，只能说 "已验证" 或 "未验证"。
+任务属于嵌入式主线时，按 SKILL.md 的六条铁律执行（① 模式声明 ② 证据先于声明 ③ 四文件磁盘记忆 ④ 应用层禁 include 厂商 HAL ⑤ 环境自检 ⑥ letter = spirit），详细见 refs/riper5-stages.md。
 
-## 铁律 3 — 四文件磁盘记忆
-检查工程根目录是否存在以下任一组文件（中文/英文双轨）：
-- 项目规划清单.md / plan.md
-- 编辑清单.md / edits.md
-- 硬件资源表.md / hw-resources.md
-- 研究发现.md / findings.md
-存在则**首条响应前必须读取最新内容**。
+非主线纯辅助交流（安装咨询/工具问答/纯文档查询）可豁免 [MODE:] 声明，直接答即可。
 
-## 铁律 4 — 应用层禁止 include 厂商 HAL
-`app_*` 文件禁止 `#include` 厂商 HAL 头（`stm32f4xx_hal.h` / `gd32f4xx.h` / `esp_system.h` 等）。
-跨硬件访问必须走 HAL Port 抽象接口。详见 `refs/embedded-architecture.md`。
-
-## 铁律 5 — 环境自检（在 RESEARCH 阶段首条响应里执行一次，不要每轮重复）
-当你收到本会话第一个**用户**消息后，在你回复用户的同一条消息里通过 Bash 工具跑一次：
-  test -f /dev/null && echo "[embedded-dev] hooks env: ok" || echo "[embedded-dev] hooks env: degraded"
-若输出 degraded（Windows 缺 Git Bash 或类似环境），向用户告知 hooks 已静默失效但协议主流程仍由你手动遵守。
-注意：本指引由 SessionStart hook 在用户消息之前注入；你不应在收到用户消息之前主动执行任何命令。
-
-## 铁律 6 — letter = spirit
-违反规则的字面意思就是违反规则的精神。禁止"我遵循了精神不拘泥形式"这类逃避。
-
-完整协议见 `SKILL.md`；五阶段详细规则见 `refs/riper5-stages.md`；分层架构见 `refs/embedded-architecture.md`。
+不要在收到用户消息之前主动执行任何命令。
 """
 
 

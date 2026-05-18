@@ -1,8 +1,6 @@
 # 安装与依赖
 
-> 本 skill 的目标是"clone 到 `~/.claude/skills/embedded-dev/` 即可基本工作"，但完整功能依赖几个外部组件。本文按**必装 / 推荐 / 可选**三级列出全部依赖，并说明每项缺失时的降级方案。
->
-> **重要原则**：缺失任何依赖时，**hooks 会 fail open**（静默 exit 0），**主协议规则仍由 Claude 自行遵守**，不会卡死任何工作流。
+依赖按**必装 / 推荐 / 可选**三级列出 + 每项缺失时的降级方案。缺什么 hooks 都 fail open，协议主流程不卡死。
 
 ---
 
@@ -54,7 +52,7 @@ git clone https://github.com/DunCanYounG-1/embedded-dev ~/.claude/skills/embedde
 
 ## 3. 推荐依赖（缺了关键功能降级，但能用）
 
-### 3.1 兄弟 skill（操作执行层 — 26 个）
+### 3.1 兄弟 skill（操作执行层）
 
 EXECUTE 阶段的"操作执行层兄弟 skill 路由"表（见 `SKILL.md` 第 4 阶段）依赖这些 skill 真正执行编译/烧录/调试/通信。缺失时 Claude 只能给出"操作建议"，无法直接执行。
 
@@ -70,15 +68,20 @@ EXECUTE 阶段的"操作执行层兄弟 skill 路由"表（见 `SKILL.md` 第 4 
 | **代码质量** | `simplify` | REVIEW 阶段质量检查由 Claude 手动 |
 | **外部协作** | `codex` | 失去 GPT 视角的"双模型擂台"能力 |
 
-**安装方法**：这 26 个 skill 都是独立的 Claude Code skill。如果你已经装了 [MICU/AI-Embedded-Toolkit](https://github.com/example/ai-embedded-toolkit) 之类的整合包，它们应该一起来。否则按需 `git clone` 单个 skill 仓库到 `~/.claude/skills/<name>/`。
+> **数量基准**：以 `hooks/verify-deps` 实际探测为准（避免数量在多个文档间漂移）。`bash hooks/verify-deps` 会输出"已装 N 个 / 未装 M 个"。
 
-> ⚠ 本 skill 不会替你装这 26 个兄弟 skill。它们是 embedded-dev 的"被调用方"，不是"被依赖方"。**没装的话只是 EXECUTE 阶段的执行环节降级，研究/创新/计划/审查四个阶段不受影响**。
+**安装方法**：这些 skill 都是独立的 Claude Code skill，本仓库没有打包它们。**安装路径取决于你从哪获得**：
+- 如果你跟着某个嵌入式 AI 工具包整合安装的，整合包会自带 — 不用单独装
+- 如果你单独安装：每个 skill 都需要它自己的仓库地址。请向 skill 来源方索取，或在 [Anthropic 官方 plugin marketplace](https://claude.com/plugins) 检索（如可用）
+- 通用安装命令：`git clone <skill 仓库地址> ~/.claude/skills/<skill 名>`
+
+> ⚠ 本 skill 不会替你装这些兄弟 skill。它们是 embedded-dev 的"被调用方"，不是"被依赖方"。**没装的话只是 EXECUTE 阶段的执行环节降级，研究/创新/计划/审查四个阶段不受影响**。
 
 ### 3.2 shared/ 工具（工程画像 + 工具路径管理）
 
 | 文件 | 用途 | 安装方法 | 缺失时降级 |
 |---|---|---|---|
-| `~/.claude/skills/shared/project_detect.py` | RESEARCH 阶段自动探测构建系统/芯片/产物 | clone <https://github.com/example/claude-skills-shared> 到 `~/.claude/skills/shared/` | Claude 手动按文件包含/API 调用/项目结构识别（见 RESEARCH 步骤 2） |
+| `~/.claude/skills/shared/project_detect.py` | RESEARCH 阶段自动探测构建系统/芯片/产物 | 由兄弟 skill 安装包带入 `~/.claude/skills/shared/`；本仓库不直接打包它 | Claude 手动按文件包含/API 调用/项目结构识别（见 RESEARCH 步骤 2） |
 | `~/.claude/skills/shared/tool_config.py` | OpenOCD/Keil UV4/arm-gcc/J-Link 工具路径登记 | 同上 | 兄弟 skill 自己探测工具路径，可能需要用户指定 |
 
 > 这两个脚本是各操作执行层兄弟 skill 共享的契约层。如果你装了任何一个 `build-*` / `flash-*` skill，通常 shared/ 会一起来。
@@ -87,7 +90,7 @@ EXECUTE 阶段的"操作执行层兄弟 skill 路由"表（见 `SKILL.md` 第 4 
 
 | 依赖 | 用途 | 安装方法 | 缺失时降级 |
 |---|---|---|---|
-| `~/.claude/skills/grok-search/` | 所有联网检索（驱动/报错/数据手册入口）首选工具 | clone <https://github.com/example/grok-search> + 在 `config.json` 填 API key + base_url（如 `https://www.micuapi.ai/v1`） | 自动 fallback 到 Claude 内置 WebSearch / WebFetch |
+| `~/.claude/skills/grok-search/` | 所有联网检索（驱动/报错/数据手册入口）首选工具 | 单独获取 grok-search skill 包后 clone 到 `~/.claude/skills/grok-search/`；在 `config.json` 填 API key + base_url（如 `https://www.micuapi.ai/v1`） | 自动 fallback 到 Claude 内置 WebSearch / WebFetch |
 
 ### 3.4 Context7 MCP（库 API 即时文档）
 
@@ -108,8 +111,8 @@ EXECUTE 阶段的"操作执行层兄弟 skill 路由"表（见 `SKILL.md` 第 4 
 | 依赖 | 触发场景 | 安装方法 |
 |---|---|---|
 | **Sequential Thinking MCP** | 引脚冲突 / DMA 分配复杂推理 | `claude mcp add` 加入 |
-| **Document Skills** (`pdf` / `docx` / `xlsx` / `pptx`) | 解析数据手册 PDF / 原理图 / 报告 | <https://github.com/example/document-skills> |
-| **agent-browser** | 在线数据手册页面交互、厂商 Web 配置器、截图留档 | <https://github.com/example/agent-browser> |
+| **Document Skills** (`pdf` / `docx` / `xlsx` / `pptx`) | 解析数据手册 PDF / 原理图 / 报告 | Anthropic 官方 plugin marketplace 提供；或单独安装 Office 类 skill |
+| **agent-browser** | 在线数据手册页面交互、厂商 Web 配置器、截图留档 | 由 skill 提供方安装 |
 | **Embedded Debugger MCP** | 硬件实时联调 / 烧录 / 串口交互的 MCP 接口 | 视厂商而定 |
 | **Mermaid CLI** | 文档生成里的流程图渲染 | `npm i -g @mermaid-js/mermaid-cli` |
 
@@ -123,6 +126,19 @@ EXECUTE 阶段的"操作执行层兄弟 skill 路由"表（见 `SKILL.md` 第 4 
 - **路径分隔符**：Python hook 已自动处理 `/c/Users/` / `/cygdrive/c/` / `/mnt/c/` → `C:\` 规范化
 - **Python 3 命令名**：建议用 `python`（Windows 标准）。`python3` 在 Windows 上经常指向 Windows Store stub（无实际 Python）— polyglot 会自动绕过
 - **行尾符**：仓库已通过 `.gitattributes` 锁 LF；不要本地改 git autocrlf 配置
+
+### 自定义安装路径（plugin / 企业目录）
+
+默认 hook command 用 `${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}` 解析：
+- **Plugin 安装**：Claude Code 自动设置 `CLAUDE_PLUGIN_ROOT`，无需手工配置
+- **企业 / 自定义路径**（不在 `~/.claude/skills/`）：在 shell 启动文件加：
+  ```bash
+  export CLAUDE_PLUGIN_ROOT=/your/custom/path/embedded-dev   # Linux/macOS/Git Bash
+  ```
+  ```powershell
+  $env:CLAUDE_PLUGIN_ROOT = "D:\custom\embedded-dev"          # PowerShell
+  ```
+- **路径不解析时 hooks 静默失效**（fail open），协议主流程仍由 Claude 手动遵守
 
 ### macOS
 
@@ -147,7 +163,7 @@ clone 完成 + 装好 Python + Git Bash（Windows）即可启动以下功能：
 - PLAN/EXECUTE 三件套（Iron Law + Red Flags + Rationalization Table）
 - 嵌入式分层架构规范（HAL/BSP/Driver/Middleware/Service/App）
 - 所有 `refs/*.md` 离线知识库（API 速查、引脚规划、IMU 检查、Mahony AHRS、故障排查等）
-- 5 个扩展模式（competition / datasheet-lookup / gd32-board / netlist-lookup / seekfree-lib / mcp-healthcheck）
+- 6 个扩展模式：1 个替代型（`competition`，启用比赛模式后替代 RIPER-5 流程）+ 5 个辅助型（`datasheet-lookup` / `gd32-board` / `netlist-lookup` / `seekfree-lib` / `mcp-healthcheck`）
 
 ⚠ 装了对应兄弟 skill 后可用：
 - 真正执行编译/烧录/调试/串口/总线/分析等操作
