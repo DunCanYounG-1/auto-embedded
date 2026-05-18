@@ -3,25 +3,81 @@
 > 来源：`GD32F4xx_Firmware_Library_V3.3.3`（兆易创新 / GigaDevice 官方）
 > 适用芯片：GD32F4xx（GD32F405/407/427/429/450/470 等）
 > 板载参考：MICU / CMIC GD32F470VET6 (Cortex-M4，主频 200 MHz)
-> 本地资源：`C:\Users\A\.claude\skills\embedded-dev\mcu_-gd_-main-board-master\`
+> 资源仓库：变量 `$GD_ROOT`，按第 0 节四级链解析（环境变量 → 工程登记 → skill 内置 → 远程 <https://gitee.com/Ahypnis/mcu_-gd_-main-board>）
 > 离线缓存，RESEARCH/EXECUTE 阶段优先查本文件，无需联网。
 
 ---
 
-## 0. 本地资源定位（必须先读）
+## 0. 资源定位（必须先读）
 
-| 资源 | 路径（相对 GD 主目录） | 用途 |
+### 0.1 仓库位置解析（四级链，不假定特定用户/平台）
+
+GD32 主板 SDK 仓库由变量 **`GD_ROOT`** 表示，按以下优先级解析，找到第一个存在的路径即停止：
+
+| 优先级 | 来源 | 检测方式 | 适用场景 |
+|---|---|---|---|
+| ① | 环境变量 `GD32_SDK_ROOT` | `[ -n "$GD32_SDK_ROOT" ] && [ -d "$GD32_SDK_ROOT" ]` | 用户显式指定，最高优先 |
+| ② | 用户项目 `硬件资源表.md` 中 `GD32_SDK_ROOT:` 字段 | RESEARCH 阶段读取此键 | 多项目复用同一份 SDK |
+| ③ | skill 内置缓存 | `[ -d "$HOME/.claude/skills/embedded-dev/mcu_-gd_-main-board-master" ]` | 用户已把 SDK 放进 skill 目录（典型场景） |
+| ④ | 远程仓库 | <https://gitee.com/Ahypnis/mcu_-gd_-main-board> | 前三级都未命中，需要 `git clone` |
+
+> 路径解析必须在 **RESEARCH 阶段最早** 完成；解析结果写入用户工程的 `硬件资源表.md`，**禁止**在 PLAN / EXECUTE 阶段反复探测。
+
+### 0.2 跨平台 skill 安装根目录约定
+
+Claude Code 在三个平台下的 skill 安装根目录都是 `$HOME/.claude/skills/embedded-dev/`：
+
+| 平台 | `$HOME` 展开示例 | 完整 skill 根 |
 |---|---|---|
-| 用户手册 | `doc\GD32F4xx_Firmware_Library_User_Guide_Rev1.2.pdf` | 完整外设 API/寄存器说明（英文） |
-| 用户手册 中文 | `doc\GD32F4xx_固件库使用指南_Rev1.2.pdf` | 中文版速查 |
-| 数据手册 | `doc\GD32F470xxDatasheet_Rev2.1.pdf` | 引脚复用、电气特性 |
-| DMA 通道表 | `doc\DMA_CHANNEL_MAP.md` | DMA0/DMA1 全通道 × 全 SUB 映射 |
-| 原理图 V1/V2 | `datasheet\GD32F470 Development Kit V*.pdf` | 板级网表来源 |
-| 标准外设库源码 | `pack\GD32F4xx_Firmware_Library_V3.3.3.7z` | 解压后含 CMSIS + 外设驱动 |
-| Keil Pack | `pack\GigaDevice.GD32F4xx_DFP.3.0.3.pack`、`ARM.CMSIS.5.9.0.pack` | 工程依赖（不带 `with_dependence` 后缀的模板需要安装） |
-| App 模板 | `template_project\v2\GD32F470_App_Standalone\...\MDK\Project.uvprojx` | 裸机入口工程 |
-| Bootloader+OTA 模板 | `template_project\v2\GD32F470_App_Bootloader\` | BootLoader + UART OTA |
-| OTA 上位机脚本 | `template_project\v2\GD32F470_App_Bootloader\Tools\ota_uart_sender.py` | PC 端 OTA 发送（Python + pyserial） |
+| Linux | `/home/<user>` | `/home/<user>/.claude/skills/embedded-dev/` |
+| macOS | `/Users/<user>` | `/Users/<user>/.claude/skills/embedded-dev/` |
+| Windows (Git Bash / WSL) | `/c/Users/<user>` 或 `~` | `~/.claude/skills/embedded-dev/` |
+| Windows (PowerShell) | `$env:USERPROFILE` | `%USERPROFILE%\.claude\skills\embedded-dev\` |
+
+**禁止**在 skill 文档中硬编码任何特定用户名（如 `C:\Users\A\…`），所有路径必须以 `$HOME` / `~` / `${SKILL_ROOT}` 形式表达。
+
+### 0.3 解析脚本（POSIX，Git Bash / bash / zsh 通用）
+
+```bash
+detect_gd_root() {
+  # ① 环境变量
+  if [ -n "${GD32_SDK_ROOT:-}" ] && [ -d "$GD32_SDK_ROOT" ]; then
+    printf '%s\n' "$GD32_SDK_ROOT"; return 0
+  fi
+  # ③ skill 内置缓存（② 由 Claude 在 RESEARCH 阶段读硬件资源表完成）
+  local skill_local="$HOME/.claude/skills/embedded-dev/mcu_-gd_-main-board-master"
+  if [ -d "$skill_local" ]; then
+    printf '%s\n' "$skill_local"; return 0
+  fi
+  return 1
+}
+
+if GD_ROOT=$(detect_gd_root); then
+  echo "[GD] 命中本地：$GD_ROOT"
+else
+  echo "[GD] 未命中本地。远程仓库：https://gitee.com/Ahypnis/mcu_-gd_-main-board"
+  echo "[GD] 需要 Claude 向用户索要目标目录后执行 git clone，并把路径写入硬件资源表"
+fi
+```
+
+> 解析失败时 **禁止 shell 交互式 `read`**（在 Claude 调用的非交互 shell 中不工作）。改由 Claude 在对话中向用户询问 clone 目标目录，然后再执行 `git clone https://gitee.com/Ahypnis/mcu_-gd_-main-board <目标目录>`。
+
+### 0.4 关键资源（相对 `$GD_ROOT`）
+
+> 路径分隔符统一用正斜杠 `/`，Windows 下 Git Bash / WSL / Keil 均可识别；如需在 PowerShell / cmd 内使用，自行替换为 `\`。
+
+| 资源 | 路径（`$GD_ROOT/` 之下） | 用途 |
+|---|---|---|
+| 用户手册 | `doc/GD32F4xx_Firmware_Library_User_Guide_Rev1.2.pdf` | 完整外设 API/寄存器说明（英文） |
+| 用户手册 中文 | `doc/GD32F4xx_固件库使用指南_Rev1.2.pdf` | 中文版速查 |
+| 数据手册 | `doc/GD32F470xxDatasheet_Rev2.1.pdf` | 引脚复用、电气特性 |
+| DMA 通道表 | `doc/DMA_CHANNEL_MAP.md` | DMA0/DMA1 全通道 × 全 SUB 映射 |
+| 原理图 V1/V2 | `datasheet/GD32F470 Development Kit V*.pdf` | 板级网表来源 |
+| 标准外设库源码 | `pack/GD32F4xx_Firmware_Library_V3.3.3.7z` | 解压后含 CMSIS + 外设驱动 |
+| Keil Pack | `pack/GigaDevice.GD32F4xx_DFP.3.0.3.pack`、`ARM.CMSIS.5.9.0.pack` | 工程依赖（不带 `with_dependence` 后缀的模板需要安装） |
+| App 模板 | `template_project/v2/GD32F470_App_Standalone/.../MDK/Project.uvprojx` | 裸机入口工程 |
+| Bootloader+OTA 模板 | `template_project/v2/GD32F470_App_Bootloader/` | BootLoader + UART OTA |
+| OTA 上位机脚本 | `template_project/v2/GD32F470_App_Bootloader/Tools/ota_uart_sender.py` | PC 端 OTA 发送（Python + pyserial） |
 
 ---
 

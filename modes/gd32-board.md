@@ -8,25 +8,74 @@
 
 ---
 
-## 0. 本地资源路径（绝对路径）
+## 0. 资源定位（本地优先，远程兜底，跨平台）
 
-```
-C:\Users\A\.claude\skills\embedded-dev\mcu_-gd_-main-board-master\
-```
+**仓库变量约定**：本模式所有路径以 `$GD_ROOT` 为根。完整的四级解析链与 POSIX 探测脚本见 `refs/gd32f4xx-api.md` 第 0 节。
 
-| 子目录 | 用途 |
+| 优先级 | 来源 | 备注 |
+|---|---|---|
+| ① | 环境变量 `GD32_SDK_ROOT` | 用户显式指定 |
+| ② | 用户工程 `硬件资源表.md` 中 `GD32_SDK_ROOT:` 字段 | 跨项目复用 |
+| ③ | skill 内置缓存 `$HOME/.claude/skills/embedded-dev/mcu_-gd_-main-board-master/` | 典型场景 |
+| ④ | 远程仓库 <https://gitee.com/Ahypnis/mcu_-gd_-main-board> | 前三级未命中，需 clone |
+
+| 子目录（相对 `$GD_ROOT`） | 用途 |
 |---|---|
-| `datasheet\` | V1/V2 原理图 PDF、芯片资料 |
-| `doc\` | 数据手册、固件库使用指南、DMA 通道表 |
-| `pack\` | Keil Pack（CMSIS、GD32F4xx_DFP、perf_counter）、标准外设库压缩包、`Keil5_disp_size_bar` 辅助工具 |
-| `template_project\v1\` | 2025 版硬件模板（AC5+CMSIS5 或 AC6+CMSIS6） |
-| `template_project\v2\` | 2026 版硬件模板（AC6+CMSIS6） |
+| `datasheet/` | V1/V2 原理图 PDF、芯片资料 |
+| `doc/` | 数据手册、固件库使用指南、DMA 通道表 |
+| `pack/` | Keil Pack（CMSIS、GD32F4xx_DFP、perf_counter）、标准外设库压缩包、`Keil5_disp_size_bar` 辅助工具 |
+| `template_project/v1/` | 2025 版硬件模板（AC5+CMSIS5 或 AC6+CMSIS6） |
+| `template_project/v2/` | 2026 版硬件模板（AC6+CMSIS6） |
 
 > 详细 API 速查见 `refs/gd32f4xx-api.md`（本模式启动后**必须先读**）。
 
 ---
 
 ## 1. 流程
+
+### Step 0：定位仓库（自动探测，必要时由 Claude 询问用户）
+
+执行 `refs/gd32f4xx-api.md` 第 0.3 节的 `detect_gd_root` 探测脚本：
+
+```bash
+# 来源：refs/gd32f4xx-api.md §0.3
+detect_gd_root() {
+  if [ -n "${GD32_SDK_ROOT:-}" ] && [ -d "$GD32_SDK_ROOT" ]; then
+    printf '%s\n' "$GD32_SDK_ROOT"; return 0
+  fi
+  local skill_local="$HOME/.claude/skills/embedded-dev/mcu_-gd_-main-board-master"
+  if [ -d "$skill_local" ]; then
+    printf '%s\n' "$skill_local"; return 0
+  fi
+  return 1
+}
+
+if GD_ROOT=$(detect_gd_root); then
+  echo "[GD] 命中本地：$GD_ROOT"
+fi
+```
+
+**分支处理**：
+
+- **命中本地** → 把 `GD_ROOT` 写入用户工程 `硬件资源表.md`（键 `GD32_SDK_ROOT:`），进入 Step 1
+- **未命中** → Claude 必须在对话中向用户询问以下两项，**禁止**自动决定：
+  1. 是否同意从 Gitee 克隆远程仓库（仓库约 248 MB，首次克隆较慢）
+  2. 克隆目标目录（建议放在用户 `~/sdk/`、`D:/sdk/` 或工程同级目录的 `sdk/` 下，避免污染 skill 目录或 HOME 根）
+
+  用户确认后执行：
+  ```bash
+  git clone https://gitee.com/Ahypnis/mcu_-gd_-main-board "<用户指定目录>"
+  export GD32_SDK_ROOT="<用户指定目录>"
+  ```
+  并把路径写入工程 `硬件资源表.md`。
+
+**禁止事项**：
+- 禁止使用 shell 交互式 `read -p`（Claude 调用的 bash 通常非交互）
+- 禁止把仓库 clone 进 `$HOME/.claude/skills/` 内部任何位置（污染 skill）
+- 禁止使用任何具体用户名的硬编码绝对路径
+- 禁止跳过"询问用户"环节自作主张选择目录
+
+---
 
 ### Step 1：识别硬件版本 + 工程形态
 
@@ -59,12 +108,30 @@ C:\Users\A\.claude\skills\embedded-dev\mcu_-gd_-main-board-master\
 
 ### Step 4：拷贝模板到用户工作目录
 
-询问用户目标位置，然后拷贝整个工程目录。**禁止**让用户在 skill 目录内直接编辑模板（会污染未来其他项目）。
+由 Claude 询问用户目标位置后，拷贝整个工程目录。**禁止**让用户在 `$GD_ROOT` 内直接编辑模板（会污染未来其他项目，且若 `$GD_ROOT` 在 skill 目录内，更新 skill 时可能丢失）。
+
+通用模板路径（按解析结果展开）：
+
+| 板卡 | 工程形态 | 源路径（相对 `$GD_ROOT`） |
+|---|---|---|
+| V2 | Standalone | `template_project/v2/GD32F470_App_Standalone/GD_Firmware_Template_ac6_cmsis_6_with_dependence/` |
+| V2 | Bootloader | `template_project/v2/GD32F470_App_Bootloader/Project/` |
+| V1 | Standalone | `template_project/v1/GD32F470_App_Standalone/` |
+| V1 | Bootloader | `template_project/v1/GD32F470_App_Bootloader/Project/` |
+
+执行命令（按平台二选一）：
+
+```bash
+# Linux / macOS / Git Bash
+SRC="$GD_ROOT/template_project/v2/GD32F470_App_Standalone/GD_Firmware_Template_ac6_cmsis_6_with_dependence"
+DST="<用户指定的工程目录>"   # 例如 ~/projects/my_gd32_app
+cp -r "$SRC" "$DST"
+```
 
 ```powershell
-# 示例（Windows PowerShell）
-$src = "C:\Users\A\.claude\skills\embedded-dev\mcu_-gd_-main-board-master\template_project\v2\GD32F470_App_Standalone\GD_Firmware_Template_ac6_cmsis_6_with_dependence"
-$dst = "D:\projects\my_gd32_app"
+# Windows PowerShell
+$src = "$env:GD32_SDK_ROOT\template_project\v2\GD32F470_App_Standalone\GD_Firmware_Template_ac6_cmsis_6_with_dependence"
+$dst = "<用户指定的工程目录>"   # 例如 D:\projects\my_gd32_app
 Copy-Item -Recurse $src $dst
 ```
 

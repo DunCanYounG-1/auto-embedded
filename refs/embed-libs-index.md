@@ -184,11 +184,11 @@
 
 ---
 
-## 7.5 本地厂商 SDK / 主板模板（优先使用，避免重新下载）
+## 7.5 厂商 SDK / 主板模板（本地优先，远程兜底）
 
-| 名称 | 本地路径 | 内容 | 触发方式 |
+| 名称 | 资源解析 | 内容 | 触发方式 |
 |------|---------|------|---------|
-| **GD32F470VET6 主板（MICU / CMIC）** | `C:\Users\A\.claude\skills\embedded-dev\mcu_-gd_-main-board-master\` | GD32F4xx 标准外设库 V3.3.3、CMSIS 5/6 Pack、V1/V2 板卡的 Standalone + Bootloader OTA Keil 模板、数据手册 PDF、原理图、DMA 通道表、UART OTA 上位机 Python 脚本 | API 速查见 `refs/gd32f4xx-api.md`；模板用法见 `modes/gd32-board.md`（触发词 `GD32` / `兆易` / `MICU 主板`） |
+| **GD32F470VET6 主板（MICU / CMIC）** | 主仓变量 `$GD_ROOT`，按四级链解析（环境变量 `GD32_SDK_ROOT` → 工程 `硬件资源表.md` 中 `GD32_SDK_ROOT:` 字段 → skill 内置缓存 `$HOME/.claude/skills/embedded-dev/mcu_-gd_-main-board-master/` → 远程 <https://gitee.com/Ahypnis/mcu_-gd_-main-board>）。完整规则见 `refs/gd32f4xx-api.md` §0 | GD32F4xx 标准外设库 V3.3.3、CMSIS 5/6 Pack、V1/V2 板卡的 Standalone + Bootloader OTA Keil 模板、数据手册 PDF、原理图、DMA 通道表、UART OTA 上位机 Python 脚本 | API 速查见 `refs/gd32f4xx-api.md`；模板用法见 `modes/gd32-board.md`（触发词 `GD32` / `兆易` / `MICU 主板`） |
 
 ---
 
