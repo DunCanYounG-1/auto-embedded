@@ -33,20 +33,8 @@
 4. 检查外设配置和硬件交互
 5. 审查时钟设置和时序
 6. 记录 API 模式
-7. **【关键】引脚规划与冲突检测**（在收集引脚连接信息前，先触发网表检测（见 `modes/netlist-lookup.md`），若项目存在网表文件则优先从网表提取引脚分配，跳过手动收集，但约束验证和冲突检测始终执行）：收集所有外设需求，进行引脚分配规划：
-   - 列出需要的外设（串口、I2C、SPI、ADC、PWM、GPIO 等）
-   - **查询引脚约束和复用功能**：
-     1. 优先用 grok-search 搜索官方 pinout 文档（`"{芯片型号} pinout datasheet GPIO alternate functions site:官网"`）
-     2. 用 Document Skills (`/pdf`) 提取引脚复用表
-     3. 用 Sequential Thinking MCP 辅助分析（若需要复杂推理）
-   - 检查调试口（SWDIO/SWCLK）和烧录口是否被占用
-   - 检查 STRAP 引脚是否正确配置
-   - 检测引脚冲突（同一引脚的多重复用功能）
-   - 参考 `refs/pin-planning.md` 生成推荐分配方案
-   - 生成冲突警告（如有）
-   - **禁止**：未查询数据手册直接使用"默认引脚"或凭经验分配
-   - **阻塞条件**：若官方 pinout/datasheet/netlist 均不可得，则暂停引脚分配，向用户索取资料，不得进入 PLAN/EXECUTE
-8. **生成/更新 `硬件资源表.md`**：读取项目代码，提取芯片型号、开发框架、引脚分配、DMA/中断等硬件资源信息，写入工程根目录的 `硬件资源表.md`（若已存在则比对更新）。格式见 `refs/checklist-templates.md` 中的硬件资源表模板，**引脚分配表填入步骤7的规划结果**
+7. **【关键】引脚规划与冲突检测** — **禁止**未查 datasheet 凭经验分配；**禁止**直接用"默认引脚"。优先 `modes/netlist-lookup.md` 从网表提取，无网表则按 `refs/pin-planning.md` 三步流程（收集需求 → 查约束 → 冲突检测）。详细方法、危险引脚、冲突字段、输出模板 → `refs/pin-planning.md`
+8. **生成/更新 `硬件资源表.md`**：芯片型号、开发框架、引脚分配、DMA/中断等写入；格式见 `refs/checklist-templates.md`；**引脚分配表来自步骤 7 结果**
 9. 记录搜索到的候选驱动/方案，供 INNOVATE 阶段评估
 
 **输出**：以 `[MODE: RESEARCH]` 开头，按"已确认事实 / 证据来源 / 未确认问题"输出；若任务将进入多轮治理，补充 `trace_id` 和建议轮次拆分
@@ -89,10 +77,10 @@
 **允许**：详细计划（文件路径、函数签名、寄存器配置）、标记 `review:true/false`、定义每轮目标和验证标准
 **禁止**：任何实现或代码编写、跳过规格、遗漏审查标记
 
-**架构硬约束**：
-- 计划中必须明确 `main.c` 只承担启动编排和顶层循环调度，禁止把寄存器配置、协议解析、算法流程或状态机细节直接堆进 `main()`
-- 需要改动 `main.c` 时，必须同时给出拟新增或拟复用的模块 API（如 `Board_Init()`、`App_Init()`、`App_RunOnce()`），说明调用顺序和归属文件
-- 计划中必须写清模块边界、公共 API、私有静态函数和依赖方向，避免 EXECUTE 阶段临时拼接耦合代码
+**架构硬约束**（详见 `refs/embedded-architecture.md` §6 main.c 硬约束 + §1 分层）：
+- 实施清单中每个新文件**必须标明层级**（L1~L6）+ 命名前缀 + `#include` 白名单
+- 改动 `main.c` 时必须同时给出拟新增 / 复用的模块 API（如 `bsp_init`、`app_run`），说明调用顺序和归属文件
+- 模块边界、公共 API、私有 static、依赖方向必须写清
 
 **审查标记规则**：
 
@@ -238,15 +226,11 @@ NO IMPLEMENTATION LIST WITHOUT FILE PATHS + VERIFY CRITERIA + REVIEW MARKERS + L
 - 成功且有剩余项 → 执行下一项
 - 全部成功 → 进入 REVIEW 模式
 
-**代码质量标准**：
+**代码质量标准**（详见 `refs/coding-standards.md` + `refs/embedded-architecture.md`）：
 - 完整代码上下文，指定语言和路径
-- 对寄存器和 ISR 共享变量使用 `volatile`
-- 必要时使用原子操作
-- 谨慎处理临界区
+- 对寄存器和 ISR 共享变量使用 `volatile`；必要时原子操作；谨慎处理临界区
 - 一致遵循库特定编程模式
-- `main.c` 仅允许保留初始化 API 编排、主循环调度、喂狗/低功耗入口等顶层职责；超过 10 行的连续业务/算法/寄存器逻辑必须下沉为模块 API
-- 公共接口放 `.h`，私有辅助函数放对应 `.c` 且优先 `static`；禁止跨模块直接访问内部变量或把实现细节泄漏到 `main.c`
-- 长函数优先拆分为单一职责函数；参数超过 3 个时优先收敛为配置结构体，嵌套层级优先控制在 2 层以内
+- 函数 / `main.c` 行数、嵌套、参数数量、私有 static 等约束 → 见 coding-standards §3-§5、embedded-architecture §6
 - 不得用"理论上可行"替代实际验证结论
 
 ---
