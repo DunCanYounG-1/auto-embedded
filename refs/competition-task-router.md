@@ -223,15 +223,20 @@ tag_weights:
 | `[MATLAB]` 算法仿真 | ✓ 必 | ✓ 必 | ✓ 必 | ✓ 必 | ⚠ 看 TAGS | ✓ 必 | 默认必选 |
 | `[VISION]` 视觉 | ✗ 禁 | ✗ 禁 | ✗ 禁 | ⚠ 看 TAGS | ⚠ 看 TAGS | ✗ 禁 | ⚠ 看 TAGS |
 
-### 2.2 TAGS 对角色池的修订规则
+### 2.2 TAGS 对角色池 + CP-3 验收的修订规则（v2.2 扩展）
 
-| TAG | 修订 |
-|---|---|
-| `VISION` | [VISION] 由"⚠/✗" → ✓ 必选 |
-| `FFT`/`FILTER_ADAPT`/`RF` | [MATLAB] 即使 MAIN=SYSTEM 也升 ✓ 必选 |
-| `STORAGE`/`CLI`/`LOG` | [ALG] 内部添加对应模块（不增 Agent，只扩职责） |
-| `MOTOR`/`IMU` | [MATLAB] 必跑控制器 + Kalman 仿真 |
-| `LOWPOWER` | [DRV] 加 sleep / 唤醒模块 |
+| TAG | 派 Agent 修订 | CP-3 验收触发（强制必测） |
+|---|---|---|
+| `VISION` | [VISION] 由"⚠/✗" → ✓ 必选 | competition.md CP-3 §J 视觉容错（丢帧/降级/光照/跟踪失败率）|
+| `FFT`/`FILTER_ADAPT`/`RF` | [MATLAB] 即使 MAIN=SYSTEM 也升 ✓ 必选 | 实测频谱 vs 仿真精度对比 |
+| `STORAGE`/`CLI`/`LOG` | [ALG] 内部添加对应模块（不增 Agent，只扩职责） | TF 卡多文件夹结构 + CLI 全命令覆盖 |
+| `MOTOR` | [MATLAB] 必跑控制器仿真 | competition.md CP-3 §I 闭环指标（超调/调节/稳态/跟踪）+ §K 机电安全红线（critical, 不允许重试）|
+| `IMU` | [MATLAB] 必跑 Kalman / Mahony 融合 | competition.md CP-3 §I 闭环指标 + 姿态漂移 ≤ 0.5°/min |
+| `LOWPOWER` | [DRV] 加 sleep / 唤醒模块 | 电流测量：休眠 < 100 μA，唤醒响应 < 50 ms |
+
+### 2.2.1 TAG 触发的验收红线优先级
+
+`MOTOR` 触发的 §K 机电安全是 **critical failure**（不允许 retry，必须人工裁决），其他都是常规 failure（按 retry_budget 走）。详见 `refs/contracts.md §强制规则 #6` 预算公式 + `agents/embedded-qa.md §Closed-loop verification`。
 
 ### 2.3 最小 / 最大 Agent 数
 

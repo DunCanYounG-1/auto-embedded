@@ -527,6 +527,158 @@ Task(subagent_type="embedded-report",
 
 ---
 
+## 5.2 控制+视觉题完整示例：2017B 滚球控制系统 ★v2.2
+
+### 用户输入
+
+```
+启用比赛模式
+
+题目：[贴 2017B 原文]
+硬件：STM32F407 + OV7725 摄像头 + 双轴舵机 + MPU6050 + OLED1306
+团队：4 人
+时间：4 天
+```
+
+### MAIN + TAGS + 加权
+
+```yaml
+MAIN: CONTROL
+TAGS: [VISION, MOTOR, OLED, IMU]
+tag_weights:
+  CLOSED_LOOP_CONTROL:  { total_score: 30, percentage: 30%, agents: [MATLAB, ALG] }
+  VISION_TRACK:         { total_score: 25, percentage: 25%, agents: [VISION, ALG] }
+  MOTOR_RESPONSE:       { total_score: 15, percentage: 15%, agents: [DRV, MATLAB] }
+  OLED_HMI:             { total_score: 5,  percentage:  5%, agents: [DRV, ALG] }
+  MECH_SAFETY:          { total_score: -10, percentage: 10%, agents: [DRV], note: critical 红线 }
+派 Agent: 7 个全派（ARCH+DRV+ALG+QA+REPORT+MATLAB+VISION）
+```
+
+### 关键差异（与仪表题 §5 对比）
+
+| 维度 | 仪表题 (2022F) | 控制+视觉题 (2017B) |
+|---|---|---|
+| CP-1.5 仿真 | 仅 MATLAB（FFT 精度）| **MATLAB + VISION 并行**（LQR / Kalman / 视觉离线）|
+| CP-1.5 串行点 | .h 文件等待 | .h + perspective.h + track_detect.c skeleton 三件套等待 |
+| CP-3 验收 | 5 元组 + 测量精度 + 实时性 | 5 元组 + 实时性 + **§I 闭环 + §J 视觉 + §K 机电安全（红线）**|
+| 关键风险 | ADC 漂移 | 视觉延迟 + 机械响应 + 限位保护 |
+
+### 完整时间表（4 天，控制题压缩到 28h 核心 + 44h 调优）
+
+```
+CP-0a   T+0~5min      git init + .gitignore
+CP-0b   T+5~15min     路由 → MAIN=CONTROL + TAGS + 7-agent 派发
+CP-1    T+15min~3h    硬件资源表（含 hw_lock：摄像头 DCMI + 舵机 PWM × 2 + IMU I2C）
+                      接口契约 v1.0（vision/control/motor/imu 接口分离）
+                      arch-check.sh --hw-check exit 0 → tag v0.1-arch
+                      ⚠️ 控制题 CP-1 时间比仪表题长（额外要锁视觉/电机/IMU 三路）
+
+CP-1.5  T+3h~10h      ARCH 同条消息派 2 个：
+                       Task(embedded-matlab):
+                         - LQR 4 状态：[x, ẋ, y, ẏ]
+                         - dlqr 离散化 Ts=20ms
+                         - Q=diag([100,1,100,1]), R=[0.01]
+                         - 仿真：超调 < 8%, 调节时间 1.2s, 稳态 < 2mm
+                         - 导出 app/control/lqr_gains.h
+                         - 同时跑 MPU6050 Kalman 融合（Q/R 噪声协方差）
+                         - 导出 app/control/kalman_params.h
+                       Task(embedded-vision):
+                         - 摄像头标定 (cameraCalibrator)
+                         - 离线测试 12 张图（直/弯/十字/强光/弱光/遮挡）
+                         - OTSU + 形态学 + Hough 圆检测（球体）
+                         - 透视变换 188×120 → 100×80 bird-view
+                         - 导出 app/vision/{perspective.h, camera_params.h, threshold_lut.h}
+                         - 产 app/vision/track_detect.c skeleton（含 TODO[ALG]）
+                         - 性能：检测率 95%，估算 FPS 100 @ STM32F407
+                      收 2 个 Outcome 都 success → tag v0.15-sim
+
+CP-2    T+10h~20h     ARCH 同条消息派 3 个：
+                       Task(embedded-drv):
+                         - DCMI + DMA 摄像头（行中断 + 帧缓冲双 buffer）
+                         - TIM_PWM 双舵机（50 Hz, 0.5-2.5ms 脉宽）
+                         - I2C IMU + OLED 共用 I2C2
+                         - 软限位保护（GPIO 中断）★机电安全
+                         - 看门狗 IWDG 启用
+                       Task(embedded-alg):
+                         - 消费 lqr_gains.h + kalman_params.h + perspective.h
+                         - 填 track_detect.c 的 TODO[ALG] 标记
+                         - svc_controller.c：LQR 主循环 50 Hz
+                         - svc_estimator.c：球位置 Kalman 融合
+                         - svc_safety.c：限位 / 跟丢 / 堵转检测
+                         - 状态机 INIT→READY→TRACKING→LOST→SAFE→ERROR
+                       Task(embedded-report):
+                         - 报告骨架 + 题目分析段 + 实测数据占位
+                      tag v0.2-dev
+
+CP-3    T+20h~26h     ARCH 派 Task(embedded-qa)：
+                       全套验收（详见 agents/embedded-qa.md）：
+                        ★ 静态分区检查（app 严苛/drv 中等/vendor 跳过）
+                        ★ MIL/SIL/PIL 三层一致性
+                        ★ 实时性 5 项（jitter/ISR/栈/CPU/浮点）
+                        ★ §I 闭环 5 指标：
+                           - 超调 ≤ 8% (仿真目标，实测 < 12% 是阈值 1.5×)
+                           - 调节时间 < 1.5s
+                           - 稳态误差 < 3mm
+                           - 跟踪误差（动态目标）< 5mm
+                           - 抗扰恢复 < 2× 调节时间
+                        ★ §J 视觉容错 4 项：
+                           - 丢帧恢复 < 0.3s（人为遮挡测试）
+                           - 跟丢→SAFE 状态
+                           - 光照 3 档检测率 ≥ 90%
+                           - 跟踪失败率 < 5%
+                        ★ §K 机电安全 5 项（critical 红线）：
+                           - 软限位 → PWM 归零
+                           - 堵转 30s → ERROR
+                           - 欠压 → SAFE + OLED 红警
+                           - IWDG 复位测试
+                           - ERROR 禁止自动恢复
+                      Defect Ticket 列表 → ARCH 按 §排序规则定向回派
+                      tag v0.3-qa
+
+CP-4    T+26h~28h     派 2 个（alg 写 main.c / report 填实测数据）
+                      ARCH 协调 → QA 复验 → tag v1.0-release
+
+CP-5    T+28h~30h     答辩演练 10 whys（含 LQR vs PID / Kalman vs 互补 /
+                      Hough vs HSV / 软限位时序 5 个核心 why）
+                      → tag v1.1-rehearsed
+
+T+30h ~ T+96h         剩余 66h（4 天）：
+                        - 机械松动反复紧固（控制题常见硬伤）
+                        - 不同光照 5 次回归测试
+                        - 电池电压衰减场景验证
+                        - 备份方案：视觉失败 → IMU+电磁辅助定位（如果题目允许）
+                        - 答辩多轮录像 + 同伴模拟提问
+```
+
+### 关键控制题 why-evidence（10 whys 示例）
+
+```
+Q1: 为什么用 LQR 不用 PID？
+A:  4 状态耦合，PID 难协调（4 路 PID 互相打架），LQR 一组 K 同时优化能量与跟踪
+    证据：scripts/lqr_design.m:28-45 Q/R 选取 + figures/lqr_vs_pid.png 调节时间
+          1.2s vs 2.5s
+
+Q2: 为什么控制频率 50 Hz 不是 100 Hz？
+A:  摄像头 100 FPS + 机械响应 ~20 Hz 带宽，50 Hz 已 > 5× Nyquist；提到 100 Hz
+    会增 50% CPU 但效果无提升
+    证据：硬件资源表.md:#L42 摄像头 FPS + log/cpu_usage_compare.csv
+
+Q3: 为什么 Hough 不用 HSV 阈值？
+A:  HSV 在光照变化下漂移大（实测 100/1000 lux 阈值差 ±20）；Hough 几何特征鲁棒
+    证据：vision_eval.csv 三档光照检测率 Hough 95% vs HSV 67%
+
+Q4-Q10: 略（机电安全 / IMU Kalman / 限位 / 状态机超时 / 实时性...）
+```
+
+### 控制题特别提醒
+
+1. **CP-1.5 不能跳**：控制+视觉题必须先把 LQR / Kalman / 视觉算法验证完才能进 CP-2，否则 ALG 拿着错的 .h 写代码 → CP-3 必崩
+2. **§K 机电安全是 critical 红线**：任一项失败不允许 retry，必须人工裁决（不是软件能补的）
+3. **视觉与控制耦合**：视觉延迟（捕获→识别→输出）通常 30-50 ms，控制律设计时**必须**把这延迟当作系统延迟纳入（不然闭环会震荡）— `embedded-matlab` 在 LQR 设计时加 Padé 近似
+4. **机械限位永远比软件限位先**：电赛规则一般要求物理限位开关（GPIO 中断），软限位（θ_max 角度判断）是兜底
+
+---
+
 ## 6. 阻塞与人工裁决场景
 
 并非所有事都能自动。以下情况**必须**让 Claude 暂停 + 让人工决定：

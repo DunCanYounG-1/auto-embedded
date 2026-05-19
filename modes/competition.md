@@ -724,6 +724,32 @@ PIL：set_param 切 'Processor-in-the-Loop (PIL)' → 交叉编译到 MCU
   浮点路径单次 ____ μs（仅 FPU-less）       ✅/❌
   实测方式（必填）：GPIO toggle + 示波器 / DWT->CYCCNT / RTOS API
 
+【I. 闭环控制指标（MOTOR / IMU TAG 强制 ★v2.2）】
+  超调量 ____ % / 阈值 ____ %               ✅/❌
+  调节时间 ____ s / 阈值 ____ s             ✅/❌
+  稳态误差 ____ % / 阈值 ____ %             ✅/❌
+  跟踪误差 ____ % / 阈值 ____ %（移动目标） ✅/❌
+  抗干扰恢复 ____ s / 阈值 ____ s           ✅/❌
+  数据出处：log/closed_loop_<timestamp>.csv（由 svc_logger 抓 ≥ 30s）
+  分析脚本：scripts/closed_loop_analyze.m（matlab 处理 → 5 指标）
+
+【J. 视觉容错指标（VISION TAG 强制 ★v2.2）】
+  丢帧恢复时间 ____ s / 阈值 ≤ 0.3 s        ✅/❌
+  目标失踪后进 SAFE 状态                    ✅/❌
+  目标重出现自动重捕获                      ✅/❌
+  光照三档检测率 100/500/1000 lux ≥ 90%     ✅/❌
+  多目标干扰锁定原目标                      ✅/❌
+  跟踪失败率 ____ % / 阈值 < 5%             ✅/❌
+  数据出处：log/vision_<timestamp>.csv + 测试视频回放
+
+【K. 机电安全红线（MOTOR TAG 强制 ★v2.2，critical failure 不允许重试）】
+  机械限位触发 → PWM 立即归零 + 告警        ✅/❌
+  电机堵转 30s → ERROR 状态 + 电流截止      ✅/❌
+  电池欠压 → SAFE + OLED 红警               ✅/❌
+  看门狗复位测试（强制 5s 死循环→IWDG）     ✅/❌
+  ERROR 状态禁止自动恢复（手动 reset）      ✅/❌
+  数据出处：现场人为触发 + 串口日志
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 问题清单（模块 | 文件 | 问题 | 修复方案）：
   [序号] [DRV/ALG] file.c — 问题 → 修复方案
