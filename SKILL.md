@@ -56,6 +56,11 @@ triggers:
   - "MICU 主板"
   - "MICU主板"
   - "CMIC 主板"
+  - "MSPM0"
+  - "MSPM0G3507"
+  - "TI MSPM0"
+  - "逐飞 MSPM0"
+  - "Seekfree MSPM0"
   - "嵌入式重构"
   - "嵌入式分层"
   - "HAL 封装"
@@ -84,7 +89,13 @@ hooks:
         - type: command
           command: "\"${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}/hooks/run-hook.cmd\" check-memory-files"
   PreToolUse:
-    - matcher: "Write|Edit|Bash"
+    - matcher: "Write|Edit|MultiEdit"
+      hooks:
+        - type: command
+          command: "\"${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}/hooks/run-hook.cmd\" pre-write-check.py"
+        - type: command
+          command: "\"${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}/hooks/run-hook.cmd\" inject-context"
+    - matcher: "Bash"
       hooks:
         - type: command
           command: "\"${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}/hooks/run-hook.cmd\" inject-context"
@@ -94,7 +105,7 @@ hooks:
         - type: command
           command: "\"${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}/hooks/run-hook.cmd\" remind-update"
 ---
-<!-- Hooks 设计：4 个事件（SessionStart / UserPromptSubmit / PreToolUse / PostToolUse）通过 hooks/run-hook.cmd polyglot 分流；fail-open；路径用 ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}。详见 refs/hooks-design.md。 -->
+<!-- Hooks 设计：4 个事件（SessionStart / UserPromptSubmit / PreToolUse / PostToolUse）通过 hooks/run-hook.cmd polyglot 分流。Write/Edit/MultiEdit 现有两层 hook：pre-write-check.py 做分层合规拦截（违规 exit 2 阻断），inject-context 注入上下文。Bash 仅注入上下文。Fail-open；路径用 ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}。详见 refs/hooks-design.md。 -->
 
 # RIPER-5 嵌入式芯片开发协议
 
@@ -146,6 +157,7 @@ hooks:
 | **RISC-V** | GD32VF103、CH32V307 | 厂商 SDK | 直接寄存器操作 |
 | **NXP** | LPC1768、i.MX RT | MCUXpresso SDK | CMSIS |
 | **TI MSP430** | MSP430F5529、MSP430G2553 | DriverLib | 直接寄存器操作 |
+| **TI MSPM0** | MSPM0G3507、MSPM0L 系列 | MSPM0 SDK + 逐飞 Seekfree 开源库 | TI DriverLib (DL_*) |
 | **国产芯片** | CH32、GD32、AT32、APM32 | 厂商标准库 | HAL 兼容层 |
 ### 语言设置
 - 所有常规交互回复使用**中文**
@@ -285,9 +297,11 @@ test -f /dev/null && echo "[embedded-dev] hooks env: ok" \
 | **驱动移植** | 先搜成熟驱动再决定自写 | `refs/driver-porting.md` |
 | **引脚规划** | 多外设并存必须查 pinout、检测冲突 | `refs/pin-planning.md` |
 | **故障排查** | 按症状（通信/外设/中断/启动/存储）速诊 | `refs/troubleshooting.md` |
+| **静态检查（REVIEW 阶段必跑）** | cppcheck + clang-tidy + lizard 三件套；机械化执行依赖方向 / 函数复杂度 / MISRA 子集检查 | `refs/static-analysis-pipeline.md` |
 | **IMU 姿态解算** | MPU6050/ICM20602/BMI088 等需逐项核对轴/量程/DLPF/滤波系数 | `refs/imu-gyroscope-checklist.md`，高精度场景 `refs/mahony-ahrs-reference.md` |
 | **STM32 StdPeriph / HAL API** | API/结构体/引脚映射/DMA 通道 — **优先查本地 refs**，缺失才走 Context7 / grok-search | `refs/stm32-stdperiph-api.md`、`refs/stm32-hal-api.md` |
 | **GD32F4xx 标准外设库** | API + 与 STM32 差异 + DMA × SUB 表 + GD32F470VET6 BSP 引脚 + Bootloader/UART OTA；仓库走四级解析链 | `refs/gd32f4xx-api.md`、`modes/gd32-board.md` |
+| **MSPM0G3507 + Seekfree 开源库** | TI MSPM0 SDK + 逐飞封装；11 外设 API + 21 设备驱动选型 + 11 例程对照；Cortex-M0+ 限制（无 LDREX / 无 FPU / 80 MHz）；仓库走四级解析链 | `refs/mspm0g3507-seekfree-api.md`、`modes/mspm0-board.md` |
 
 ---
 ## 任务文件模板
@@ -319,6 +333,7 @@ test -f /dev/null && echo "[embedded-dev] hooks env: ok" \
 | `查手册` / `查数据手册` / `datasheet` | 数据手册查阅（搜索→下载PDF→MCP解析→参数提取→代码注释） | `modes/datasheet-lookup.md` |
 | `逐飞` / `seekfree` / `英飞凌库` | 逐飞开源库管理（搜索→下载→本地索引→移植） | `modes/seekfree-lib.md` |
 | `GD32` / `GD32F470` / `GigaDevice` / `兆易` / `MICU 主板` / `CMIC 主板` | GD32F470VET6 主板模板（识别版本→选 Standalone/Bootloader→安装 Pack→拷贝模板→OTA） | `modes/gd32-board.md` |
+| `MSPM0` / `MSPM0G3507` / `TI MSPM0` / `逐飞 MSPM0` / `Seekfree MSPM0` | MSPM0G3507 主板模板（定位库→选起点例程→引脚禁用清单→移植到工程→Keil + DAP 烧录） | `modes/mspm0-board.md` |
 | `网表` / `netlist` / `读网表` / `查网表` | 网表读取（检测→解析→提取MCU引脚→比对资源表→应用代码） | `modes/netlist-lookup.md` |
 | `检查工具` / `检查mcp` / `测试工具` / `mcp检查` / `工具诊断` / `healthcheck` | MCP 工具健康检查（逐一测试→诊断→尝试修复→生成报告） | `modes/mcp-healthcheck.md` |
 调用规则：
