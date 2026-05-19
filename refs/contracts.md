@@ -61,11 +61,28 @@
 - 若流程中断，对应的失败分类
 - 推荐的下一步 skill
 
+## Agent 命名三层概念（v2.1 必读）
+
+工作流出现三个易混名词，强制按下表区分：
+
+| 概念 | 含义 | 取值范围 | 出现位置 |
+|---|---|---|---|
+| **agent_id** | subagent 在 Outcome / Ticket 里自报家门 | 与 `subagent_type` 同名 | `Outcome.owner_agent` / `Ticket.owner_agent` |
+| **subagent_type** | Task tool 派发时的类型字符串 | `embedded-arch` / `embedded-drv` / `embedded-alg` / `embedded-qa` / `embedded-matlab` / `embedded-vision` / `embedded-report`（共 7 个）| `Task(subagent_type="...")` |
+| **ROLE** | 写子清单时用的角色短名 | `DRV` / `ALG` / `QA` / `MATLAB` / `VISION` / `REPORT`（共 **6 个**，无 ARCH）| `编辑清单_<ROLE>.md` 文件名 |
+
+**关键区分**：
+- ARCH 是 subagent_type / agent_id 之一，但**不是 ROLE**（ARCH 只合并主清单，自己不写子清单）
+- 因此**不应出现** `编辑清单_ARCH.md`；ARCH 的工作记录直接进 `编辑清单.md` 主清单 + `项目规划清单.md` 的 `competition_state`
+- subagent_type 用全名 `embedded-xxx`，ROLE 用短名大写 `XXX`，**不要混用**
+
 ## 比赛状态机（Competition State）★v2
 
 比赛模式 v2 的全局状态由"当前 CP + 状态机"显式表达，不允许 Agent 靠自然语言推进。
 
 **写入位置（强制）**：`项目规划清单.md` 的**第一个 fenced YAML 块**（即文件 `# 项目规划清单` 标题之后立即出现的 ```yaml ... ``` 块）。由 `embedded-arch` 写入，所有 subagent 只读。自动解析工具按"第一个 yaml fence"定位，不要嵌入 `## XXX` 节内。
+
+**字段（共 8 个，含 trace_id）**：`trace_id` / `current_cp` / `state` / `blocked_by` / `passed_cps` / `active_agents` / `defect_queue` / `retry_table`。任何文档/示例引用本节时按这 8 个为准，不要简化为"5 字段"或"几个核心字段"。
 
 格式如下：
 
@@ -119,8 +136,19 @@ competition_state:
 1. `current_cp` 字段是唯一真相源；不允许 Agent 跳 CP（如 CP-1 直接跳 CP-3）
 2. 任何 Agent 看到 `state=blocked` 时必须**只读不写**，等待 arch 解除阻塞
 3. `passed_cps` 按时间顺序追加，不允许覆盖；回档时新增 `rollback` 字段（不删 entry）
-4. `retry_table` 按 `root_cause_id` 全局计数；同根因第 3 次 failure → STOP + 写 `研究发现.md`
-5. **跨 CP 窗口规则**★v2.1：`root_cause_id` 计数**跨 CP 累计，不重置**。即同一根因在 CP-1.5、CP-2、CP-3 反复出现时，计数共用一个 retry_table[root_cause_id] 槽位。例外：`failure_category=realtime-violation` 重试上限 2 次（其他类 3 次），见 `failure-taxonomy.md`。**禁止**通过改 root_cause_id 名字绕过全局计数
+4. `retry_table` 按 `root_cause_id` 全局计数；累计达到预算即 STOP + 写 `研究发现.md`
+5. **跨 CP 累计规则**★v2.1：`root_cause_id` 计数**跨 CP 累计，不重置**。同根因在 CP-1.5、CP-2、CP-3 反复出现时，计数共用一个 `retry_table[root_cause_id]` 槽位。**禁止**改名绕过；CP 切换不清零；不要再用"连续 N 次"的旧表述。
+6. **预算公式**★v2.1：
+   ```
+   retry_budget(root_cause_id) = min(
+       category_budget(failure_category),
+       severity_budget(ticket.severity)
+   )
+   ```
+   累计达到 budget 即 STOP。其中：
+   - `category_budget`：默认 3，例外 `realtime-violation=2` / `environment-missing=0` / `connection-failure=0` / `permission-problem=0` / `ambiguous-context=0`（见 `failure-taxonomy.md`）
+   - `severity_budget`：`critical=0`（1 次后必须人工裁决）/ `high=按 category` / `medium=按 category` / `low=排队不阻断门禁`
+   - 取 min 意为"最严的那个先生效"
 
 ### Competition State 与 git tag 一一对应
 
@@ -203,6 +231,26 @@ ARCH 唤起 QA 复测（带 rerun_command）→ QA 验证
 2. **owner_agent 是必填字段** — 由 QA 据失败现象 + failure-taxonomy.md 决定，不能写 `unknown`
 3. **同 root_cause_id 在所有 ticket 间共享重试计数**（替代旧版按 Agent 各计 3 次）
 4. **resolved 的 ticket 不允许删除** — 只能改 status，保留可审计性
+
+### 多 Ticket 排序规则（ARCH 收到 ≥ 2 ticket 时）★v2.1
+
+ARCH 派 Task 修复时按以下顺序处理 `defect_queue`（先满足上层，相同再看下层）：
+
+1. **`blocking_cp`** 升序（CP 越早被阻塞的先修，让流水线尽快前进）
+2. **`severity`** 降序（critical > high > medium > low）
+3. **`retry_count_global` 剩余配额** 升序（已用 2/3 的优先修，避免再失败就 STOP）
+4. **`created_at`** 升序（同优先级按 QA 发现顺序）
+
+```python
+defect_queue.sort(key=lambda t: (
+    cp_order(t.blocking_cp),
+    -severity_rank(t.severity),
+    retry_budget(t.root_cause_id) - t.retry_count_global,
+    t.created_at,
+))
+```
+
+同 `owner_agent` 的多 ticket 合并成 1 次 Task 派发（prompt 列全部 ticket），减少 token。
 
 ## 命令结果结构（Command Outcome Schema）
 

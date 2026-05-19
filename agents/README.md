@@ -61,31 +61,49 @@ embedded-vision.md
 
 少任何一个 → 重跑方式 1 的 cp 命令。
 
-### 验证步骤 2：Claude Code 识别
+### 验证步骤 2：Claude Code 识别（人工肉眼检查）
 
-在 Claude Code 主对话窗口里输入：
+⚠️ **Claude Code 不提供"列出 subagent"的程序化命令**，本步骤是**人工交互验收**：
+
+启动新 Claude Code 会话后，输入：
 
 ```
-列出当前可用的 subagent
+什么是 embedded-arch subagent？
 ```
 
-期望 Claude 列出 7 个 embedded-* 类型。**如果列表里没有 embedded-***，说明 Claude Code 启动时没扫到。重启 Claude Code 或检查路径。
+观察 Claude 的回答：
 
-### 验证步骤 3：dry-run 调用
+- ✅ 通过：回答提到"我可以通过 Task 工具派发 subagent_type=embedded-arch"，或直接引用 `agents/embedded-arch.md` 描述
+- ❌ 失败：回答说"没有这个 subagent"、"我不清楚"，或泛泛而谈嵌入式架构师
+- ⚠️ 不确定：Claude 编造内容（自动假定存在但内容与 `agents/embedded-arch.md` 不符）
+
+**注意**：这种"问 Claude"的方式**不是机器可保证的**，只能提高把握度。最终判定要看步骤 3+4 的 dry-run 实际产出。
+
+### 验证步骤 3：dry-run 调用（强制 JSON 严格输出）
 
 ```
 请用 Task(subagent_type="embedded-arch", description="identity check",
-       prompt="你是哪个 subagent？只回 owner_agent + model + 一句自我介绍。")
+       prompt='只输出严格 JSON 三键，多余文本/markdown 即视为失败:
+       {"agent_id":"<你的 subagent_type 字符串>",
+        "model":"<frontmatter 的 model 字段>",
+        "writes_role_file":"<true 或 false，你是否产出 编辑清单_<ROLE>.md>"}')
 ```
 
-期望返回包含 `owner_agent: embedded-arch` + `model: opus` + "我是嵌入式比赛架构师..."。
+期望严格返回（精确这 3 键，不多不少，无 markdown 包装）：
+
+```json
+{"agent_id":"embedded-arch","model":"opus","writes_role_file":"false"}
+```
 
 **失败特征（静默回退 general-purpose）**：
-- 返回里 owner_agent 不是 embedded-arch
-- 自我介绍泛泛而谈不提"嵌入式比赛"或"VoltAgent 风格"
-- Outcome 字段不全（缺 trace_id / artifact_paths 等）
+- 返回有任何 markdown 包装 / 寒暄 / 说明文字 → 不是真正的 embedded-arch
+- `agent_id` 不是 `embedded-arch`
+- `model` 不是 `opus`
+- `writes_role_file` 不是 `false`（ARCH 不写子清单，仅合并主清单 — 见 `refs/contracts.md §Agent 命名三层概念`）
 
-任一特征出现 → subagent 未注册，立即排查 `~/.claude/agents/` 路径。
+任一特征出现 → subagent 未注册或被 general-purpose 拦截，立即排查 `~/.claude/agents/` 路径。
+
+> 对其他 6 个 subagent（drv/alg/qa/matlab/vision/report），`writes_role_file` 应为 `true`，`model` 视 frontmatter 而定。可批量验装。
 
 ### 验证步骤 4：Outcome schema 一致
 

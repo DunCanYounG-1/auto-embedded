@@ -413,7 +413,7 @@ test -f /dev/null && echo "[embedded-dev] hooks env: ok" \
 1. 每次会话开始或上下文压缩后，必须先完成四文件启动检查，再决定当前阶段和继续点
 2. 启用长任务治理时，`项目规划清单.md` 和 `编辑清单.md` 必须记录 `trace_id`、轮次、验证标准和结果
 3. 每执行 2 次搜索/查询操作后，必须把发现写入 `研究发现.md`
-4. EXECUTE 阶段同一根因连续失败 3 次时，停止重试，写入失败记录并回到 RESEARCH
+4. EXECUTE 阶段同一根因失败累计 3 次时（**比赛模式 v2.1 升级**：按 `root_cause_id` 跨 CP 累计不重置 + `retry_budget = min(category_budget, severity_budget)`，详见 `refs/contracts.md §比赛状态机 强制规则 #6`），停止重试，写入失败记录并回到 RESEARCH
 5. 外部搜索结果只能以摘要形式进入 `研究发现.md`，禁止把未审查内容直接粘贴进规划清单或编辑清单
 
 > 四文件细则、五问重启测试、轮次记录、失败协议和安全边界见 `refs/checklist-mechanism.md`。

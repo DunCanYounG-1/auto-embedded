@@ -128,8 +128,13 @@ hal_status_t svc_config_set_ratio(float r);
 QA 失败时不再以"自然语言通知"传回，而是以 **Defect Ticket** 形式（完整 schema 见 `refs/contracts.md` §Defect Ticket Schema）写到 `competition_state.defect_queue` 和 `编辑清单_QA.md`。你的处理流程：
 
 1. **读 defect_queue**：从 `项目规划清单.md` 的 `competition_state.defect_queue` 取出 `status=open` 的 ticket
-2. **检查 retry_count_global**：若同 `root_cause_id` 已 ≥ 3 → 直接 STOP，写 `研究发现.md`，escalate 给用户（不再自动重试）
-3. **按 owner_agent 字段定向回派**（不要再用直觉判断派谁）：
+2. **按 v2.1 排序规则**（详见 `refs/contracts.md §多 Ticket 排序规则`）：
+   - 一级：`blocking_cp` 升序（早期 CP 优先）
+   - 二级：`severity` 降序（critical > high > medium > low）
+   - 三级：`retry_budget(root_cause_id) - retry_count_global` 升序（接近预算的优先）
+   - 四级：`created_at` 升序
+3. **检查 retry 预算**：若 `retry_count_global ≥ retry_budget`（由 `min(category_budget, severity_budget)` 算出，见 contracts.md §强制规则 #6）→ STOP，写 `研究发现.md`，escalate 给用户
+4. **按 owner_agent 字段定向回派**（不要再用直觉判断派谁）：
 
 ```python
 # 单 ticket 修复 — 派一个 Agent
