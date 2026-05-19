@@ -97,10 +97,20 @@ SEEKFREE_DRIVER_PATTERNS = [
     re.compile(r"^zf_driver_[a-z0-9_]+\.h$", re.IGNORECASE),
     re.compile(r"^zf_device_[a-z0-9_]+\.h$", re.IGNORECASE),
 ]
-# Seekfree 公共基础设施（typedef / debug / fifo / func）→ L0 vendor
-# 这些文件本身依赖厂商头 + 提供底层类型定义，应视为 vendor 套件的一部分
-SEEKFREE_COMMON_PATTERNS = [
-    re.compile(r"^zf_common_[a-z0-9_]+\.h$", re.IGNORECASE),
+# Seekfree 公共基础设施细分：
+# - L1 HAL 接口（允许 app 层直接 include，类似 stdint.h 角色）：
+#   类型 / 函数库 / 调试 / FIFO / 字体 — 不直接调用厂商寄存器
+# - L0 vendor（仍视为底层）：clock_init / interrupt / 含厂商代码
+SEEKFREE_COMMON_L1_PATTERNS = [
+    re.compile(r"^zf_common_typedef\.h$", re.IGNORECASE),    # 类型基础 (uint8/PID_T)
+    re.compile(r"^zf_common_function\.h$", re.IGNORECASE),   # 数学/PID/限幅工具
+    re.compile(r"^zf_common_debug\.h$", re.IGNORECASE),      # 调试断言/printf 接口
+    re.compile(r"^zf_common_fifo\.h$", re.IGNORECASE),       # 通用 FIFO 数据结构
+    re.compile(r"^zf_common_font\.h$", re.IGNORECASE),       # 字体数据
+]
+SEEKFREE_COMMON_L0_PATTERNS = [
+    re.compile(r"^zf_common_clock\.h$", re.IGNORECASE),      # 时钟初始化，含厂商代码
+    re.compile(r"^zf_common_interrupt\.h$", re.IGNORECASE),  # 中断框架，含厂商代码
 ]
 # Seekfree 高层组件（菜单 / 摄像头处理 / 编排）→ L4 middleware
 SEEKFREE_COMPONENT_PATTERNS = [
@@ -147,9 +157,13 @@ def classify_file(path: str) -> float:
     if re.search(r"(^|/)hal/ports/[^/]+/", norm):
         return L_HAL_ADAPTER
 
-    # ===== L0 Seekfree 公共基础设施（zf_common_*）=====
-    # 注意：必须在 L3 driver 检查之前 — zf_common_typedef.h 不该被当 driver
-    for pat in SEEKFREE_COMMON_PATTERNS:
+    # ===== Seekfree 公共基础设施分级（必须在 L3 driver 检查之前）=====
+    # 类型 / 函数 / 调试 / FIFO / 字体 → L1（允许 app 层 include）
+    for pat in SEEKFREE_COMMON_L1_PATTERNS:
+        if pat.match(basename):
+            return L_HAL
+    # 时钟 / 中断（含厂商代码）→ L0
+    for pat in SEEKFREE_COMMON_L0_PATTERNS:
         if pat.match(basename):
             return L_VENDOR
 
@@ -245,6 +259,8 @@ def compute_transitive_layers(rel: str, basename_index: dict,
                               max_depth: int = 3) -> set:
     """BFS 计算 rel 的传递 include 闭包内出现过的所有层级。
 
+    L1 HAL 接口对上层是黑盒 —— 不穿透其内部 include 看下层（接口黑盒原则）。
+
     返回经过的层级集合（不含 rel 自身）。
     """
     seen = set()
@@ -255,6 +271,11 @@ def compute_transitive_layers(rel: str, basename_index: dict,
         if cur in seen or depth > max_depth:
             continue
         seen.add(cur)
+        # L1 HAL 接口：进入即可，不继续穿透（接口黑盒）
+        cur_layer = file_layers.get(cur, classify_file(cur))
+        if cur != rel and cur_layer == L_HAL:
+            layers_seen.add(L_HAL)
+            continue
         for inc_base in direct_includes.get(cur, []):
             # 基于 basename 推断目标层级（即使工程内没有这个文件）
             guess_layer = classify_file(inc_base)
@@ -279,7 +300,7 @@ def check_transitive_violations(file_layers: dict, basename_index: dict,
         if L_VENDOR in transitive:
             # 找到第一条传递路径作为证据
             path = trace_path_to_vendor(rel, basename_index, direct_includes,
-                                       max_depth=3)
+                                       max_depth=3, file_layers=file_layers)
             path_str = " -> ".join(path) if path else "(unknown)"
             violations.append((
                 rel, layer, "L0 vendor", L_VENDOR,
@@ -289,8 +310,12 @@ def check_transitive_violations(file_layers: dict, basename_index: dict,
 
 
 def trace_path_to_vendor(start: str, basename_index: dict,
-                          direct_includes: dict, max_depth: int = 3) -> list:
-    """BFS 找到最短一条从 start 到任意厂商头的 include 路径。"""
+                          direct_includes: dict, max_depth: int = 3,
+                          file_layers: dict = None) -> list:
+    """BFS 找到最短一条从 start 到任意厂商头的 include 路径。
+
+    L1 HAL 接口黑盒：不穿透 L1 看其内部依赖（与 compute_transitive_layers 一致）。
+    """
     queue = [(start, [start])]
     seen = set()
     while queue:
@@ -298,6 +323,11 @@ def trace_path_to_vendor(start: str, basename_index: dict,
         if cur in seen or len(path) > max_depth + 1:
             continue
         seen.add(cur)
+        # L1 HAL 接口黑盒
+        if file_layers is not None and cur != start:
+            cur_layer = file_layers.get(cur, classify_file(cur))
+            if cur_layer == L_HAL:
+                continue
         for inc_base in direct_includes.get(cur, []):
             if classify_file(inc_base) == L_VENDOR:
                 return path + [inc_base]
