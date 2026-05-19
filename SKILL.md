@@ -442,7 +442,7 @@ test -f /dev/null && echo "[embedded-dev] hooks env: ok" \
 | **静态检查（REVIEW 阶段必跑）** | cppcheck + clang-tidy + lizard 三件套；机械化执行依赖方向 / 函数复杂度 / MISRA 子集检查 | `refs/static-analysis-pipeline.md` |
 | **IMU 姿态解算** | 通用 checklist 逐项核对轴映射/量程/DLPF/滤波系数（适用 MPU6050/ICM20602/BMI088/LSM6DS3 等 6/9 轴 IMU）；6 轴四元数高精度算法 → Mahony 参考 | `refs/imu-gyroscope-checklist.md`，6 轴 Mahony 算法 `refs/mahony-ahrs-reference.md` |
 | **STM32 StdPeriph / HAL API** | API/结构体/引脚映射/DMA 通道 — **优先查本地 refs**，缺失才走 Context7 / grok-search | `refs/stm32-stdperiph-api.md`、`refs/stm32-hal-api.md` |
-| **GD32F4xx 标准外设库** | API + 与 STM32 差异 + DMA × SUB 节选表（完整全量表在 `doc/DMA_CHANNEL_MAP.md`）+ GD32F470VET6 BSP 引脚 + Bootloader/UART OTA；仓库走四级解析链 | `refs/gd32f4xx-api.md`、`modes/gd32-board.md` |
+| **GD32F4xx 标准外设库** | API + 与 STM32 差异 + DMA × SUB 节选表（完整全量表见 `refs/gd32f4xx-api.md` §6 → GD32 仓库内 `doc/DMA_CHANNEL_MAP.md`）+ GD32F470VET6 BSP 引脚 + Bootloader/UART OTA；仓库走四级解析链 | `refs/gd32f4xx-api.md`、`modes/gd32-board.md` |
 | **MSPM0G3507 + Seekfree 开源库** | Seekfree `zf_driver/zf_device` API + 工程结构（底层基于 TI MSPM0 SDK）；11 外设 API + 21 设备驱动选型 + 11 例程对照；Cortex-M0+ 限制（无 LDREX / 无 FPU / 80 MHz）；仓库走四级解析链 | `refs/mspm0g3507-seekfree-api.md`、`modes/mspm0-board.md` |
 | **跨平台迁移策略** | 在 STM32/ESP32/Arduino/RISC-V/NXP/TI/国产之间迁移时必须重算的项（时钟 / IRQ 优先级 / 端口隔离），与 `platform-compatibility.md` 互补（前者讲"怎么迁"，后者讲"运行时差异"）| `refs/platform-migration.md` |
 
