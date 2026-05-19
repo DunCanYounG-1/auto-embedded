@@ -186,5 +186,4 @@ next_action: <e.g. "ALG can include lqr_gains.h">
 - One-click pipeline: `modes/matlab-firmware-pipeline.md`
 - LQR examples: `refs/lqr-example-segway.md` / `refs/lqr-example-bicycle-cornell.md`
 - DDS / AM / THD examples: `refs/matlab-example-*.md`
-- Smart car vision: `refs/matlab-example-smartcar-vision.md`
 - Export tool: `tools/export_gains_to_c.py --help`

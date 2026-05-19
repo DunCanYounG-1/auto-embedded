@@ -1,8 +1,10 @@
-# Embedded-Dev 7 Subagents
+# Embedded-Dev 6 Subagents
 
-> 比赛模式 v2 的 7 角色，按 [VoltAgent](https://github.com/VoltAgent/awesome-claude-code-subagents) 标准格式拆成 7 个可独立调用的 Claude Code subagent。
+> 比赛模式 v2 的 6 角色，按 [VoltAgent](https://github.com/VoltAgent/awesome-claude-code-subagents) 标准格式拆成 6 个可独立调用的 Claude Code subagent。
 >
 > 优势：每个 subagent 在独立 context 中跑，主线 [ARCH] 收紧凑回传，可并行派多个，主上下文不爆。
+>
+> **范围说明**：本 skill 只覆盖 控制 / 计算 / 底层驱动。视觉相关任务（含摄像头驱动 / 图像处理 / 模型部署 to KPU/NPU）由独立 `auto-vison` skill 承担。
 
 ---
 
@@ -19,7 +21,7 @@ cp "$HOME/.claude/skills/embedded-dev/agents/embedded-"*.md "$HOME/.claude/agent
 
 # 或软链（推荐，源文件改动自动同步）
 ln -sf "$HOME/.claude/skills/embedded-dev/agents/embedded-arch.md" "$HOME/.claude/agents/"
-# 重复其他 6 个
+# 重复其他 5 个
 ```
 
 ### 方式 2：项目本地
@@ -45,7 +47,7 @@ cp "$HOME/.claude/skills/embedded-dev/agents/embedded-"*.md .claude/agents/
 ```bash
 # Git Bash / WSL
 ls ~/.claude/agents/embedded-*.md
-# 应看到 7 个：arch / drv / alg / qa / matlab / vision / report
+# 应看到 6 个：arch / drv / alg / qa / matlab / report
 ```
 
 预期输出：
@@ -56,7 +58,6 @@ embedded-drv.md
 embedded-matlab.md
 embedded-qa.md
 embedded-report.md
-embedded-vision.md
 ```
 
 少任何一个 → 重跑方式 1 的 cp 命令。
@@ -103,7 +104,7 @@ embedded-vision.md
 
 任一特征出现 → subagent 未注册或被 general-purpose 拦截，立即排查 `~/.claude/agents/` 路径。
 
-> 对其他 6 个 subagent（drv/alg/qa/matlab/vision/report），`writes_role_file` 应为 `true`，`model` 视 frontmatter 而定。可批量验装。
+> 对其他 5 个 subagent（drv/alg/qa/matlab/report），`writes_role_file` 应为 `true`，`model` 视 frontmatter 而定。可批量验装。
 
 ### 验证步骤 4：Outcome schema 一致
 
@@ -111,7 +112,7 @@ embedded-vision.md
 
 ---
 
-## 7 个 Subagent 速查
+## 6 个 Subagent 速查
 
 | Subagent | 用途 | 何时派 | 默认模型 |
 |---|---|---|---|
@@ -121,9 +122,10 @@ embedded-vision.md
 | `embedded-qa` | 静态检查 / MIL/SIL/PIL / 5 元组验收 | 任何题（必派）| sonnet |
 | `embedded-report` | 报告 / 答辩 why-evidence | 任何题（必派）| sonnet |
 | `embedded-matlab` | 算法仿真 / `.h` 导出 | MAIN ≠ SYSTEM 或 SYSTEM 含 FFT/RF 标签 | opus |
-| `embedded-vision` | 摄像头 / 视觉处理 | TAGS 含 `VISION` | sonnet |
 
-最少 4 必派（ARCH/DRV/ALG/QA），最多 7 全派。按 `refs/competition-task-router.md` §2 决定。
+最少 4 必派（ARCH/DRV/ALG/QA），最多 6 全派。按 `refs/competition-task-router.md` §2 决定。
+
+**视觉任务外派**：含摄像头/赛道识别/目标追踪的题目，由独立 `auto-vison` skill 承担。通过 Skill Handoff Contract 调用，产物（`.h` / `.kmodel` / `.rknn`）由本 skill 的 `embedded-alg` 消费。
 
 ---
 

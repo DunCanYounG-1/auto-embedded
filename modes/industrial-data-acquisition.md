@@ -6,7 +6,7 @@
 >
 > **入口前置**：由 `refs/competition-task-router.md` 在 [ARCH] 第 0 步判定为**题型 E（系统集成）**时调用本 mode。题目特化细节（如 CIMC 的 sysFunction/ 命名 + 100 分追踪表 + hide 真值表）见 `refs/example-siemens-cimc-2025.md`，本 mode 只保留**所有工业集成题通用**的结构。
 >
-> **何时不用本 mode**：纯算法题（DDS / LQR / FFT 等）→ 走 MATLAB 工具箱；视觉/电磁循迹 → 走竞赛 E4/E7。
+> **何时不用本 mode**：纯算法题（DDS / LQR / FFT 等）→ 走 MATLAB 工具箱；视觉题 → 走独立 `auto-vison` skill；电磁循迹 → 走 `modes/matlab-toolkit-competition.md` E7。
 
 ---
 
@@ -21,7 +21,8 @@
 │
 ├── 算 K 矩阵 / 滤波系数 / FFT  → 走 matlab-embedded-toolkit.md（不要走本 mode）
 │
-├── 摄像头循迹 / 电磁循迹      → 走 matlab-toolkit-competition E4/E7
+├── 摄像头循迹                 → 走独立 `auto-vison` skill
+├── 电磁循迹                   → 走 matlab-toolkit-competition E7
 │
 ├── 输出特定波形（DDS）         → 走 matlab-toolkit-competition E1
 │

@@ -139,20 +139,19 @@ competition_state:
 
 ### 编辑清单_<ROLE>.md 子清单（v2.1）
 
-**命名约定（强制）**：`<ROLE>` 必须是**大写枚举**，从下列 6 个中选 1 个：
+**命名约定（强制）**：`<ROLE>` 必须是**大写枚举**，从下列 5 个中选 1 个：
 
 ```
 编辑清单_DRV.md      ← embedded-drv 写
 编辑清单_ALG.md      ← embedded-alg 写
 编辑清单_QA.md       ← embedded-qa 写
 编辑清单_MATLAB.md   ← embedded-matlab 写
-编辑清单_VISION.md   ← embedded-vision 写
 编辑清单_REPORT.md   ← embedded-report 写
 ```
 
 **禁止**：小写（`_drv.md`）、混合大小写（`_Drv.md`）、placeholder 字面值（`_<role>.md`、`_role.md`）。Linux/Git/Claude 字面解读敏感，必须严格大写。
 
-7 个 subagent 各自维护一个 `编辑清单_<ROLE>.md`（避免并行写冲突），arch 在 CP-2 末尾合并到主 `编辑清单.md`：
+6 个 subagent 各自维护一个 `编辑清单_<ROLE>.md`（避免并行写冲突），arch 在 CP-2 末尾合并到主 `编辑清单.md`：
 
 ```markdown
 # 编辑清单_DRV   （embedded-drv 写）

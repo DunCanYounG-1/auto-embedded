@@ -1,8 +1,10 @@
 # MATLAB 嵌入式工具箱 — 大学生竞赛专题
 
-> 辅助型 mode — 不替代 RIPER-5。在 `modes/matlab-embedded-toolkit.md`（10 场景主线）之外，针对**全国大学生电子设计竞赛**（电赛）和**全国大学生智能汽车竞赛**（NXP 杯 / 原飞思卡尔杯）的常见题型，新增 7 个专项场景 E1–E7。
+> 辅助型 mode — 不替代 RIPER-5。在 `modes/matlab-embedded-toolkit.md`（10 场景主线）之外，针对**全国大学生电子设计竞赛**（电赛）常见题型，提供 6 个专项场景 E1-E3 + E5-E7。
 >
-> **核心差异化**：主线工具箱按"算法门类"组织（滤波 / 控制 / 辨识 ...），本竞赛专题按"赛题门类"组织（信号源 / 调制解调 / 仪表 / 视觉 ...），并且每场景配一段"历年赛题对应"指明能解哪些题。
+> **核心差异化**：主线工具箱按"算法门类"组织（滤波 / 控制 / 辨识 ...），本竞赛专题按"赛题门类"组织（信号源 / 调制解调 / 仪表 ...），并且每场景配一段"历年赛题对应"指明能解哪些题。
+>
+> **范围说明**：E4（视觉处理）已剥离至独立 `auto-vison` skill。本 mode 只覆盖控制 / 计算类竞赛题，含摄像头 / 赛道识别 / 目标追踪的题目由 `auto-vison` skill 承担。
 
 ---
 
@@ -10,13 +12,13 @@
 
 ### 0.1 触发词
 
-`电赛` / `电子设计竞赛` / `全国大学生电子设计竞赛` / `智能车` / `NXP杯` / `恩智浦杯` / `飞思卡尔` / `DDS` / `信号发生器` / `波形合成` / `调制` / `解调` / `AM` / `FM` / `ASK` / `FSK` / `PSK` / `调制度` / `失真度` / `THD` / `SFDR` / `谐波分析` / `频率计` / `频谱仪` / `自适应滤波` / `LMS` / `RLS` / `自适应噪声抵消` / `摄像头循迹` / `视觉处理` / `赛道识别` / `鱼眼校正` / `透视变换` / `中线提取` / `电磁循迹` / `差比和` / `Simscape` / `电路仿真` / `运放仿真`
+`电赛` / `电子设计竞赛` / `全国大学生电子设计竞赛` / `DDS` / `信号发生器` / `波形合成` / `调制` / `解调` / `AM` / `FM` / `ASK` / `FSK` / `PSK` / `调制度` / `失真度` / `THD` / `SFDR` / `谐波分析` / `频率计` / `频谱仪` / `自适应滤波` / `LMS` / `RLS` / `自适应噪声抵消` / `电磁循迹` / `差比和` / `Simscape` / `电路仿真` / `运放仿真`
 
 ### 0.2 适用判断
 
 | 你的情况 | 入口 |
 |---|---|
-| 我在打电赛 / 智能车，想看历年题怎么解 | 本 mode + `refs/competition-index.md` |
+| 我在打电赛，想看历年题怎么解 | 本 mode + `refs/competition-index.md` |
 | 我有一个具体算法要落到 MCU（不分赛事） | 走主线 `modes/matlab-embedded-toolkit.md`（10 场景） |
 | 我想做 MATLAB 算 → 编译 → 烧 → 实测 全闭环 | `modes/matlab-firmware-pipeline.md` |
 | 完全零基础，第一次接触 | `refs/matlab-hello-5min.md` |
@@ -37,8 +39,8 @@
 ├── 测量信号本身的指标（精确频率 / THD / SFDR / 噪底）
 │    → E3：测量仪表
 │
-├── 让小车看摄像头跟着赛道跑
-│    → E4：智能车视觉处理
+├── 含摄像头 / 视觉处理
+│    → 调用独立 `auto-vison` skill（不在本 mode）
 │
 ├── 信号里混进了未知噪声 / 干扰，要"学着"滤掉
 │    → E5：自适应滤波（LMS / RLS）
@@ -54,14 +56,13 @@
 
 ## 1. 通用前置：竞赛场景下的 MATLAB 工具箱依赖
 
-针对竞赛场景做的 toolbox 速查（按场景 E1-E7）：
+针对竞赛场景做的 toolbox 速查（按场景 E1-E3 + E5-E7）：
 
 | 场景 | 最低必需 toolbox | 推荐 toolbox | 缺装替代 |
 |---|---|---|---|
 | E1 DDS | MATLAB Base | DSP System Toolbox | 用 Base 算 sin LUT 即可 |
 | E2 调制解调 | Communications Toolbox | Signal Processing | scipy.signal + commpy |
 | E3 测量仪表 | Signal Processing Toolbox | DSP / Audio | scipy.signal |
-| E4 视觉 | Image Processing Toolbox | Computer Vision | OpenCV (cv2) |
 | E5 自适应滤波 | DSP System Toolbox | — | scipy + 手写 LMS |
 | E6 Simscape 电路 | Simscape Electrical | Simscape | PSpice / LTspice |
 | E7 电磁循迹 | MATLAB Base | Signal Processing | numpy |
@@ -488,151 +489,13 @@ void measure(float *samples, float *f_est, float *thd_db) {
 
 ---
 
-## 5. 场景 E4：智能车视觉处理（"小车看摄像头跟着赛道跑"）
+## 5. 场景 E4：视觉处理 → 已迁出
 
-> NXP 智能车视觉组核心。MATLAB Image Processing / Computer Vision Toolbox 提供完整工具链，最大价值是**离线算法仿真验证**（在 PC 上调好阈值 / 阶次 / 鱼眼参数，再部署 MCU）。
+视觉相关算法（摄像头标定 / 鱼眼校正 / 二值化 / 透视变换 / 中线提取 / 目标检测 / 模型部署到 KPU / NPU）由独立 **`auto-vison` skill** 承担。
 
-### A. 你需要准备什么数据 / 硬件
+调用方式：embedded-arch 在 CP-1.5 通过 Skill Handoff Contract（详见 `refs/contracts.md`）派给 auto-vison skill，其产物（`.h` / `.kmodel` / `.rknn`）由 embedded-alg 在 CP-2 消费。
 
-- 摄像头分辨率（典型 188×120 或 320×240）
-- 几张赛道实拍图（不同光照 / 弯道 / 直道）
-- 标定板（棋盘格 9×6 或 OpenCV charuco）
-- 硬件：STM32H7 / NXP RT1060 / MCXVision
-
-### B. 我会做什么（完整链路）
-
-```python
-mcp__matlab__evaluate_matlab_code(code="""
-    %% Step 1：鱼眼/广角畸变标定（一次性）
-    % 拍 20 张棋盘格图，images = imageDatastore('cal/');
-    % [imagePoints, boardSize] = detectCheckerboardPoints(images.Files);
-    % squareSize = 25;  % mm
-    % worldPoints = generateCheckerboardPoints(boardSize, squareSize);
-    % cameraParams = estimateCameraParameters(imagePoints, worldPoints);
-    % save('cam_params.mat', 'cameraParams');
-
-    %% Step 2：单张图处理流程
-    img = imread('track_sample.png');
-    if size(img,3) == 3, img = rgb2gray(img); end
-
-    % 去畸变
-    % load('cam_params.mat');
-    % img_undist = undistortImage(img, cameraParams);
-
-    % 二值化（OTSU 自适应）
-    level = graythresh(img);
-    bw = imbinarize(img, level);
-
-    % Sobel 边缘
-    edges = edge(img, 'sobel');
-
-    % 透视变换（IPM 逆透视）→ 鸟瞰图
-    % src_pts: 图像 4 个角  dst_pts: 真实坐标对应
-    src_pts = [40, 100; 150, 100; 188, 119; 0, 119];
-    dst_pts = [0, 0; 100, 0; 100, 200; 0, 200];
-    tform = fitgeotrans(src_pts, dst_pts, 'projective');
-    bird_view = imwarp(bw, tform);
-
-    % 中线提取（逐行扫线）
-    [H, W] = size(bw);
-    centerline = zeros(H, 1);
-    for r = 1:H
-        row = bw(r, :);
-        left  = find(row == 1, 1, 'first');
-        right = find(row == 1, 1, 'last');
-        if ~isempty(left) && ~isempty(right)
-            centerline(r) = (left + right) / 2;
-        else
-            centerline(r) = W/2;        % 缺边时用上一行
-        end
-    end
-
-    figure;
-    subplot(2,2,1); imshow(img); title('原图');
-    subplot(2,2,2); imshow(bw); title('二值化');
-    subplot(2,2,3); imshow(edges); title('Sobel 边缘');
-    subplot(2,2,4); imshow(bird_view); title('鸟瞰图');
-    hold on; plot(centerline, 1:H, 'r-', 'LineWidth', 2);
-
-    save('vision_pipeline.mat', 'level', 'tform', 'centerline');
-""")
-```
-
-### C. 你拿到什么
-
-| 产物 | 用途 |
-|---|---|
-| 摄像头标定参数 `cameraParams.mat` | 一次性，烧到 Flash |
-| 二值化阈值 `level` | 实时自适应或固定 |
-| 透视变换矩阵 `tform.T` (3×3) | 实时矩阵乘 |
-| 中线提取算法 .m | 直接转 C |
-| 实拍图测试通过率 | 算法鲁棒性证据 |
-
-### D. 怎么落到 MCU
-
-**导出透视变换矩阵**：
-
-```bash
-python "C:\Users\A\.claude\skills\embedded-dev\tools\export_gains_to_c.py" ^
-    --input vision_pipeline.mat --mat-var tform.T ^
-    --output app\vision\perspective.h --name PERSPECTIVE_MATRIX --type float
-```
-
-**MCU 端核心循环**（STM32H7 实时处理 120 FPS @ 188×120）：
-
-```c
-/* app/vision/track_detect.c */
-#include "perspective.h"
-#include <stdint.h>
-
-#define IMG_W 188
-#define IMG_H 120
-#define THRESHOLD 128
-
-static uint8_t img_bin[IMG_H][IMG_W];
-
-void process_frame(const uint8_t *raw, uint8_t *centerline)
-{
-    /* 1. 二值化（单循环，极快） */
-    for (int i = 0; i < IMG_H * IMG_W; i++) {
-        img_bin[i / IMG_W][i % IMG_W] = (raw[i] > THRESHOLD) ? 1 : 0;
-    }
-
-    /* 2. 逐行扫线找中线（从下往上，远处的不可靠） */
-    for (int r = IMG_H - 1; r >= IMG_H/2; r--) {
-        int left = -1, right = -1;
-        for (int c = 0; c < IMG_W; c++) {
-            if (img_bin[r][c]) {
-                if (left == -1) left = c;
-                right = c;
-            }
-        }
-        if (left != -1)
-            centerline[r] = (left + right) / 2;
-        else
-            centerline[r] = (r < IMG_H - 1) ? centerline[r + 1] : IMG_W / 2;
-    }
-}
-
-/* 输出转方向控制 */
-float vision_get_steer_offset(uint8_t *centerline)
-{
-    int target = IMG_W / 2;
-    int look_ahead = IMG_H / 2;       /* 看远处 */
-    return (float)(centerline[look_ahead] - target) / IMG_W;
-}
-```
-
-### E. 历年赛题对应（NXP 智能车）
-
-| 组别 | 关键考点 | 推荐路径 |
-|---|---|---|
-| 视觉信标组 | OpenART / MCXVision + 神经网络 | E4 + 深度学习接入 |
-| 视觉摄像头组 | 188×120 灰度 + 实时处理 | E4 完整链路 + `refs/matlab-example-smartcar-vision.md` |
-| 视觉双车追逐 | 多目标识别 | E4 + 跟踪算法 |
-| 大学组 AI 视觉 | YOLO / 神经网络部署 | E4 + 模型部署（超出本 mode 范围）|
-
-**实战详细见**：`refs/matlab-example-smartcar-vision.md`
+本 skill 仅做控制、计算、底层驱动。
 
 ---
 
@@ -806,9 +669,9 @@ mcp__matlab__evaluate_matlab_code(code="""
 
 ---
 
-## 8. 场景 E7：电磁循迹信号处理（"小车看电感跟着导线跑"）
+## 8. 场景 E7：电磁循迹信号处理（"用电感检测导线"）
 
-> NXP 智能车电磁组。检测赛道下方 20 kHz 交变电流的磁场。
+> 电磁循迹经典场景。检测导线下方 20 kHz 交变电流的磁场。
 
 ### A. 你需要准备什么数据
 
@@ -905,7 +768,7 @@ float emag_get_offset(void) {
 |---|---|---|
 | 电磁组 | 7 路差分 + 差比和 | E7（完整流程） |
 | 电磁三轮组 | 三轮稳定性 + 状态融合 | E7 + 场景 5 卡尔曼 |
-| 大学组直立电磁 | E7 + 直立姿态融合 | E7 + 场景 5 + LQR（refs/lqr-example-segway.md） |
+| 直立 + 电磁循迹 | E7 + 直立姿态融合 | E7 + 场景 5 + LQR（refs/lqr-example-segway.md） |
 
 ---
 
@@ -918,9 +781,9 @@ float emag_get_offset(void) {
    │
    └── 当题目背景是"竞赛" → 切到 ↓
 
-竞赛专题 modes/matlab-toolkit-competition.md（7 场景）—— 赛题门类组织
+竞赛专题 modes/matlab-toolkit-competition.md（6 场景：E1-E3 + E5-E7）—— 赛题门类组织
    │
-   └── 内部仍调用主线场景（如 E4 视觉用主线场景 7 日志可视化辅助）
+   └── 内部仍调用主线场景（如 E5 LMS 用主线场景 2 滤波器辅助）
 ```
 
 ### 9.2 与四文件磁盘记忆映射
@@ -930,7 +793,6 @@ float emag_get_offset(void) {
 | E1 DDS | `编辑清单.md` + `硬件资源表.md` | LUT 大小、DAC 引脚 / 时钟配置 |
 | E2 调制解调 | `研究发现.md` | 调制方式 / 载频 / 调制度 |
 | E3 仪表 | `编辑清单.md` | 测量算法 + 校准曲线 |
-| E4 视觉 | `硬件资源表.md` + `编辑清单.md` | 摄像头参数 + 标定矩阵 + 算法 |
 | E5 自适应 | `编辑清单.md` | LMS 初值 + μ / M |
 | E6 Simscape | `研究发现.md` | 电路拓扑 + 元件值 + 仿真曲线 |
 | E7 电磁 | `硬件资源表.md` + `编辑清单.md` | 电感分布 + 差比和系数 + Kalman 参数 |
@@ -943,17 +805,16 @@ float emag_get_offset(void) {
 | E1 信号源 | `/build-cmake` + `/flash-openocd` 烧 DAC 程序 |
 | E2 调制 | `/serial-monitor` 抓实测信号 + `mcp__matlab__*` 离线分析 |
 | E3 仪表 | `/build-cmake` + `/serial-monitor` 验证 |
-| E4 视觉 | `/build-cmake`（NXP/STM32H7）+ `/flash-openocd`/`/flash-jlink` |
 | E5 LMS | `mcp__matlab__*` 训练初值 + 嵌入式实时更新 |
 | E6 电路 | 不落 MCU（除非 PWM 控制器） |
 | E7 电磁 | `/serial-monitor` 录电感数据 + `mcp__matlab__*` 调参 |
 
 ### 9.4 一键流水线（结合 matlab-firmware-pipeline）
 
-竞赛 E1-E5、E7 都能直接接入 `modes/matlab-firmware-pipeline.md` 的 6 步流水线：
+竞赛 E1-E3、E5、E7 都能直接接入 `modes/matlab-firmware-pipeline.md` 的 6 步流水线：
 
 ```
-MATLAB 算（E1-E7） → .mat → .h → build → flash → monitor → 实测对比
+MATLAB 算（E1-E3 / E5 / E7） → .mat → .h → build → flash → monitor → 实测对比
 ```
 
 E6 例外（不落 MCU，只到第 1 步）。
@@ -967,6 +828,5 @@ E6 例外（不落 MCU，只到第 1 步）。
 | DDS 信号发生器 | `refs/matlab-example-dds-signal-gen.md` | ★★ | 电赛 2001A / 2005A |
 | AM 调制度测量 | `refs/matlab-example-modem-am.md` | ★★ | 电赛 2022F |
 | 失真度分析仪 | `refs/matlab-example-thd-meter.md` | ★★ | 电赛 2021A |
-| 智能车视觉端到端 | `refs/matlab-example-smartcar-vision.md` | ★★★ | NXP 智能车视觉组 |
 
 完整历年赛题映射见 **`refs/competition-index.md`**。

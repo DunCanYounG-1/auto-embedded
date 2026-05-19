@@ -16,7 +16,9 @@
 ```
 
 **一句话工作流**：
-> 拿到题 → router 落 MAIN + TAGS → checklist 出 100 分追踪表 → 派 4-7 Agent → 6 阶段 CP-0~CP-5 → 完赛
+> 拿到题 → router 落 MAIN + TAGS → checklist 出 100 分追踪表 → 派 4-6 Agent → 6 阶段 CP-0~CP-5 → 完赛
+>
+> 含视觉的题目（摄像头/赛道识别/目标追踪）：视觉部分外派给独立 `auto-vison` skill。
 
 ---
 
@@ -44,7 +46,7 @@ Claude 会自动：
 1. `mkdir <题目>-project && cd && git init`（CP-0a）
 2. 读题 → 套 `task-router` 决策树
 3. 落 MAIN（7 选 1）+ TAGS（0-N 个）
-4. 派 4-7 个 Agent（按角色池表）
+4. 派 4-6 个 Agent（按角色池表）
 5. 生成 100 分验收表
 6. 写入 `docs/competition-routing.md` + git tag v0.0-routing
 
@@ -68,7 +70,7 @@ Claude 会让 [ARCH] 写：
 |---|---|---|
 | **MAIN 对吗** | 题目"评分细则"单项最高分对应的功能 = MAIN | 让 Claude 看 `task-router §1.5 关键词反例表` 重判 |
 | **TAGS 全吗** | 看 §1.2 表逐个对题目内容 | 让 Claude 补 |
-| **Agent 数量合理吗** | 4 人队默认 4-5 个、6 人队最多 7 个 | 资源紧 → 改 4 个最小集 |
+| **Agent 数量合理吗** | 4 人队默认 4-5 个、6 人队最多 6 个 | 资源紧 → 改 4 个最小集 |
 | **验收表总分=100 吗** | 5 元组累加 | 漏了/多了立刻补/删 |
 | **创新点列了吗** | 至少 1 个加分项 | 答辩前补 |
 
@@ -91,7 +93,7 @@ CP-5  (1h)     答辩演练（10 个 why）→ v1.1-rehearsed   ← 上场前
 
 ---
 
-## 🧰 7 角色 Agent 速查
+## 🧰 6 角色 Agent 速查
 
 | Agent | 干啥 | 何时派 |
 |---|---|---|
@@ -101,7 +103,8 @@ CP-5  (1h)     答辩演练（10 个 why）→ v1.1-rehearsed   ← 上场前
 | `[QA]` | 验证 + MIL/SIL/PIL + 5 元组验收 | **任何题** |
 | `[REPORT]` | 报告 + 答辩 why-evidence | **任何题** |
 | `[MATLAB]` | 算法仿真 + .h 导出 | MAIN ≠ SYSTEM（或 SYSTEM 含 FFT/RF 标签）|
-| `[VISION]` | 摄像头 + 视觉处理 | TAGS 含 `VISION` |
+
+> 视觉相关任务（摄像头驱动 / 二值化 / 透视变换 / 模型部署）外派给独立 `auto-vison` skill，不在本 skill 角色池。
 
 ---
 
@@ -114,12 +117,12 @@ CP-5  (1h)     答辩演练（10 个 why）→ v1.1-rehearsed   ← 上场前
 | SIGNAL | `modes/matlab-toolkit-competition.md` §2 E1 | `refs/matlab-example-dds-signal-gen.md` |
 | METER | 同上 §4 E3 | `refs/matlab-example-thd-meter.md` |
 | MODEM | 同上 §3 E2 | `refs/matlab-example-modem-am.md` |
-| CONTROL | `modes/matlab-embedded-toolkit.md` §5 控制器 | `refs/lqr-example-segway.md` + `refs/example-nuedc-control.md` |
+| CONTROL | `modes/matlab-embedded-toolkit.md` §5 控制器 | `refs/lqr-example-segway.md` + `refs/lqr-example-bicycle-cornell.md` |
 | SYSTEM | `modes/industrial-data-acquisition.md` | `refs/example-siemens-cimc-2025.md` |
 | POWER | `modes/matlab-toolkit-competition.md` §7 E6 | —（电源题以 PCB 为主）|
 
-含视觉 TAGS：加读 `refs/matlab-example-smartcar-vision.md`
 含 CLI/STORAGE/LOG TAGS：加读 `refs/cli-command-framework.md`
+含视觉（摄像头/赛道识别等）：调用独立 `auto-vison` skill
 
 ---
 
@@ -127,8 +130,8 @@ CP-5  (1h)     答辩演练（10 个 why）→ v1.1-rehearsed   ← 上场前
 
 | 坑 | 表现 | 修复 |
 |---|---|---|
-| 跳过路由直接干 | Agent 派错 / 漏 [VISION] | 永远先 CP-0b 再 CP-1 |
-| Agent 全派 7 个 | 主上下文炸 / [VISION] 空转 | 看 task-router §2.4 实际算 |
+| 跳过路由直接干 | Agent 派错 / 漏 TAG | 永远先 CP-0b 再 CP-1 |
+| Agent 全派 6 个 | 主上下文炸 / [MATLAB] 空转 | 看 task-router §2.4 实际算 |
 | MATLAB 仿真没过就上板 | 实测和仿真差 30% | CP-1.5 status≠success 不准进 CP-2 |
 | 答辩说"AI 给的方案" | 老师追问翻车 | CP-5 每个 why 绑实验证据 |
 | Git 不打 tag | 出错时无法回档 | 每个 CP 必打 v0.X-* tag |
@@ -142,7 +145,7 @@ CP-5  (1h)     答辩演练（10 个 why）→ v1.1-rehearsed   ← 上场前
 │
 ├── 完全没用过 MATLAB / Claude → 先读 refs/matlab-hello-5min.md（5 分钟跑通最小闭环）
 │
-├── 用过 MATLAB / Claude 但没打过竞赛 → 读 refs/example-nuedc-control.md 或 refs/example-siemens-cimc-2025.md（看一道完整题）
+├── 用过 MATLAB / Claude 但没打过竞赛 → 读 refs/example-siemens-cimc-2025.md（看一道完整题）
 │
 ├── 队伍 3 人 + 时间紧 → 读 modes/competition.md "三人极简模式"段
 │

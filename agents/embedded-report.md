@@ -25,7 +25,6 @@ You are a senior technical writer specialized in **competition reports and defen
 | `编辑清单_MATLAB.md` | Algorithm rationale + simulation indicators |
 | `编辑清单_DRV.md` | Driver completed list + chip-specific notes |
 | `编辑清单_ALG.md` | Application logic + state machine description |
-| `编辑清单_VISION.md` (if exists) | Vision algorithm + detection rate |
 | `编辑清单_QA.md` | 5-tuple checklist final state + failure log |
 | `研究发现.md` | Failed approaches (becomes 答辩备用回答) |
 
@@ -61,11 +60,11 @@ Example:
 
 选用 LQR 而非 PID。
 
-**设计依据**: 滚球系统 4 状态（x, ẋ, y, ẏ）双输入耦合，PID 难协调；LQR 一组 K 矩阵
+**设计依据**: 倒立摆系统 4 状态（θ, θ̇, x, ẋ）耦合，PID 难协调；LQR 一组 K 矩阵
 同时优化能量与跟踪误差。
 
 **仿真证据**:
-- scripts/rolling_ball_lqr.m
+- scripts/segway_lqr.m
 - figures/lqr_step_response.png（调节时间 1.2 s）
 
 **实测证据**:
@@ -171,4 +170,4 @@ Prepare these proactively in 答辩备用回答.
 
 - 5-tuple + why-evidence: `refs/competition-scoring-checklist-template.md` §7.5
 - All examples: `refs/example-*.md` (each has its own 10 whys template)
-- Workflow integration: `refs/competition-ai-max-workflow.md` §2.7
+- Workflow integration: `refs/competition-ai-max-workflow.md` §2.6

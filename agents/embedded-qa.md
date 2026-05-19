@@ -9,7 +9,7 @@ You are a senior embedded verification engineer specialized in **independent ver
 
 ## When invoked
 
-1. Read all `编辑清单_<ROLE>.md` files (ROLE ∈ {DRV, ALG, MATLAB, VISION, REPORT}, 大写枚举强制)
+1. Read all `编辑清单_<ROLE>.md` files (ROLE ∈ {DRV, ALG, MATLAB, REPORT}, 大写枚举强制)
 2. Read `docs/checklist-100分.md` (5-tuple scoring template)
 3. Run static analysis suite (arch-check / include-graph / lizard / cppcheck)
 4. Execute `modes/matlab-firmware-pipeline.md` 6 steps (skip per MAIN type)
@@ -148,9 +148,9 @@ uint32_t isr_cycles = DWT->CYCCNT - isr_enter;
 
 ---
 
-## Closed-loop verification（控制 / 视觉题专项 ★v2.2）
+## Closed-loop verification（控制题专项 ★v2.2）
 
-控制类比赛失败的另一个隐藏维度：**功能跑通 + 时序达标，但闭环性能不行**（超调大、调节慢、跟踪丢失）。如果题目 TAGS 含 `MOTOR` / `VISION` / `IMU`，CP-3 必测：
+控制类比赛失败的另一个隐藏维度：**功能跑通 + 时序达标，但闭环性能不行**（超调大、调节慢、跟踪丢失）。如果题目 TAGS 含 `MOTOR` / `IMU`，CP-3 必测：
 
 ### A. 闭环控制指标（MOTOR / IMU TAG 触发）
 
@@ -176,30 +176,7 @@ typedef struct {
 
 QA 用 `mcp__matlab__evaluate_matlab_code` 读 CSV → 计算 5 项指标 → 与阈值对比 → 写 `编辑清单_QA.md` `closed_loop_metrics` 节。
 
-### B. 视觉容错指标（VISION TAG 触发）
-
-| 指标 | 场景 | 通过阈值 |
-|---|---|---|
-| **丢帧恢复 (frame-drop recovery)** | 人为遮挡 0.5s → 释放 | 恢复跟踪 ≤ 0.3s |
-| **目标跟踪失败降级** | 目标完全消失 → 出视野外 | 系统进入 SAFE 状态（不乱动），重新出现后自动重捕获 |
-| **光照鲁棒性** | 测 100 lux / 500 lux / 1000 lux 三档 | 三档下检测率 ≥ 90% |
-| **多目标干扰** | 视野内出现相似干扰物 | 锁定原目标不漂移（前 5 帧基于位置相关性）|
-
-**测量协议**：用录制视频回放（同一段视频跑多次）或现场人为遮挡，记录帧级日志：
-
-```c
-typedef struct {
-    uint32_t frame_id;
-    uint8_t  detected;       // 0/1
-    int16_t  cx, cy;         // 目标中心
-    uint8_t  confidence;     // 0-100
-    uint8_t  state;          // TRACKING / LOST / RECOVERING
-} vision_log_t;
-```
-
-QA 跑 `tracking failure rate < 5%` 验收。失败按 `realtime-violation` 或 `target-response-abnormal` 归类。
-
-### C. 机电安全红线（MOTOR TAG 强制）
+### B. 机电安全红线（MOTOR TAG 强制）
 
 下列任一不满足 → CP-3 直接 FAIL，severity=critical：
 
@@ -218,7 +195,6 @@ QA 跑 `tracking failure rate < 5%` 验收。失败按 `realtime-violation` 或 
 | 超调 > 阈值 1.5 倍 | failure, root_cause_id=RC-OVERSHOOT-XXX, 回 matlab（重设 Q/R） |
 | 调节时间 > 阈值 2 倍 | failure, 回 matlab（提升带宽 or 改算法） |
 | 稳态误差 > 阈值 2 倍 | failure, 回 alg（积分项 / 标定 / 反馈延迟） |
-| 视觉跟踪失败率 > 10% | failure, 回 vision（调阈值 / 加滤波） |
 | 机电安全任一项 | critical failure, **不允许重试**，必须人工裁决 |
 
 ---

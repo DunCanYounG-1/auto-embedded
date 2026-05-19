@@ -5,7 +5,7 @@
 > 主协议（RIPER-5）的基础规则全部有效，本文件仅定义比赛模式的**增量规则**
 >
 > **v2 升级亮点**（与上一版对比）：
-> - 团队从 4 角色升级为 **7 角色**（新增 `[MATLAB]` / `[VISION]` / `[REPORT]`）
+> - 团队从 4 角色升级为 **6 角色**（新增 `[MATLAB]` / `[REPORT]`）
 > - 并行从 2-Agent 升级为 **N-Agent**（4-6 个 Agent 同时跑）
 > - 加入 **CP-1.5 算法仿真验证检查点** 和 **CP-5 答辩演练检查点**
 > - 内置 `modes/matlab-firmware-pipeline.md` 一键流水线，强制 MIL/SIL/PIL 三层验证
@@ -24,7 +24,6 @@ Task(subagent_type="embedded-drv",  description="...", prompt="...")
 Task(subagent_type="embedded-alg",  description="...", prompt="...")
 Task(subagent_type="embedded-qa",   description="...", prompt="...")
 Task(subagent_type="embedded-matlab", description="...", prompt="...")
-Task(subagent_type="embedded-vision", description="...", prompt="...")  # 仅 VISION TAG
 Task(subagent_type="embedded-report", description="...", prompt="...")
 ```
 
@@ -36,9 +35,9 @@ Task(subagent_type="embedded-report", description="...", prompt="...")
 
 ---
 
-## 团队角色（v2 — 7 角色池，按题目 MAIN + TAGS 动态选）★v2 升级
+## 团队角色（v2 — 6 角色池，按题目 MAIN + TAGS 动态选）★v2 升级
 
-不再固定 7 角色全派。改成**角色池**：`[ARCH] [DRV] [ALG] [QA] [REPORT]` 5 个必选，`[MATLAB] [VISION]` 2 个按 `refs/competition-task-router.md` §2.1 表的"必选/可选/禁用"标签动态加入。
+不再固定 6 角色全派。改成**角色池**：`[ARCH] [DRV] [ALG] [QA] [REPORT]` 5 个必选，`[MATLAB]` 1 个按 `refs/competition-task-router.md` §2.1 表的"必选/可选/禁用"标签动态加入。
 
 | 代号 | 角色 | 角色池标签 | 职责边界 |
 |------|------|---------|---------|
@@ -48,11 +47,12 @@ Task(subagent_type="embedded-report", description="...", prompt="...")
 | `[QA]` | 嵌入式验证 | **必选** | 静态审查 / MIL/SIL/PIL / 一键流水线 / 5 元组验收 |
 | `[REPORT]` | 报告答辩 | **必选** | 5 元组验收 + 答辩 why-evidence + LaTeX |
 | `[MATLAB]` | 算法仿真 | **看 MAIN**：SIGNAL/METER/MODEM/CONTROL/POWER 必选 / SYSTEM 看 TAGS / X 默认必选 | mcp__matlab__* + 导出 `.h` |
-| `[VISION]` | 视觉处理 | **看 TAGS**：含 `VISION` 必选，否则禁用 | 标定 + 二值化 + 边缘 + 透视 + 中线 |
 
-**Agent 数量**：4-7 个，由 `refs/competition-task-router.md` §2.4 算出。完整 prompt 模板：`refs/competition-ai-max-workflow.md` §2。
+**视觉题处理**：含摄像头/赛道识别/目标追踪的题目，由独立 `auto-vison` skill 承担（embedded-dev 通过 Skill Handoff Contract 调用，参考 `refs/contracts.md` 跨 skill 协作示例）。本 skill 只做控制、计算、底层驱动。
 
-**禁止**：不查 task-router 就拍脑袋全派 7 个（[VISION] 在没有摄像头的题里空转浪费）。
+**Agent 数量**：4-6 个，由 `refs/competition-task-router.md` §2.4 算出。完整 prompt 模板：`refs/competition-ai-max-workflow.md` §2。
+
+**禁止**：不查 task-router 就拍脑袋全派 6 个（[MATLAB] 在纯外设集成题里空转浪费）。
 
 ---
 
@@ -97,7 +97,7 @@ Task(subagent_type="embedded-report", description="...", prompt="...")
 | CP-0a | 工程目录 + git init | [ARCH] | `v0.0-init` |
 | CP-0b | 题型路由 + Agent 派发表 | [ARCH] | `v0.0-routing` |
 | CP-1 | 阶段一硬件资源规划完成后 | [ARCH] | `v0.1-arch` |
-| **CP-1.5** ★新 | 阶段一半 — `[MATLAB]` / `[VISION]` 仿真达标后 | [ARCH] | `v0.15-sim` |
+| **CP-1.5** ★新 | 阶段一半 — `[MATLAB]` 仿真达标后 | [ARCH] | `v0.15-sim` |
 | CP-2 | 阶段二 N-Agent 并行开发均完成后 | [ARCH] | `v0.2-dev` |
 | CP-3 | 阶段三 QA PASS（含 MIL/SIL/PIL）后 | [ARCH] | `v0.3-qa` |
 | CP-4 | 阶段四集成完成后 | [ARCH] | `v1.0-release` |
@@ -141,14 +141,14 @@ mkdir docs
   1. 完整读题（PDF / 命题书 / 评分细则）
   2. 套 task-router §1.5 关键词反例表（零基础友好）
   3. 套 §1.1 落 MAIN，§1.2 勾 TAGS
-  4. 套 §2 → 派 4-7 个 Agent（看 MAIN + TAGS 角色池）
+  4. 套 §2 → 派 4-6 个 Agent（看 MAIN + TAGS 角色池）
   5. 套 §3 → CP-1.5 / 流水线 Step 是否跳过？
   6. 套 refs/competition-scoring-checklist-template.md → 生成 5 元组验收表
   7. 全部写到 docs/competition-routing.md
   8. git commit + tag v0.0-routing
 ```
 
-**禁止**：第 0 步用直觉判题型。比如把"含摄像头的控制题"判成纯 CONTROL（漏 VISION 标签），或"系统集成题"派 [MATLAB] Agent 空转。
+**禁止**：第 0 步用直觉判题型。比如把"系统集成题"派 [MATLAB] Agent 空转，或漏识别控制题里的 MOTOR/IMU TAG。
 
 **docs/competition-routing.md 模板**（写入 docs/，含 v2.1 加权 TAG）：
 
@@ -159,25 +159,25 @@ trace_id: <competition-name>-001
 
 # 路由产物（来自 refs/competition-task-router.md 第 0 步）
 MAIN: CONTROL                         # 7 选 1（SIGNAL/METER/MODEM/CONTROL/SYSTEM/POWER/X）
-TAGS: [VISION, MOTOR, OLED, IMU]      # 0-N 个，来自 §1.2 / §1.5
+TAGS: [MOTOR, IMU, OLED]              # 0-N 个，来自 §1.2 / §1.5
 
 # v2.1 分值加权 TAG（来自 §1.7，必填）
 tag_weights:
   CONTROL_LOOP:
-    total_score: 35
-    percentage: 35%
+    total_score: 50
+    percentage: 50%
     score_sources:
-      - "《评分细则》§1.2 完成时间 ≤ 30s（20 分）"
-      - "《评分细则》§1.3 超调 ≤ 10%（15 分）"
+      - "《评分细则》§1.2 完成时间 ≤ 30s（25 分）"
+      - "《评分细则》§1.3 超调 ≤ 10%（25 分）"
     triggers_agents: [MATLAB, ALG]
-  VISION:
-    total_score: 25
-    percentage: 25%
-    triggers_agents: [VISION, ALG]
   MOTOR:
+    total_score: 20
+    percentage: 20%
+    triggers_agents: [DRV, MATLAB]
+  IMU_FUSION:
     total_score: 10
     percentage: 10%
-    triggers_agents: [DRV, MATLAB]
+    triggers_agents: [ALG, MATLAB]
   OLED_HMI:
     total_score: 5
     percentage: 5%
@@ -188,7 +188,7 @@ tag_weights:
     note: "低分高风险，单独验收"
     triggers_agents: [DRV]
 
-评分单项最高: 33 分（来自《评分细则》"数据采集与参数存储"）
+评分单项最高: 25 分（来自《评分细则》"完成时间"或"超调"）
 路由置信度: high                       # high / low（low 需人工确认）
 派 Agent:                              # §2.4 + §1.7 加权后
   - ARCH（必选）
@@ -196,28 +196,26 @@ tag_weights:
   - ALG（必选）
   - QA（必选）
   - REPORT（必选）
-  - MATLAB（CONTROL_LOOP 35% → 必选）
-  - VISION（VISION 25% → 必选）
-  合计: 7 个
+  - MATLAB（CONTROL_LOOP 50% → 必选）
+  合计: 6 个
 
 excluded_agents:
   - []                                 # 本题无排除
 
 fallback_plan:                         # v2.1 必填
   if_MATLAB_unavailable: "scipy.signal + python-control 跑等价仿真"
-  if_VISION_FPS_unmet: "降分辨率 188×120 + 跳帧 1:2"
   if_PIL_diverge: "Q15 缩放 + 二次校准"
 
 跳过阶段:                              # 来自 §3
   - 无（CONTROL 题强制 SIL/PIL）
 
 CP3_verify_budget:                     # v2.1 验收时间按权重切
-  CONTROL_LOOP: 35%                    # 不少于 35% 验收时间
-  VISION: 25%
-  MOTOR: 10%
+  CONTROL_LOOP: 50%                    # 不少于 50% 验收时间
+  MOTOR: 20%
+  IMU_FUSION: 10%
   POWER_STABILITY: 10%                 # 红线项独立
   OLED_HMI: 5%
-  其他抽查: 15%
+  其他抽查: 5%
 
 验收表入口: docs/checklist-100分.md   # 由 checklist-template §5.2 + §5.3 生成
 预期分数: ≥ 85 / 100
@@ -351,13 +349,15 @@ git tag v0.1-arch && git push origin v0.1-arch
 
 ---
 
-### ▶ 阶段一半（CP-1.5）：[MATLAB] / [VISION] 仿真验证 ★新
+### ▶ 阶段一半（CP-1.5）：[MATLAB] 仿真验证 ★新
 
-**目标**：在阶段二开始写嵌入式代码**之前**，先让 `[MATLAB]`（必派）和 `[VISION]`（智能车视觉组才派）跑通算法仿真，给出量化指标证据。仿真不通过 → 阶段二禁止开工（避免基于错误算法写代码）。
+**目标**：在阶段二开始写嵌入式代码**之前**，先让 `[MATLAB]`（必派）跑通算法仿真，给出量化指标证据。仿真不通过 → 阶段二禁止开工（避免基于错误算法写代码）。
 
 **为什么加这一步**：原版直接进阶段二并行开发 `[DRV]+[ALG]`，但 `[ALG]` 依赖的算法参数（K 矩阵 / 滤波系数 / LUT）必须先算出来。把仿真作为独立检查点，能让 `[ALG]` 进阶段二时拿到现成的 `.h` 文件，直接 `#include` 即可。
 
-**派发方式**：[ARCH] 同一条消息发出 1-2 个 Agent（按题型）。
+**视觉题处理**：含摄像头/赛道识别的题目，由独立 `auto-vison` skill 在 CP-1.5 同时派发，本 skill 通过 Skill Handoff Contract 消费其产物（参考 `refs/contracts.md`）。本 skill 文档不再展开视觉流程。
+
+**派发方式**：[ARCH] 同一条消息发出 1 个 Agent（embedded-matlab，按题型）。
 
 #### CP-1.5 - Agent: [MATLAB]（所有题型必派）
 
@@ -382,41 +382,24 @@ git tag v0.1-arch && git push origin v0.1-arch
 - Command Outcome 格式（refs/contracts.md）
 ```
 
-#### CP-1.5 - Agent: [VISION]（仅智能车视觉组）
-
-完整 prompt 见 `refs/competition-ai-max-workflow.md §2.5`。摘要：
-
-```
-你是 [VISION] 视觉工程师。
-1. 摄像头标定 → cam_params.mat
-2. 离线测试 ≥ 10 张图（直道/弯道/十字/环岛/强光/弱光）
-3. 输出 perspective.h + track_detect.c/.h
-4. 性能基准：FPS + 丢线率 ≤ 5%
-
-强制约束：
-- 必须用真实图测试（不允许凭空推测）
-- 编辑清单写 编辑清单_VISION.md
-```
-
 #### ✦ CP-1.5 提交检查点
 
-[MATLAB]（+ [VISION]）输出 `status=success` 且关键指标达标 → 提交：
+[MATLAB] 输出 `status=success` 且关键指标达标 → 提交：
 
 ```bash
-# 合并 编辑清单_MATLAB.md / 编辑清单_VISION.md 到主编辑清单
+# 合并 编辑清单_MATLAB.md 到主编辑清单
 # 删除临时文件
-git add app/dsp/*.h app/vision/*.h scripts/*.m 编辑清单.md 算法报告.md
-git commit -m "[MATLAB][VISION] CP-1.5 算法仿真验证通过
+git add app/dsp/*.h scripts/*.m 编辑清单.md 算法报告.md
+git commit -m "[MATLAB] CP-1.5 算法仿真验证通过
 
 变更文件：
 - 新增: scripts/<算法>_design.m
-- 新增: app/dsp/*.h, app/vision/*.h（[MATLAB]/[VISION] 产物）
+- 新增: app/dsp/*.h（[MATLAB] 产物）
 - 修改: 编辑清单.md
 
 关键指标：
 - THD = -58 dB （要求 -50 dB） ✓
-- 测量精度 0.7%（要求 ± 1%） ✓
-- [VISION] 丢线率 3.2%（要求 ≤ 5%） ✓"
+- 测量精度 0.7%（要求 ± 1%） ✓"
 git push
 git tag v0.15-sim && git push origin v0.15-sim
 ```
@@ -429,15 +412,14 @@ git tag v0.15-sim && git push origin v0.15-sim
 
 ---
 
-### ▶ 阶段二：[DRV] + [ALG] (+ [VISION] + [REPORT]) N-Agent 并行开发
+### ▶ 阶段二：[DRV] + [ALG] (+ [REPORT]) N-Agent 并行开发
 
-**使用 Agent 工具同时派出 2-4 个 Agent，各自独立工作。**
+**使用 Agent 工具同时派出 2-3 个 Agent，各自独立工作。**
 
 > **Agent 派发方式**（v2 升级）：在 Claude Code 中，使用一条消息同时发出 N 个 Agent 工具调用（parallel tool calls）。N 由题型决定：
 > - 电赛信号 / 仪表 / 控制类：派 2 个（DRV + ALG）+ 可选 REPORT（写报告骨架）
-> - 智能车视觉组：派 3 个（DRV + ALG + VISION 继续完善上板代码）+ 可选 REPORT
 > - 智能车电磁直立组：派 2 个（DRV + ALG）+ 可选 REPORT
-> - 复杂综合题：3-4 个 Agent 同时跑
+> - 复杂综合题：3 个 Agent 同时跑（视觉部分外包给 `auto-vison` skill）
 >
 > 各 Agent 写自己的 `编辑清单_<ROLE>.md`，[ARCH] 收齐后合并到 `编辑清单.md`。
 >
@@ -733,16 +715,7 @@ PIL：set_param 切 'Processor-in-the-Loop (PIL)' → 交叉编译到 MCU
   数据出处：log/closed_loop_<timestamp>.csv（由 svc_logger 抓 ≥ 30s）
   分析脚本：scripts/closed_loop_analyze.m（matlab 处理 → 5 指标）
 
-【J. 视觉容错指标（VISION TAG 强制 ★v2.2）】
-  丢帧恢复时间 ____ s / 阈值 ≤ 0.3 s        ✅/❌
-  目标失踪后进 SAFE 状态                    ✅/❌
-  目标重出现自动重捕获                      ✅/❌
-  光照三档检测率 100/500/1000 lux ≥ 90%     ✅/❌
-  多目标干扰锁定原目标                      ✅/❌
-  跟踪失败率 ____ % / 阈值 < 5%             ✅/❌
-  数据出处：log/vision_<timestamp>.csv + 测试视频回放
-
-【K. 机电安全红线（MOTOR TAG 强制 ★v2.2，critical failure 不允许重试）】
+【J. 机电安全红线（MOTOR TAG 强制 ★v2.2，critical failure 不允许重试）】
   机械限位触发 → PWM 立即归零 + 告警        ✅/❌
   电机堵转 30s → ERROR 状态 + 电流截止      ✅/❌
   电池欠压 → SAFE + OLED 红警               ✅/❌
@@ -1070,7 +1043,7 @@ git checkout v0.3-qa -- main.c  # 或只回退某个文件
 |---|---|---|
 | `[CAPTAIN]` | [ARCH] + [REPORT] | 队长（统筹 + 报告）|
 | `[HARD]` | [DRV] + 硬件焊接 | 硬件队员 |
-| `[SOFT]` | [ALG] + [QA] + [MATLAB] + [VISION] | 软件队员（主用 Claude）|
+| `[SOFT]` | [ALG] + [QA] + [MATLAB] | 软件队员（主用 Claude）|
 
 注意：**Claude 仍然按角色派 Agent**，但人类参与时合并。即：Claude 内部派 7 Agent 输出，3 人按角色合并 review + 推进。
 
@@ -1120,7 +1093,7 @@ mode: mini                            # 三人极简模式开启
 | 文件 | 用途 |
 |---|---|
 | `refs/competition-ai-max-workflow.md` | 完整 7 Agent prompt 模板（直接 copy-paste 派发） + 自动决策门 + 完整流程示例 |
-| `refs/competition-index.md` | 历年电赛 + 智能车赛题映射 → 快速定位 E1-E7 场景 |
+| `refs/competition-index.md` | 历年电赛赛题映射 → 快速定位 E1-E7 场景 |
 | `modes/matlab-firmware-pipeline.md` | 一键流水线（算→.h→编译→烧→监→对比），CP-3 [QA] 强制调用 |
 | `modes/matlab-toolkit-competition.md` | 7 个竞赛专项场景（E1-E7） |
 | `modes/matlab-embedded-toolkit.md` | 10 场景算法主线（基础 1-8 + Simulink 9 + MIL/SIL/PIL 10） |
@@ -1132,7 +1105,7 @@ mode: mini                            # 三人极简模式开启
 ```
 T+0       [ARCH] 读题 → CP-0
 T+0.5h    [ARCH] 三表 + 接口契约 → CP-1
-T+2h      派 [MATLAB] (+ [VISION])
+T+2h      派 [MATLAB]（视觉题另派 auto-vison skill）
 T+5h      CP-1.5 通过
 T+5h      同消息派 [DRV] + [ALG] + [REPORT]
 T+10h     CP-2 通过
@@ -1151,7 +1124,7 @@ T+18h ~ T+72h   纯硬件调试 / 多次试跑 / 备份方案
 ```
 T+0      [ARCH] 读题 → 8 子系统拆解（参考 modes/industrial-data-acquisition.md）
 T+0.5h   [ARCH] 三表 + 接口契约 → CP-1
-T+1h     CP-1.5 跳过（无算法仿真需求，[MATLAB] / [VISION] 不派）
+T+1h     CP-1.5 跳过（无算法仿真需求，[MATLAB] 不派）
 T+1h     同消息派 4 Agent：[DRV] + [ALG] + [QA] + [REPORT]
 T+8h     CP-2 通过 → CP-3 [QA] 跑流水线 Step 3-5（编译/烧/监），跳过 Step 1-2/6
 T+12h    [ARCH] + [REPORT] 整合 → CP-4 → CP-5

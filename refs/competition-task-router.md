@@ -2,7 +2,7 @@
 
 > **元层文档**：任何嵌入式竞赛题，[ARCH] 拿到题目原文后**第 0 步必读本文**，按决策树落到具体的 mode + Agent 分工 + 评分点模板。
 >
-> 适用：电赛 / 智能车 / 蓝桥杯嵌入式 / 西门子杯 / 工创赛 / 校级 / 省级所有嵌入式赛事。
+> 适用：电赛 / 蓝桥杯嵌入式 / 西门子杯 / 工创赛 / 校级 / 省级所有嵌入式赛事。视觉题由独立 `auto-vison` skill 承担。
 >
 > 设计原则：**只做路由不做实现**。本文不超 500 行，所有具体方法见对应 mode / refs。
 
@@ -20,7 +20,7 @@ Step 4：把题目评分点喂给 refs/competition-scoring-checklist-template.md
    ↓
 输出（写入 **docs/competition-routing.md**，由 [ARCH] 在 CP-0b 阶段产出）：
   - 题型: <控制 / 信号源 / 仪表 / 通信 / 系统集成 / 电源-模电>
-  - 派 Agent: [DRV] [ALG] [MATLAB?] [VISION?] [QA] [REPORT?]
+  - 派 Agent: [DRV] [ALG] [MATLAB?] [QA] [REPORT?]
   - 跳过: CP-1.5 ? / Step 6 ?
   - 验收表入口: docs/checklist-100分.md
 
@@ -37,7 +37,7 @@ Step 4：把题目评分点喂给 refs/competition-scoring-checklist-template.md
 
 ## 1. 标签化路由（主对象 + 能力标签）★v2 升级
 
-**v1 单一题型决策树的致命问题**：真实赛题多数是复合的（如"含视觉的电源题"会同时命中 D/E/F），强行落到单一 box 会让后续 Agent 派发与验收表全部跑偏。
+**v1 单一题型决策树的致命问题**：真实赛题多数是复合的（如"含通信的电源题"会同时命中 C/F），强行落到单一 box 会让后续 Agent 派发与验收表全部跑偏。
 
 **v2 改用标签化**：
 
@@ -52,7 +52,7 @@ Step 4：把题目评分点喂给 refs/competition-scoring-checklist-template.md
 | `SIGNAL` | 输出信号的精度（频率/失真/幅度）| 2001A 波形发生器 |
 | `METER` | 测量信号的精度（频率/THD/调制度）| 2021A 失真度分析仪 |
 | `MODEM` | 解调 / 调制识别 / 通信链路 | 2022F 调制度测量 |
-| `CONTROL` | 控制性能（超调/调节时间/跟踪精度）| 2017B 滚球控制 |
+| `CONTROL` | 控制性能（超调/调节时间/跟踪精度）| 2019A 电动小车动态行驶 |
 | `SYSTEM` | 系统功能完成度（CLI 命令/文件/持久化）| 2025 西门子 CIMC |
 | `POWER` | 电源 / 模电指标（效率/纹波/线性度）| 2023A 电源类 |
 | `X` | **未归类 / 复合主对象** — 10 分钟内必须人工定主 | 罕见题 |
@@ -63,7 +63,7 @@ Step 4：把题目评分点喂给 refs/competition-scoring-checklist-template.md
 
 | 标签 | 触发条件 | 影响 Agent 派发 |
 |---|---|---|
-| `VISION` | 题目有摄像头 / 图像识别 | + [VISION] Agent |
+| ~~`VISION`~~ | 题目有摄像头 / 图像识别 | **不在本 skill 范围** — 外派给 `auto-vison` skill |
 | `RF` | 题目有载波 / 调制 / 射频 | + [MATLAB] 重点跑 Communications Toolbox |
 | `STORAGE` | 题目要求 SD/Flash 存数据 | [DRV] 加文件系统模块 |
 | `CLI` | 题目要求串口命令交互 | [ALG] 加 CLI 框架 |
@@ -87,7 +87,7 @@ Step 2：找"评分细则"那张表，找单项满分最高的一行 → MAIN
 Step 3：扫题目正文（含图示）勾出所有 TAGS（看 §1.2 表逐个匹配）
 Step 4：写到 docs/competition-routing.md：
   MAIN: <CONTROL | SIGNAL | ...>
-  TAGS: [VISION, MOTOR, OLED, IMU]
+  TAGS: [MOTOR, OLED, IMU]
   评分单项最高: <分数> 分（来自<评分细则>第<X>条）
   路由置信度: <high | low>（low 时进 §1.4 兜底）
 Step 5：进 §2 派 Agent（按 MAIN + TAGS 叠加）
@@ -95,8 +95,8 @@ Step 5：进 §2 派 Agent（按 MAIN + TAGS 叠加）
 
 ### 1.4 路由置信度低 / MAIN=X 兜底
 
-- 题目刻意复合（如 2024H 自动驾驶小车含视觉 + 控制 + 算法 3 评分模块平均）→ MAIN = X
-- MAIN=X 处置：选**实施成本最高**的那个模块作为 MAIN（如视觉成本最高），其他降为 TAGS
+- 题目刻意复合（如电源 + 仪表 + 通信 3 评分模块平均）→ MAIN = X
+- MAIN=X 处置：选**实施成本最高**的那个模块作为 MAIN（如电源稳定性成本最高），其他降为 TAGS
 
 ### 1.5 关键词反例表（零基础友好）★新
 
@@ -108,10 +108,10 @@ Step 5：进 §2 派 Agent（按 MAIN + TAGS 叠加）
 | "测量 / 分析仪 / 计 / 检测器" | METER | FFT |
 | "调制 / 解调 / 识别（AM/FM/PSK 等）" | MODEM | RF |
 | "稳定 / 跟踪 / 追踪 / 平衡 / 倒立" | CONTROL | MOTOR / IMU |
-| "小车 / 机器人 / 无人机 / 飞行器" | CONTROL | MOTOR / VISION / IMU |
+| "小车 / 机器人 / 无人机 / 飞行器" | CONTROL | MOTOR / IMU（视觉部分外派 auto-vison）|
 | "采集 / 记录 / 数据存储 / 日志" | SYSTEM | STORAGE / CLI / LOG |
 | "DC-DC / AC-DC / 放大器 / 滤波器（硬件电路）" | POWER | — |
-| "摄像头 / 图像 / 视觉" | — | + VISION |
+| "摄像头 / 图像 / 视觉" | — | **外派 `auto-vison` skill**（不在本 skill 范围）|
 | "TF 卡 / SD 卡 / Flash 存储" | — | + STORAGE |
 | "串口命令 / CLI / 控制台" | — | + CLI |
 | "OLED / LCD / 显示屏" | — | + OLED |
@@ -125,9 +125,8 @@ Step 5：进 §2 派 Agent（按 MAIN + TAGS 叠加）
 
 | 题 | v1 单题型（旧）| v2 标签化（新）|
 |---|---|---|
-| 2017B 滚球 | D（含视觉，但 v1 没法表达）| MAIN=CONTROL, TAGS=[VISION, MOTOR, OLED] |
 | 2025 西门子 CIMC | E | MAIN=SYSTEM, TAGS=[STORAGE, CLI, LOG, RTC, OLED] |
-| 2024H 自动驾驶小车 | D（漏了多评分模块）| MAIN=X，按视觉成本高定 MAIN=CONTROL，TAGS=[VISION, MOTOR] |
+| 2019A 电动小车动态行驶 | D（电机+编码器 PID 控制）| MAIN=CONTROL, TAGS=[MOTOR, IMU, OLED] |
 | 2017A 微弱信号检测 | F（漏了滤波 + 仪表）| MAIN=POWER, TAGS=[FILTER_ADAPT, METER] |
 | 2022F 调制度测量 | C（漏了仪表精度核心）| MAIN=METER, TAGS=[RF, MODEM, OLED] |
 
@@ -164,12 +163,6 @@ tag_weights:
       - "评分细则 §1.2 完成时间 ≤ 30s（20 分）"
       - "评分细则 §1.3 超调 ≤ 10%（15 分）"
     triggers_agents: [MATLAB, ALG]
-  VISION:
-    total_score: 25
-    percentage: 25%
-    score_sources:
-      - "评分细则 §2.1 球体识别准确率 ≥ 95%（25 分）"
-    triggers_agents: [VISION, ALG]
   OLED_HMI:           # 人机界面（低分但答辩易被问）
     total_score: 5
     percentage: 5%
@@ -221,36 +214,36 @@ tag_weights:
 | `[QA]` 验证 | ✓ 必 | ✓ 必 | ✓ 必 | ✓ 必 | ✓ 必 | ✓ 必 | ✓ 必 |
 | `[REPORT]` 报告答辩 | ✓ 必 | ✓ 必 | ✓ 必 | ✓ 必 | ✓ 必 | ✓ 必 | ✓ 必 |
 | `[MATLAB]` 算法仿真 | ✓ 必 | ✓ 必 | ✓ 必 | ✓ 必 | ⚠ 看 TAGS | ✓ 必 | 默认必选 |
-| `[VISION]` 视觉 | ✗ 禁 | ✗ 禁 | ✗ 禁 | ⚠ 看 TAGS | ⚠ 看 TAGS | ✗ 禁 | ⚠ 看 TAGS |
+
+> **视觉相关 Agent 不在本 skill 范围**。需要视觉的题目（含摄像头、赛道识别、目标追踪、SLAM 等）由独立 `auto-vison` skill 承担，通过 Skill Handoff Contract 调用。
 
 ### 2.2 TAGS 对角色池 + CP-3 验收的修订规则（v2.2 扩展）
 
 | TAG | 派 Agent 修订 | CP-3 验收触发（强制必测） |
 |---|---|---|
-| `VISION` | [VISION] 由"⚠/✗" → ✓ 必选 | competition.md CP-3 §J 视觉容错（丢帧/降级/光照/跟踪失败率）|
 | `FFT`/`FILTER_ADAPT`/`RF` | [MATLAB] 即使 MAIN=SYSTEM 也升 ✓ 必选 | 实测频谱 vs 仿真精度对比 |
 | `STORAGE`/`CLI`/`LOG` | [ALG] 内部添加对应模块（不增 Agent，只扩职责） | TF 卡多文件夹结构 + CLI 全命令覆盖 |
-| `MOTOR` | [MATLAB] 必跑控制器仿真 | competition.md CP-3 §I 闭环指标（超调/调节/稳态/跟踪）+ §K 机电安全红线（critical, 不允许重试）|
+| `MOTOR` | [MATLAB] 必跑控制器仿真 | competition.md CP-3 §I 闭环指标（超调/调节/稳态/跟踪）+ §J 机电安全红线（critical, 不允许重试）|
 | `IMU` | [MATLAB] 必跑 Kalman / Mahony 融合 | competition.md CP-3 §I 闭环指标 + 姿态漂移 ≤ 0.5°/min |
 | `LOWPOWER` | [DRV] 加 sleep / 唤醒模块 | 电流测量：休眠 < 100 μA，唤醒响应 < 50 ms |
 
 ### 2.2.1 TAG 触发的验收红线优先级
 
-`MOTOR` 触发的 §K 机电安全是 **critical failure**（不允许 retry，必须人工裁决），其他都是常规 failure（按 retry_budget 走）。详见 `refs/contracts.md §强制规则 #6` 预算公式 + `agents/embedded-qa.md §Closed-loop verification`。
+`MOTOR` 触发的 §J 机电安全是 **critical failure**（不允许 retry，必须人工裁决），其他都是常规 failure（按 retry_budget 走）。详见 `refs/contracts.md §强制规则 #6` 预算公式 + `agents/embedded-qa.md §Closed-loop verification`。
 
 ### 2.3 最小 / 最大 Agent 数
 
 - **最小可跑**：4 个（[ARCH] + [DRV] + [ALG] + [QA]） — 适合 3 人队 / 简单题
 - **标准**：5-6 个（按 MAIN 默认）
-- **最多**：7 个 — 复合题或大题
-- **绝不超 7** — Claude 主上下文压力太大
+- **最多**：6 个 — 复合题或大题
+- **绝不超 6** — Claude 主上下文压力太大
 
 ### 2.4 派发例（用 §1.6 复合题表算一遍）
 
 | 题 | MAIN | TAGS | 最终 Agent |
 |---|---|---|---|
-| 2017B 滚球 | CONTROL | VISION, MOTOR, OLED | [ARCH] [DRV] [ALG] [QA] [REPORT] [MATLAB] [VISION] = **7** |
-| 2025 西门子 | SYSTEM | STORAGE, CLI, LOG, RTC, OLED | [ARCH] [DRV] [ALG] [QA] [REPORT] = **5**（不派 MATLAB/VISION）|
+| 2019A 电动小车 | CONTROL | MOTOR, IMU, OLED | [ARCH] [DRV] [ALG] [QA] [REPORT] [MATLAB] = **6** |
+| 2025 西门子 | SYSTEM | STORAGE, CLI, LOG, RTC, OLED | [ARCH] [DRV] [ALG] [QA] [REPORT] = **5**（不派 MATLAB）|
 | 2017A 微弱信号检测 | POWER | FILTER_ADAPT, METER | [ARCH] [DRV] [ALG] [QA] [REPORT] [MATLAB] = **6**（电源 + 滤波算法）|
 | 2022F 调制度测量 | METER | RF, MODEM, OLED | [ARCH] [DRV] [ALG] [QA] [REPORT] [MATLAB] = **6** |
 | 2023A 电源类 | POWER | — | [ARCH] [DRV] [ALG] [QA] [REPORT] [MATLAB] = **6** |
@@ -297,12 +290,10 @@ tag_weights:
 | 年-题号 | 题目 | 关键技术 | mode | Agent |
 |---|---|---|---|---|
 | 1997C | 水温控制 | PID + 温度采样 | 主线 4 | [MATLAB] [DRV] [ALG] [QA] |
-| 2001C | 自动往返电动小车 | 直流电机 + 循迹 | 主线 4 | + [VISION 可选] |
 | 2011F | 风力摆系统 | 多自由度控制 | 主线 4 + 5 LQR | + [MATLAB] 重 |
-| 2017B | 滚球控制系统 | 双轴平台 + 视觉 + PID | E4 + 主线 4 | + [VISION] |
-| 2019A | 电动小车动态行驶 | 电机 + 编码器 + 循迹 | 主线 4 + pid-tune | — |
-| 2023E | 运动目标控制追踪 | 视觉 + 云台舵机 + 跟踪 | E4 + 主线 4 | + [VISION] |
-| 2024H | 自动驾驶小车 | 视觉 / 电磁 + 多状态机 | E4/E7 + 主线 4 | + [VISION 或 None] |
+| 2019A | 电动小车动态行驶 | 电机 + 编码器 + 电磁循迹（无视觉）| 主线 4 + pid-tune | [MATLAB] |
+
+> 含视觉的控制题（如 2017B/2023E/2024H 等需要摄像头识别）：视觉部分外派给 `auto-vison` skill；本 skill 负责控制律 / 电机驱动 / 状态机 / 通信。
 
 ### 5.2 信号源类（题型 A）
 
@@ -356,7 +347,7 @@ def archs_first_step(题目原文):
 
     # 2. 提取量化指标（输入到下游 Agent）
     指标列表 = extract_metrics(题目原文)
-    # 例：电赛 2017B → [完成时间 < 30s, 超调 < 10%, 稳态误差 < 5mm]
+    # 例：电赛 2019A → [行驶时间 < 30s, 跟踪误差 < 5cm, 抗扰恢复 < 2s]
 
     # 3. 派 Agent
     agents = base_agents()  # [DRV] [ALG] [QA] [REPORT]
@@ -392,7 +383,7 @@ def archs_first_step(题目原文):
 | 把"控制 + 测量"题判成 B 仪表 | 题型 D 主 + B 次 | 漏掉 PID/LQR 设计 |
 | 把"信号源 + 失真度自检" 判成 A | A 主 + B 次 | 没准备测量算法 |
 | 把"工业题 + 算法处理" 判成 E | E + 弱 D 算法 | 误以为不用 MATLAB |
-| 把"含摄像头的控制题"判成纯 D | D + 视觉子题型 | 缺 [VISION] Agent |
+| 把"含摄像头的控制题"完全本 skill 接手 | D + 视觉子题型 | 视觉部分必须外派 `auto-vison` skill |
 | 把"无人机题"判成 D | D + 飞行器子类 | 缺姿态控制专项参考 |
 
 **纠正方法**：第 0 步输出题型判定后，让 **[QA] Agent 旁听**，对比题目原文 + 路由表挑战 [ARCH] 的判断。
@@ -405,16 +396,16 @@ def archs_first_step(题目原文):
 本文件（task-router）= 元层路由器
    ↓ 指向 ↓
 具体执行文档：
-  ├── modes/competition.md          # 7-Agent 比赛模式 v2 主流程
-  ├── modes/matlab-toolkit-competition.md   # 7 个 MATLAB 竞赛专题 E1-E7
+  ├── modes/competition.md          # 6-Agent 比赛模式 v2 主流程
+  ├── modes/matlab-toolkit-competition.md   # MATLAB 竞赛专题（计算/控制类）
   ├── modes/matlab-embedded-toolkit.md      # 10 场景算法主线
   ├── modes/industrial-data-acquisition.md  # 系统集成 mode
   ├── refs/competition-scoring-checklist-template.md  # 验收表通用模板
   ├── refs/cli-command-framework.md         # CLI 框架
   ├── refs/example-siemens-cimc-2025.md     # 题型 E 实战
-  ├── refs/example-nuedc-control.md         # 题型 D 实战（2017B + 2023E）
   ├── refs/matlab-example-*.md              # 各场景实战
   └── refs/lqr-example-*.md                 # 控制实战
+  # 注：视觉相关由独立 `auto-vison` skill 承担，不在本目录
 ```
 
 **禁止**：跳过 task-router 直接进 CP-1。这会导致后续 Agent 没有题型上下文，输出散乱。

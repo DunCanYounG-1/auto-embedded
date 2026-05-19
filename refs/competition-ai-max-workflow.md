@@ -22,7 +22,7 @@
 
 ---
 
-## 1. 7 Agent 角色总览（VoltAgent 风格 subagent — 实际安装在 `agents/embedded-*.md`）
+## 1. 6 Agent 角色总览（VoltAgent 风格 subagent — 实际安装在 `agents/embedded-*.md`）
 
 ```
                 ┌──────────────────────────┐
@@ -34,13 +34,13 @@
             │ CP-1.5 仿真 │       │ CP-2 实现   │
             └──────┬──────┘       └─────┬──────┘
                    │                     │
-        ┌──────────┼──────────┐         ├─────────┬─────────┐
-        ▼          ▼                    ▼         ▼         ▼
-    [MATLAB]   [VISION]              [DRV]    [ALG]    [REPORT]
-    embedded-  embedded-             embedded- embedded- embedded-
-    matlab     vision                drv       alg       report
-       │          │                     │         │         │
-       └──────────┴─────────────────────┴─────────┴─────────┘
+                   ▼                     ├─────────┬─────────┐
+              [MATLAB]                   ▼         ▼         ▼
+              embedded-               [DRV]    [ALG]    [REPORT]
+              matlab                  embedded- embedded- embedded-
+                 │                    drv       alg       report
+                 │                       │         │         │
+                 └───────────────────────┴─────────┴─────────┘
                            │
                            ▼
                        [QA] embedded-qa
@@ -48,10 +48,11 @@
                        （不并发；收齐其他 Agent 产物后单独跑）
 ```
 
-**编制**：7 个 subagent（ARCH/DRV/ALG/QA/MATLAB/VISION/REPORT），无第 8 个。
+**编制**：6 个 subagent（ARCH/DRV/ALG/QA/MATLAB/REPORT），无第 7 个。
 Simscape 电路仿真属于 `embedded-matlab` 的能力之一（场景 E6），不单独成 Agent。
+**视觉处理**由独立 `auto-vison` skill 承担，通过 Skill Handoff Contract 调用（产物：`.h` / `.kmodel` / `.rknn` 等供本 skill ALG 消费）。
 
-**派发方式**：每个 Agent 独立 context、独立写 `编辑清单_<ROLE>.md`（大写枚举：DRV/ALG/QA/MATLAB/VISION/REPORT），ARCH 在 CP-2 末尾合并到主 `编辑清单.md`。完整契约见 `agents/README.md` + `refs/contracts.md`。
+**派发方式**：每个 Agent 独立 context、独立写 `编辑清单_<ROLE>.md`（大写枚举：DRV/ALG/QA/MATLAB/REPORT），ARCH 在 CP-2 末尾合并到主 `编辑清单.md`。完整契约见 `agents/README.md` + `refs/contracts.md`。
 
 ---
 
@@ -159,36 +160,7 @@ blocking_cp: CP-1.5
 - 编辑清单写 编辑清单_ALG.md
 ```
 
-### 2.5 [VISION] — 智能车视觉专项 Agent（仅视觉组用）
-
-```text
-你是智能车视觉工程师 [VISION]。在主协议 RIPER-5 + 比赛模式 v2 框架下工作。
-
-【任务】
-针对智能车视觉组（NXP 杯），完成完整视觉处理链路：
-
-1. 摄像头标定（如有标定图）：cameraCalibrator → cam_params.mat
-2. 离线算法调试：从录制视频选 N 张不同光照/角度的图，调以下参数：
-   - 二值化阈值（固定 vs OTSU 自适应）
-   - Sobel/Canny 边缘
-   - 透视变换 src_pts → dst_pts
-   - 中线提取扫线策略
-3. 输出：
-   - app/vision/perspective.h（透视矩阵）
-   - app/vision/track_detect.c/.h（实时处理代码）
-   - 性能基准：FPS + 不同场景丢线率
-
-【强制约束】
-- 必须用 mcp__matlab__evaluate_matlab_code 真实跑算法（不允许凭空推测）
-- 测试图 ≥ 10 张（含直道/弯道/十字/环岛/强光/弱光）
-- 丢线率 ≤ 5% 才能 status=success
-- 编辑清单写 编辑清单_VISION.md
-- Command Outcome 格式同 [MATLAB]
-
-参考完整流程：refs/matlab-example-smartcar-vision.md
-```
-
-### 2.6 [QA] — 验证 Agent
+### 2.5 [QA] — 验证 Agent
 
 ```text
 你是嵌入式验证工程师 [QA]。在主协议 RIPER-5 + 比赛模式 v2 框架下工作。
@@ -208,7 +180,7 @@ v2 升级（核心强化）：
 - Command Outcome 格式同 [MATLAB]
 ```
 
-### 2.7 [REPORT] — 报告生成 Agent（CP-4 派发）
+### 2.6 [REPORT] — 报告生成 Agent（CP-4 派发）
 
 ```text
 你是比赛报告与答辩准备工程师 [REPORT]。
@@ -241,12 +213,12 @@ v2 升级（核心强化）：
 
 - **优先 subagent_type="embedded-*"**（VoltAgent 风格，已装在 `~/.claude/agents/`，见 `agents/README.md` §安装方式）
 - 仅在 subagent 未注册时回退 `general-purpose` + 内嵌 prompt（不推荐 — 回退后 Outcome/Ticket 规约可能失效）
-- 派发分两批：CP-1.5 派仿真组（MATLAB + VISION）；CP-2 派实现组（DRV + ALG + REPORT）；**绝不**在 CP-1.5 完成前派 ALG
+- 派发分两批：CP-1.5 派仿真组（MATLAB；视觉题另派 `auto-vison` skill）；CP-2 派实现组（DRV + ALG + REPORT）；**绝不**在 CP-1.5 完成前派 ALG
 - 同一批的所有 subagent 必须**在同一条消息**用并行 Task tool 发出
 
 ### 3.1 电赛仪表类题（如 2021A / 2022F / 2024B）
 
-**CP-1.5 派 1 个**（MATLAB 跑算法，无 VISION）：
+**CP-1.5 派 1 个**（MATLAB 跑算法）：
 
 ```python
 Task(subagent_type="embedded-matlab",
@@ -268,20 +240,13 @@ CP-3 单独派：
 Task(subagent_type="embedded-qa", description="CP-3 验证", prompt=<§2.6 模板 + 验证清单>)
 ```
 
-### 3.2 智能车视觉组
+### 3.2 智能车电磁直立组
 
-**CP-1.5 同条消息派 2 个**：
+CP-1.5 派 1 个（MATLAB 含 LQR + Kalman），CP-2 派 3 个（DRV + ALG + REPORT），CP-3 派 QA。共 6 个。
 
-```python
-Task(subagent_type="embedded-matlab", description="LQR + Kalman", prompt=<§2.2 模板>)
-Task(subagent_type="embedded-vision", description="视觉离线",     prompt=<§2.5 模板>)
-```
+### 3.3 含视觉的题目
 
-CP-2 派 3 个（DRV + ALG + REPORT），CP-3 派 QA。共 7 个 subagent 覆盖。
-
-### 3.3 智能车电磁直立组
-
-CP-1.5 派 1 个（MATLAB 含 LQR + Kalman），CP-2 派 3 个（DRV + ALG + REPORT），CP-3 派 QA。共 6 个。VISION 不派（电磁组无摄像头）。
+视觉部分（标定 / 检测 / 跟踪 / 模型部署 to KPU/NPU）外包给独立 `auto-vison` skill。本 skill 在 CP-1.5 同时派 `auto-vison` 与 `embedded-matlab`，CP-2 由 `embedded-alg` 消费 vision skill 产出的 `.h` / `.kmodel` / `.rknn`。详见 `refs/contracts.md` Skill Handoff Contract。
 
 ---
 
@@ -407,7 +372,7 @@ ARCH：
 → 套 task-router §1.1：MAIN=METER（单项最高分=测量精度）
 → 套 §1.2：TAGS=[FFT, RF, MODEM, OLED]
 → 套 §1.7 分值加权：FFT=35% / OLED=10% / 测量精度=40% / 其他=15%
-→ §2.4 + §1.7 算 Agent：[ARCH][DRV][ALG][QA][REPORT][MATLAB] = 6 个，不派 VISION
+→ §2.4 + §1.7 算 Agent：[ARCH][DRV][ALG][QA][REPORT][MATLAB] = 6 个
 → 5 元组验收表 → docs/checklist-100分.md
 → docs/competition-routing.md 生成
 → git commit + tag v0.0-routing
@@ -428,7 +393,7 @@ ARCH（grok-search 查 STM32F407 ADC 三重交替模式）：
 
 #### T+2h ~ T+5h：CP-1.5 仿真（必须先跑，绝不并行 ALG）★关键串行点
 
-ARCH **同条消息派 1 个 subagent**（本题无 VISION）：
+ARCH **同条消息派 1 个 subagent**：
 
 ```python
 Task(subagent_type="embedded-matlab",
@@ -527,158 +492,6 @@ Task(subagent_type="embedded-report",
 
 ---
 
-## 5.2 控制+视觉题完整示例：2017B 滚球控制系统 ★v2.2
-
-### 用户输入
-
-```
-启用比赛模式
-
-题目：[贴 2017B 原文]
-硬件：STM32F407 + OV7725 摄像头 + 双轴舵机 + MPU6050 + OLED1306
-团队：4 人
-时间：4 天
-```
-
-### MAIN + TAGS + 加权
-
-```yaml
-MAIN: CONTROL
-TAGS: [VISION, MOTOR, OLED, IMU]
-tag_weights:
-  CLOSED_LOOP_CONTROL:  { total_score: 30, percentage: 30%, agents: [MATLAB, ALG] }
-  VISION_TRACK:         { total_score: 25, percentage: 25%, agents: [VISION, ALG] }
-  MOTOR_RESPONSE:       { total_score: 15, percentage: 15%, agents: [DRV, MATLAB] }
-  OLED_HMI:             { total_score: 5,  percentage:  5%, agents: [DRV, ALG] }
-  MECH_SAFETY:          { total_score: -10, percentage: 10%, agents: [DRV], note: critical 红线 }
-派 Agent: 7 个全派（ARCH+DRV+ALG+QA+REPORT+MATLAB+VISION）
-```
-
-### 关键差异（与仪表题 §5 对比）
-
-| 维度 | 仪表题 (2022F) | 控制+视觉题 (2017B) |
-|---|---|---|
-| CP-1.5 仿真 | 仅 MATLAB（FFT 精度）| **MATLAB + VISION 并行**（LQR / Kalman / 视觉离线）|
-| CP-1.5 串行点 | .h 文件等待 | .h + perspective.h + track_detect.c skeleton 三件套等待 |
-| CP-3 验收 | 5 元组 + 测量精度 + 实时性 | 5 元组 + 实时性 + **§I 闭环 + §J 视觉 + §K 机电安全（红线）**|
-| 关键风险 | ADC 漂移 | 视觉延迟 + 机械响应 + 限位保护 |
-
-### 完整时间表（4 天，控制题压缩到 28h 核心 + 44h 调优）
-
-```
-CP-0a   T+0~5min      git init + .gitignore
-CP-0b   T+5~15min     路由 → MAIN=CONTROL + TAGS + 7-agent 派发
-CP-1    T+15min~3h    硬件资源表（含 hw_lock：摄像头 DCMI + 舵机 PWM × 2 + IMU I2C）
-                      接口契约 v1.0（vision/control/motor/imu 接口分离）
-                      arch-check.sh --hw-check exit 0 → tag v0.1-arch
-                      ⚠️ 控制题 CP-1 时间比仪表题长（额外要锁视觉/电机/IMU 三路）
-
-CP-1.5  T+3h~10h      ARCH 同条消息派 2 个：
-                       Task(embedded-matlab):
-                         - LQR 4 状态：[x, ẋ, y, ẏ]
-                         - dlqr 离散化 Ts=20ms
-                         - Q=diag([100,1,100,1]), R=[0.01]
-                         - 仿真：超调 < 8%, 调节时间 1.2s, 稳态 < 2mm
-                         - 导出 app/control/lqr_gains.h
-                         - 同时跑 MPU6050 Kalman 融合（Q/R 噪声协方差）
-                         - 导出 app/control/kalman_params.h
-                       Task(embedded-vision):
-                         - 摄像头标定 (cameraCalibrator)
-                         - 离线测试 12 张图（直/弯/十字/强光/弱光/遮挡）
-                         - OTSU + 形态学 + Hough 圆检测（球体）
-                         - 透视变换 188×120 → 100×80 bird-view
-                         - 导出 app/vision/{perspective.h, camera_params.h, threshold_lut.h}
-                         - 产 app/vision/track_detect.c skeleton（含 TODO[ALG]）
-                         - 性能：检测率 95%，估算 FPS 100 @ STM32F407
-                      收 2 个 Outcome 都 success → tag v0.15-sim
-
-CP-2    T+10h~20h     ARCH 同条消息派 3 个：
-                       Task(embedded-drv):
-                         - DCMI + DMA 摄像头（行中断 + 帧缓冲双 buffer）
-                         - TIM_PWM 双舵机（50 Hz, 0.5-2.5ms 脉宽）
-                         - I2C IMU + OLED 共用 I2C2
-                         - 软限位保护（GPIO 中断）★机电安全
-                         - 看门狗 IWDG 启用
-                       Task(embedded-alg):
-                         - 消费 lqr_gains.h + kalman_params.h + perspective.h
-                         - 填 track_detect.c 的 TODO[ALG] 标记
-                         - svc_controller.c：LQR 主循环 50 Hz
-                         - svc_estimator.c：球位置 Kalman 融合
-                         - svc_safety.c：限位 / 跟丢 / 堵转检测
-                         - 状态机 INIT→READY→TRACKING→LOST→SAFE→ERROR
-                       Task(embedded-report):
-                         - 报告骨架 + 题目分析段 + 实测数据占位
-                      tag v0.2-dev
-
-CP-3    T+20h~26h     ARCH 派 Task(embedded-qa)：
-                       全套验收（详见 agents/embedded-qa.md）：
-                        ★ 静态分区检查（app 严苛/drv 中等/vendor 跳过）
-                        ★ MIL/SIL/PIL 三层一致性
-                        ★ 实时性 5 项（jitter/ISR/栈/CPU/浮点）
-                        ★ §I 闭环 5 指标：
-                           - 超调 ≤ 8% (仿真目标，实测 < 12% 是阈值 1.5×)
-                           - 调节时间 < 1.5s
-                           - 稳态误差 < 3mm
-                           - 跟踪误差（动态目标）< 5mm
-                           - 抗扰恢复 < 2× 调节时间
-                        ★ §J 视觉容错 4 项：
-                           - 丢帧恢复 < 0.3s（人为遮挡测试）
-                           - 跟丢→SAFE 状态
-                           - 光照 3 档检测率 ≥ 90%
-                           - 跟踪失败率 < 5%
-                        ★ §K 机电安全 5 项（critical 红线）：
-                           - 软限位 → PWM 归零
-                           - 堵转 30s → ERROR
-                           - 欠压 → SAFE + OLED 红警
-                           - IWDG 复位测试
-                           - ERROR 禁止自动恢复
-                      Defect Ticket 列表 → ARCH 按 §排序规则定向回派
-                      tag v0.3-qa
-
-CP-4    T+26h~28h     派 2 个（alg 写 main.c / report 填实测数据）
-                      ARCH 协调 → QA 复验 → tag v1.0-release
-
-CP-5    T+28h~30h     答辩演练 10 whys（含 LQR vs PID / Kalman vs 互补 /
-                      Hough vs HSV / 软限位时序 5 个核心 why）
-                      → tag v1.1-rehearsed
-
-T+30h ~ T+96h         剩余 66h（4 天）：
-                        - 机械松动反复紧固（控制题常见硬伤）
-                        - 不同光照 5 次回归测试
-                        - 电池电压衰减场景验证
-                        - 备份方案：视觉失败 → IMU+电磁辅助定位（如果题目允许）
-                        - 答辩多轮录像 + 同伴模拟提问
-```
-
-### 关键控制题 why-evidence（10 whys 示例）
-
-```
-Q1: 为什么用 LQR 不用 PID？
-A:  4 状态耦合，PID 难协调（4 路 PID 互相打架），LQR 一组 K 同时优化能量与跟踪
-    证据：scripts/lqr_design.m:28-45 Q/R 选取 + figures/lqr_vs_pid.png 调节时间
-          1.2s vs 2.5s
-
-Q2: 为什么控制频率 50 Hz 不是 100 Hz？
-A:  摄像头 100 FPS + 机械响应 ~20 Hz 带宽，50 Hz 已 > 5× Nyquist；提到 100 Hz
-    会增 50% CPU 但效果无提升
-    证据：硬件资源表.md:#L42 摄像头 FPS + log/cpu_usage_compare.csv
-
-Q3: 为什么 Hough 不用 HSV 阈值？
-A:  HSV 在光照变化下漂移大（实测 100/1000 lux 阈值差 ±20）；Hough 几何特征鲁棒
-    证据：vision_eval.csv 三档光照检测率 Hough 95% vs HSV 67%
-
-Q4-Q10: 略（机电安全 / IMU Kalman / 限位 / 状态机超时 / 实时性...）
-```
-
-### 控制题特别提醒
-
-1. **CP-1.5 不能跳**：控制+视觉题必须先把 LQR / Kalman / 视觉算法验证完才能进 CP-2，否则 ALG 拿着错的 .h 写代码 → CP-3 必崩
-2. **§K 机电安全是 critical 红线**：任一项失败不允许 retry，必须人工裁决（不是软件能补的）
-3. **视觉与控制耦合**：视觉延迟（捕获→识别→输出）通常 30-50 ms，控制律设计时**必须**把这延迟当作系统延迟纳入（不然闭环会震荡）— `embedded-matlab` 在 LQR 设计时加 Padé 近似
-4. **机械限位永远比软件限位先**：电赛规则一般要求物理限位开关（GPIO 中断），软限位（θ_max 角度判断）是兜底
-
----
-
 ## 6. 阻塞与人工裁决场景
 
 并非所有事都能自动。以下情况**必须**让 Claude 暂停 + 让人工决定：
@@ -725,11 +538,11 @@ Q4-Q10: 略（机电安全 / IMU Kalman / 限位 / 状态机超时 / 实时性..
 | 能不能做 | 答案 |
 |---|---|
 | AI 100% 完赛？ | ❌ 不行。硬件焊接、临场调试、答辩仍是人的事 |
-| 所有题型适用？ | ⚠️ 主流类型（信号 / 控制 / 视觉 / 电磁）OK；很冷门题型可能没现成场景 |
+| 所有题型适用？ | ⚠️ 主流类型（信号 / 控制 / 电磁 / 工业系统集成）OK；视觉题由 `auto-vison` skill 承担；冷门题型可能没现成场景 |
 | 第一次用就能 3-5× 加速？ | ⚠️ 不行。学习曲线 10-20 小时，赛前必须先练 |
 | 离线场景能用？ | ✅ 本 skill 全套离线可用；grok-search 失效但不影响主流程 |
 | 不会编程能用？ | ❌ 至少要会读 C 代码 + 能调试硬件 |
-| 跨赛事复用？ | ✅ 电赛 + 智能车 + 其他嵌入式赛事都适用 |
+| 跨赛事复用？ | ✅ 电赛 + 其他嵌入式赛事都适用 |
 
 ---
 
@@ -744,3 +557,4 @@ Q4-Q10: 略（机电安全 / IMU Kalman / 限位 / 状态机超时 / 实时性..
 - **统一约定**：`refs/contracts.md`（Project Profile / Command Outcome）
 - **入门示例**：`refs/matlab-example-*.md`、`refs/lqr-example-*.md`
 - **首跑**：`refs/matlab-hello-5min.md`
+- **视觉题**：由独立 `auto-vison` skill 承担（含 STM32+OV7725 / K230+MaxCAM / RK3588 三层硬件）

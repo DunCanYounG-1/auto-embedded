@@ -48,7 +48,7 @@
 ├── 我担心仿真对了上板不对，要做三层验证
 │    → 场景 10：MIL / SIL / PIL 验证链
 │
-└── 我在打电赛 / 智能车，要按"赛题门类"组织而不是"算法门类"
+└── 我在打电赛，要按"赛题门类"组织而不是"算法门类"
      → `modes/matlab-toolkit-competition.md`（7 个竞赛专项场景 E1-E7）
         + `refs/competition-index.md`（历年赛题索引）
 ```
@@ -1071,5 +1071,4 @@ PIL 失败 → 三层定位矩阵；定位后回对应层修
 | DDS 信号发生器（电赛 2001A）| `refs/matlab-example-dds-signal-gen.md` | ★★ | 竞赛专题 E1 |
 | AM 调制度测量（电赛 2022F）| `refs/matlab-example-modem-am.md` | ★★ | 竞赛专题 E2 |
 | 失真度分析仪（电赛 2021A）| `refs/matlab-example-thd-meter.md` | ★★ | 竞赛专题 E3 |
-| 智能车视觉端到端（NXP 视觉组）| `refs/matlab-example-smartcar-vision.md` | ★★★ | 竞赛专题 E4 |
-| **历年赛题索引（电赛 + 智能车）** | `refs/competition-index.md` | — | 找题入口 |
+| **历年赛题索引（电赛）** | `refs/competition-index.md` | — | 找题入口 |

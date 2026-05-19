@@ -127,10 +127,6 @@ triggers:
   - "电赛"
   - "电子设计竞赛"
   - "全国大学生电子设计竞赛"
-  - "智能车"
-  - "NXP杯"
-  - "恩智浦杯"
-  - "飞思卡尔"
   - "DDS"
   - "信号发生器"
   - "波形合成"
@@ -142,11 +138,6 @@ triggers:
   - "自适应滤波"
   - "LMS"
   - "RLS"
-  - "摄像头循迹"
-  - "赛道识别"
-  - "鱼眼校正"
-  - "透视变换"
-  - "中线提取"
   - "电磁循迹"
   - "差比和"
   - "Simscape"
@@ -194,7 +185,6 @@ triggers:
   - "embedded-alg"
   - "embedded-qa"
   - "embedded-matlab"
-  - "embedded-vision"
   - "embedded-report"
   - "subagent"
   - "独立 agent"
@@ -224,9 +214,6 @@ triggers:
   - "稳态误差"
   - "跟踪误差"
   - "抗干扰恢复"
-  - "视觉容错"
-  - "丢帧恢复"
-  - "跟踪失败降级"
   - "机电安全"
   - "机械限位"
   - "电机堵转"
@@ -476,7 +463,7 @@ test -f /dev/null && echo "[embedded-dev] hooks env: ok" \
 ### 替代型模式（替代 RIPER-5 阶段流程）
 | 触发词 | 模式 | 规则文件 |
 |--------|------|---------|
-| `启用比赛模式` / `自动完赛` / `极限并行` / `多 Agent 派发` / `比赛模式 v2` / `赛季 SOP` | **v2 比赛模式**：7 Agent 并行（ARCH/MATLAB/VISION/DRV/ALG/QA/REPORT）+ 6 阶段检查点（CP-0~CP-5）+ MIL/SIL/PIL 三层验证 + 自动决策门，电赛 4 天压缩到 1.5-2 天 | `modes/competition.md` + `refs/competition-ai-max-workflow.md` |
+| `启用比赛模式` / `自动完赛` / `极限并行` / `多 Agent 派发` / `比赛模式 v2` / `赛季 SOP` | **v2 比赛模式**：6 Agent 并行（ARCH/MATLAB/DRV/ALG/QA/REPORT）+ 6 阶段检查点（CP-0~CP-5）+ MIL/SIL/PIL 三层验证 + 自动决策门，电赛 4 天压缩到 1.5-2 天。视觉题由独立 `auto-vison` skill 承担。 | `modes/competition.md` + `refs/competition-ai-max-workflow.md` |
 调用规则：
 1. **立即读取**对应的 `modes/` 文件
 2. 以该文件的**阶段流程**替代 RIPER-5 的五阶段流程
@@ -493,11 +480,11 @@ test -f /dev/null && echo "[embedded-dev] hooks env: ok" \
 | `检查工具` / `检查mcp` / `测试工具` / `mcp检查` / `工具诊断` / `healthcheck` | MCP 工具健康检查（逐一测试→诊断→尝试修复→生成报告） | `modes/mcp-healthcheck.md` |
 | `MATLAB` / `Simulink` / `LQR` / `极点配置` / `卡尔曼` / `系统辨识` / `滤波器设计` / `FFT` / `电机辨识` / `定点化` / `查表生成` / `串口日志分析` / `CAN 日志` / `Embedded Coder` / `MIL` / `SIL` / `PIL` | MATLAB 嵌入式工具箱（10 场景：辨识 / 滤波 / FFT / 控制器 / 观测器 / 电机辨识 / 日志分析 / 定点化 / Simulink 代码生成 / MIL-SIL-PIL 验证），含小白决策树与每场景四段式引导 | `modes/matlab-embedded-toolkit.md` |
 | `MATLAB 一键流水线` / `matlab pipeline` / `MATLAB 到固件` / `仿真到实测` / `一键算到烧` / `一键 LQR 上板` / `闭环到端验证` | MATLAB → 固件 6 步流水线（算→`.h`→编译→烧→监控→对比） | `modes/matlab-firmware-pipeline.md` |
-| `电赛` / `电子设计竞赛` / `智能车` / `NXP杯` / `飞思卡尔` / `DDS` / `调制度` / `失真度` / `THD` / `SFDR` / `自适应滤波` / `LMS` / `摄像头循迹` / `电磁循迹` / `差比和` / `Simscape` | MATLAB 竞赛专题（7 场景 E1-E7：信号源/调制/仪表/视觉/自适应/电路/电磁）+ 历年赛题索引 | `modes/matlab-toolkit-competition.md` + `refs/competition-index.md` |
+| `电赛` / `电子设计竞赛` / `DDS` / `调制度` / `失真度` / `THD` / `SFDR` / `自适应滤波` / `LMS` / `电磁循迹` / `差比和` / `Simscape` | MATLAB 竞赛专题（计算/控制类场景：信号源/调制/仪表/自适应/电路/电磁）+ 历年赛题索引 | `modes/matlab-toolkit-competition.md` + `refs/competition-index.md` |
 | `工业数据采集` / `工业嵌入式` / `CIMC` / `西门子杯` / `西门子初赛` / `data logger` / `DAQ` / `工业题` / `系统集成题` / `sysFunction` / `CLI 命令解析` | **工业数据采集系统集成模板（IDA）**：8 子系统（启动/RTC/CLI/配置/采集/OLED/存储/日志）+ 多外设协同 + Flash 持久化 + TF 卡多文件夹 + 跳过 MATLAB 仿真阶段 | `modes/industrial-data-acquisition.md` + `refs/cli-command-framework.md` + `refs/example-siemens-cimc-2025.md` |
 | `题型识别` / `赛题路由` / `题型路由` / `评分点提取` / `验收表` / `100 分追踪表` / `acceptance test` | **元层路由器**：任何竞赛题第 0 步必读。标签化路由（MAIN + TAGS）+ 角色池 Agent 派发 + 阶段跳过矩阵 + 5 元组验收表 + 答辩 why-evidence + 临场变更单 | `refs/competition-task-router.md` + `refs/competition-scoring-checklist-template.md` |
 | `quickstart` / `快速开始` / `15 分钟入门` / `三人极简` / `Mini 模式` | **单页快速通道**：15 分钟从读题到派 Agent；只读 1 张表即可起步，省 4 小时学习曲线 | `refs/competition-quickstart-1page.md` |
-| `embedded-arch` / `embedded-drv` / `embedded-alg` / `embedded-qa` / `embedded-matlab` / `embedded-vision` / `embedded-report` / `subagent` / `VoltAgent 风格` | **7 个独立 subagent**（已装 `~/.claude/agents/`）按 VoltAgent 标准格式，可用 `Task(subagent_type=embedded-xxx)` 直接派发；独立 context = 主线压力小 | `agents/README.md` + `agents/embedded-*.md` |
+| `embedded-arch` / `embedded-drv` / `embedded-alg` / `embedded-qa` / `embedded-matlab` / `embedded-report` / `subagent` / `VoltAgent 风格` | **6 个独立 subagent**（已装 `~/.claude/agents/`）按 VoltAgent 标准格式，可用 `Task(subagent_type=embedded-xxx)` 直接派发；独立 context = 主线压力小 | `agents/README.md` + `agents/embedded-*.md` |
 调用规则：
 1. **立即读取**对应的 `modes/` 文件
 2. 按该文件的流程执行任务，**不中断当前 RIPER-5 阶段**

@@ -68,8 +68,8 @@
 | 概念 | 含义 | 取值范围 | 出现位置 |
 |---|---|---|---|
 | **agent_id** | subagent 在 Outcome / Ticket 里自报家门 | 与 `subagent_type` 同名 | `Outcome.owner_agent` / `Ticket.owner_agent` |
-| **subagent_type** | Task tool 派发时的类型字符串 | `embedded-arch` / `embedded-drv` / `embedded-alg` / `embedded-qa` / `embedded-matlab` / `embedded-vision` / `embedded-report`（共 7 个）| `Task(subagent_type="...")` |
-| **ROLE** | 写子清单时用的角色短名 | `DRV` / `ALG` / `QA` / `MATLAB` / `VISION` / `REPORT`（共 **6 个**，无 ARCH）| `编辑清单_<ROLE>.md` 文件名 |
+| **subagent_type** | Task tool 派发时的类型字符串 | `embedded-arch` / `embedded-drv` / `embedded-alg` / `embedded-qa` / `embedded-matlab` / `embedded-report`（共 6 个）| `Task(subagent_type="...")` |
+| **ROLE** | 写子清单时用的角色短名 | `DRV` / `ALG` / `QA` / `MATLAB` / `REPORT`（共 **5 个**，无 ARCH）| `编辑清单_<ROLE>.md` 文件名 |
 
 **关键区分**：
 - ARCH 是 subagent_type / agent_id 之一，但**不是 ROLE**（ARCH 只合并主清单，自己不写子清单）
@@ -125,7 +125,7 @@ competition_state:
 | CP-0a | 用户触发"启用比赛模式" | 工程目录 + `.gitignore` + `git init` 完成 | — |
 | CP-0b | CP-0a passed | `docs/competition-routing.md` 含 MAIN+TAGS+路由置信度 high；5 元组验收表生成 | low 置信 → 暂停问用户 |
 | CP-1 | CP-0b passed | `硬件资源表.md` YAML 块通过 `arch-check.sh --hw-check`；接口契约 v1.0 写入 `架构设计.md` | pin/DMA/IRQ 冲突 → 回 ARCH 重排 |
-| CP-1.5 | CP-1 passed；MATLAB/VISION 派发条件成立 | 全部仿真 Agent `status=success` + 关键指标量化达标 | 连续 3 轮不达标 → 人工裁决 |
+| CP-1.5 | CP-1 passed；MATLAB 派发条件成立 | 全部仿真 Agent `status=success` + 关键指标量化达标 | 连续 3 轮不达标 → 人工裁决 |
 | CP-2 | CP-1.5 passed（或 SYSTEM 题跳过 CP-1.5） | 全部并行开发 Agent `status=success`；编辑清单合并完成 | 任一 `failure` → 进 defect_queue |
 | CP-3 | CP-2 passed | `arch-check.sh` exit 0；`include-graph.py` 无 LAYER-VIOL；MIL/SIL/PIL（控制题）；5 元组 ≥ 85/100 | C/D 类红线问题禁止过 CP |
 | CP-4 | CP-3 passed | 集成 `main.c` 编译烧录通过；报告填实测数据；`embedded-qa` 复验 PASS | 集成失败 → 回 alg/drv 修 |
