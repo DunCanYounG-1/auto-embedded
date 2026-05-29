@@ -6,3 +6,8 @@ hooks/session-start.py   text eol=lf
 hooks/check-memory-files text eol=lf
 hooks/inject-context     text eol=lf
 hooks/remind-update      text eol=lf
+
+# arch-check 门禁脚本与 git 钩子同理：shell 脚本与 pre-commit 钩子必须 LF，
+# 否则 Unix/Git-bash 检出后 \r 会导致 "bad interpreter" 或钩子静默失效。
+*.sh                     text eol=lf
+scripts/hooks/pre-commit text eol=lf
