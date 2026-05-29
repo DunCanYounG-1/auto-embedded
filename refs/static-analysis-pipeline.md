@@ -57,35 +57,73 @@ cppcheck \
 - 三方库目录全 `--suppress=*:` — 厂商代码不背锅，**只检查用户代码**
 - `--xml`：方便 CI / 后处理；交互式调试改用 `--template=gcc`
 
-### 1.3 MISRA 子集（按需开启）
+### 1.3 MISRA C 2012 规则矩阵（Mandatory，对齐 MISRA Compliance:2020）
 
-`cppcheck --addon=misra --addon-options=...` 启用 MISRA 检查。
+`cppcheck --addon=misra --addon-options=--misra-rules-file=.misra-rules.txt` 启用。下表是 **32 位通用 MCU 项目默认子集**：分 Mandatory / Required / Advisory 三级，每条标注工具覆盖（C=cppcheck, T=clang-tidy, A=arch-check.sh, M=人工）。
 
-**推荐 32 位 MCU 项目默认规则集**（从 158 条中精选 30 条强制 + 10 条建议）：
+#### Mandatory（强制，违反即 FAIL，无偏差余地）
 
-| 强制（30 条）— 安全相关 | 建议（10 条）— 风格相关 |
+| 规则 | 内容 | 工具 |
+|---|---|---|
+| Dir 1.1 | 实现定义行为必须文档化 | M |
+| Dir 4.7 | 函数返回错误信息必须被测试 | T (`bugprone-unused-return-value`) |
+| Rule 1.1 | C 语言版本与扩展声明 | C/M（含 `static_assert(__STDC_VERSION__ >= 201112L)`） |
+| Rule 1.3 | 实现定义/未定义行为禁止 | C |
+| Rule 2.1 | 不可达代码禁止 | C (`unreachableCode`) |
+| Rule 2.2 | 死代码禁止 | C/T (`bugprone-unused-*`) |
+| Rule 9.1 | 自动变量使用前初始化 | C/T (`cppcoreguidelines-init-variables`) |
+| Rule 13.1 | 初始化列表无副作用 | C |
+| Rule 13.6 | sizeof 操作数无副作用 | C |
+| Rule 17.3 | 函数原型不可省略 | C |
+| Rule 18.6 | 自动变量地址不可逃逸作用域 | C |
+| Rule 21.21 | `system()` 禁用 | C/T |
+| Rule 22.x | 资源管理（FILE/dyn-mem/线程） | C |
+
+#### Required（要求，违反需 deviation record，见 §4.5.4）
+
+| 规则 | 内容 | 工具 |
+|---|---|---|
+| Dir 4.1 | 运行期错误最小化 | M |
+| Dir 4.12 | 动态内存默认禁用 | M（与 §13.1 联动） |
+| Dir 4.13 | 资源 acquire/release 配对 | M |
+| Rule 5.1-5.9 | 标识符显著字符 / 唯一性 / 命名冲突 | C/T (`readability-identifier-naming`) |
+| Rule 6.1 | 位域基础类型 unsigned | C |
+| Rule 8.4 | 外部链接必须前置声明 | C |
+| Rule 8.7 | 单翻译单元函数必须 `static` | C/A（部分） |
+| Rule 8.13 | 指针参数可加 const 时必须加 | T (`misc-misplaced-const`) |
+| Rule 10.1-10.8 | essential type model（整型转换） | C |
+| Rule 11.1-11.6 | 指针转换约束 | C |
+| Rule 12.x | 表达式 | C |
+| Rule 13.2-13.5 | 副作用 / 序列点 | C |
+| Rule 14.1-14.4 | 控制流可达性 / 循环条件 | C |
+| Rule 15.x | switch 完整性 | C |
+| Rule 17.2 | 禁止递归（直接 + 相互） | C/A |
+| Rule 17.7 | 非 void 返回值必须使用 | T (`bugprone-unused-return-value`) |
+| Rule 18.1-18.5 | 指针运算 / 数组越界 | C |
+| Rule 18.8 | VLA 禁止 | C/T |
+| Rule 19.1 | union 访问字段写 ≠ 读 | C |
+| Rule 20.1-20.14 | 预处理器规范 | C |
+| Rule 21.1-21.6 | 标准库限制（含 setjmp/atexit/system） | C |
+| Rule 21.20 | 函数指针不指 NULL | C |
+
+#### Advisory（建议，仅 hint，不阻塞 CI）
+
+| 规则 | 内容 |
 |---|---|
-| Rule 2.1 不可达代码 | Rule 8.4 必须前置声明 |
-| Rule 2.2 无作用代码 | Rule 8.7 仅在本翻译单元使用的函数必须 `static` |
-| Rule 5.1~5.9 命名冲突 | Rule 11.x 类型转换警告 |
-| Rule 9.1 局部变量必须初始化 | Rule 15.5 函数单一返回点（争议条款，可关） |
-| Rule 13.x 副作用顺序 | Rule 17.7 函数返回值必须使用 |
-| Rule 14.x 控制流可达性 | Rule 20.x 预处理器规范 |
-| Rule 17.2 禁止递归 | Rule 21.1~21.3 库函数限制 |
-| Rule 18.x 指针运算 | — |
-| Rule 19.1 联合体内存读写 | — |
-| Rule 22.x 资源管理 | — |
+| Rule 8.9 | 仅在一处用的对象 `static` |
+| Rule 11.9 | NULL 字面量统一 |
+| Rule 15.5 | 单一 return 点（争议，默认关） |
+| Rule 17.4 | 非 void 函数所有路径有 return |
 
-> **写在 `.cppcheck-suppressions` 中**：
+> **完整矩阵文件**：项目根 `.misra-rules.txt` 列出所有 Mandatory + Required 条目，每行 `misra-c2012-<rule>`。CI 比对配置文件 hash 防偷改。
 
-```
-// 项目根 .cppcheck-suppressions
-// 启用强制条款
-misra-c2012-2.1
-misra-c2012-2.2
-misra-c2012-5.1
-// ... 完整 30 条列表略，按上表填
-```
+### 1.3.1 与其他规范对照
+
+| 本规范 P 级 | MISRA 分类 | JPL Power of 10 | CERT-C 优先级 |
+|---|---|---|---|
+| **P0 Mandatory** | Mandatory + 核心 Required | Rules 1/2/3/10 | L1 (high severity) |
+| **P1 Required** | Required + 关键 Advisory | Rules 4/5/9 | L2 |
+| **P2 Advisory** | Advisory | Rules 6/7/8 | L3 |
 
 ### 1.4 接入 RIPER-5
 
@@ -257,63 +295,78 @@ python <skill_root>/tools/include-graph.py [project_root]
 
 ---
 
-## 4. 统一调用：`scripts/check.sh`
+## 4. 统一调用：`scripts/check.sh`（Mandatory：失败必须 exit ≠ 0）
 
-放在项目根 `scripts/check.sh`：
+> **门禁原则**：每个工具结果都参与 `RC` 累加，**禁止** `|| true` 吞掉退出码。仅日志重定向用 `|| RC=$((RC|N))` 累记失败位。
 
 ```bash
 #!/usr/bin/env bash
-set -e
+set -u                       # 注意：不用 -e；我们自己累加 RC
+# set -e 会让 grep 0 匹配返回 1 也炸；改用显式 RC 位
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$PROJECT_ROOT"
 mkdir -p build
 
-# skill 自带工具路径（按需调整）
 SKILL_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}"
+RC=0   # 失败位：bit0=arch, bit1=include, bit2=cppcheck, bit3=tidy, bit4=lizard
 
-echo "=== [1/5] arch-check.sh (7 项嵌入式硬规则) ==="
-bash "$SKILL_ROOT/scripts/arch-check.sh" > build/arch-check.log 2>&1 || true
-echo "  → build/arch-check.log"
+echo "=== [1/5] arch-check.sh ==="
+bash "$SKILL_ROOT/scripts/arch-check.sh" > build/arch-check.log 2>&1
+[ $? -ne 0 ] && RC=$((RC | 1))
 
-echo "=== [2/5] include-graph.py (依赖方向检测) ==="
-python "$SKILL_ROOT/tools/include-graph.py" . > build/include-graph.log 2>&1 || true
-echo "  → build/include-graph.log"
+echo "=== [2/5] include-graph.py ==="
+python "$SKILL_ROOT/tools/include-graph.py" . > build/include-graph.log 2>&1
+[ $? -ne 0 ] && RC=$((RC | 2))
 
 echo "=== [3/5] cppcheck ==="
-cppcheck --enable=warning,style,performance,portability \
+cppcheck --error-exitcode=2 \
+  --enable=warning,style,performance,portability \
   --std=c11 --platform=unix32 \
   --suppress=*:libraries/* \
   -I libraries/zf_common -I libraries/zf_driver -I libraries/zf_device \
   -I project/code \
   project/code/ project/user/ \
   2> build/cppcheck.log
-echo "  → build/cppcheck.log"
+[ $? -ne 0 ] && RC=$((RC | 4))
 
 echo "=== [4/5] clang-tidy ==="
-clang-tidy project/code/**/*.c -- \
+clang-tidy --warnings-as-errors='bugprone-*,cert-*,clang-analyzer-*' \
+  project/code/**/*.c -- \
   -I libraries/sdk -I libraries/zf_common -I libraries/zf_driver \
   -I libraries/zf_device -I project/code \
   --target=arm-none-eabi -mcpu=cortex-m0plus \
-  > build/clang-tidy.log 2>&1 || true
-echo "  → build/clang-tidy.log"
+  > build/clang-tidy.log 2>&1
+[ $? -ne 0 ] && RC=$((RC | 8))
 
 echo "=== [5/5] lizard ==="
 lizard project/code/ --CCN 10 --length 50 --arguments 3 \
   -x "libraries/*" -x "build/*" \
   > build/lizard.log
-echo "  → build/lizard.log"
+[ $? -ne 0 ] && RC=$((RC | 16))
 
 echo ""
 echo "=== 汇总 ==="
-[ -s build/arch-check.log ]    && echo "arch-check violations: $(grep -c '^\[ARCH-' build/arch-check.log)"
-[ -s build/include-graph.log ] && echo "layer violations: $(grep -c '^\[LAYER-VIOL\]' build/include-graph.log)"
-grep -cE "(error|warning)" build/cppcheck.log     | awk '{print "cppcheck issues: " $1}'
-grep -cE "(error|warning)" build/clang-tidy.log   | awk '{print "clang-tidy issues: " $1}'
-grep -cE "^!!!" build/lizard.log                  | awk '{print "lizard threshold violations: " $1}'
+echo "arch-check  violations: $(grep -c '^\[ARCH-'        build/arch-check.log    || echo 0)"
+echo "layer       violations: $(grep -c '^\[LAYER-VIOL\]' build/include-graph.log || echo 0)"
+echo "cppcheck    issues:     $(grep -cE '(error|warning)' build/cppcheck.log     || echo 0)"
+echo "clang-tidy  issues:     $(grep -cE '(error|warning)' build/clang-tidy.log   || echo 0)"
+echo "lizard      violations: $(grep -cE '^!!!'            build/lizard.log       || echo 0)"
+
+if [ "$RC" -eq 0 ]; then
+  echo "==> PASS"
+  exit 0
+else
+  echo "==> FAIL (RC=$RC, see build/*.log)"
+  exit 1
+fi
 ```
 
-Windows 用 Git Bash 跑同一脚本，或改 `scripts/check.cmd`。
+**反绕过补充**：
+1. `cppcheck --error-exitcode=2`：发现 error 返回非零（默认 cppcheck 返回 0，旧脚本因此漏门禁）
+2. `clang-tidy --warnings-as-errors=...`：把 P0 类别警告升级为非零返回
+3. **禁止** 在 `check.sh` 写 `|| true`（CI 端用 `--codeowners-required` 保护此文件）
+4. Windows 必须用 Git Bash 跑同一脚本（POSIX 语义），不另维护 `.cmd` 版本
 
 ---
 

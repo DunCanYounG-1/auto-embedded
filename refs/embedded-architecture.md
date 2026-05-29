@@ -115,7 +115,18 @@ typedef struct {
     uint8_t  parity;           /* 0=none / 1=odd / 2=even */
 } hal_uart_cfg_t;
 
-/* 接口契约（注释里说清调用前置 / 副作用 / 阻塞行为 / 中断上下文是否安全） */
+/**
+ * @brief   打开 UART
+ * @param[in,out] u    UART 句柄（非 NULL）
+ * @param[in]     cfg  配置（非 NULL）
+ * @retval HAL_OK / HAL_ERR_PARAM / HAL_ERR_HW
+ * @pre   时钟/引脚已由 BSP 初始化
+ * @context  task / bare（禁止在 ISR 调用）
+ * @blocking yes (timeout-bounded by `cfg->open_timeout_ms`)
+ * @reentrant no
+ * @isr_safe no
+ * @locking  acquires `u->mutex`
+ */
 hal_status_t hal_uart_open(hal_uart_t *u, const hal_uart_cfg_t *cfg);
 hal_status_t hal_uart_close(hal_uart_t *u);
 hal_status_t hal_uart_write(hal_uart_t *u, const uint8_t *buf, size_t len, uint32_t timeout_ms);
@@ -123,6 +134,8 @@ hal_status_t hal_uart_read (hal_uart_t *u, uint8_t       *buf, size_t len, uint3
 
 #endif
 ```
+
+> Doxygen 标签集完整列表见 `refs/coding-standards.md §9.1`。Port `.h` 的所有公开 API **Required** 含 5 个固定注解：`@context` / `@blocking` / `@reentrant` / `@isr_safe` / `@locking`。
 
 ### 3.2 适配器（Adapter）= 端口的具体实现
 
@@ -163,17 +176,22 @@ hal_status_t hal_uart_open(hal_uart_t *u, const hal_uart_cfg_t *cfg) {
 #include "hal_uart.h"
 #include <string.h>
 
-static uint8_t mock_tx_buf[1024];
+#define MOCK_TX_CAP  1024U
+static uint8_t mock_tx_buf[MOCK_TX_CAP];
 static size_t  mock_tx_len = 0;
 
 hal_status_t hal_uart_write(hal_uart_t *u, const uint8_t *buf, size_t len, uint32_t to) {
     (void)u; (void)to;
+    if (buf == NULL && len > 0)         return HAL_ERR_PARAM;
+    if (mock_tx_len + len > MOCK_TX_CAP) return HAL_ERR_BUSY;  /* 容量检查，避免规范示例自身越界 */
     memcpy(mock_tx_buf + mock_tx_len, buf, len);
     mock_tx_len += len;
     return HAL_OK;
 }
-/* tests 可读 mock_tx_buf 验证应用层写入内容 */
+/* tests 可读 mock_tx_buf 验证应用层写入内容；越界时 `HAL_ERR_BUSY` 反映"测试缓冲已满" */
 ```
+
+> 规范示例必须自洽 §13.3 buffer-with-capacity 模式：所有 buffer API 都接受容量上界并显式返回错误。**禁止**在规范示例里写 `memcpy(dst+off, src, len)` 而不校验 `off+len <= cap`。
 
 ### 3.3 切换实现 = 改 CMakeLists / Keil 工程，不改一行业务代码
 
@@ -326,7 +344,44 @@ int main(void) {
 
 ---
 
-## 11. 进一步阅读
+## 11. Traceability（追溯，Required）
+
+> 让"需求 → 设计 → 实现 → 测试 → 缺陷 → 偏差"形成可机械追溯的链条。每条链由统一 ID 形态绑定。
+
+### 11.1 ID 规则
+
+| 前缀 | 含义 | 形态 | 写入位置 |
+|---|---|---|---|
+| `REQ-` | 需求 | `REQ-<MODULE>-<NNN>` | `研究发现.md` / 用户需求清单 / Doxygen `@req` |
+| `DES-` | 设计决策 | `DES-<MODULE>-<NNN>` | `项目规划清单.md` 轮次计划 / 模块文件头 |
+| `IMPL-` | 实现条目 | `IMPL-<NNN>` | `编辑清单.md` 行项 / commit 消息 |
+| `TEST-` | 测试用例 | `TEST-<MODULE>-<NNN>` | `tests/` 文件名 + 用例注释 |
+| `RISK-` | 风险登记 | `RISK-<NNN>` | `研究发现.md` 风险表 |
+| `DEFECT-` | 缺陷记录 | `DEFECT-<NNN>` | issue tracker + commit + changelog |
+| `WAIVER-` | 偏差/豁免 | `WAIVER-<NNN>` | deviation record（见 `static-analysis-pipeline.md §4.5.4`） |
+
+### 11.2 RIPER-5 阶段强制写入项
+
+| 阶段 | 必须新增的 ID 类型 |
+|---|---|
+| RESEARCH | `REQ-` / `RISK-`（写入 `研究发现.md`） |
+| INNOVATE | `DES-`（写入 `项目规划清单.md` 轮次决策段） |
+| PLAN | `IMPL-` / `TEST-`（写入 `编辑清单.md` 与 `tests/` 占位） |
+| EXECUTE | `DEFECT-`（如修旧缺陷）/ `WAIVER-`（如新增偏差） |
+| REVIEW | 必须核对 REQ ↔ TEST 双向覆盖率 100% |
+
+### 11.3 双向追溯硬约束
+
+- 每个 `REQ-` 至少对应 1 个 `TEST-`（前向追溯）
+- 每个 `TEST-` 必须引用 ≥ 1 个 `REQ-` 或 `DEFECT-`（反向追溯）
+- 每个 `DEFECT-` 必须配 `TEST-` 复现并通过（防回归）
+- 每个 `WAIVER-` 必须有 `RISK-` 评估 + 到期日
+
+> 工具可选 doorstop / OpenFastTrace / Sphinx-Needs。最小实现：用 `grep -rnE '(REQ|TEST|DEFECT)-[A-Z0-9_]+-?[0-9]+'` 做覆盖率脚本即可。
+
+---
+
+## 12. 进一步阅读
 
 - **Hexagonal / Ports & Adapters**：Alistair Cockburn 2005 [原始定义](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software))
 - **Clean Architecture in Embedded**：[serodriguez68/clean-architecture](https://github.com/serodriguez68/clean-architecture) — 依赖单向流入

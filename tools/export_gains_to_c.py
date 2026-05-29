@@ -38,6 +38,7 @@ import os
 import re
 import sys
 from pathlib import Path
+from typing import NoReturn
 
 
 # === Windows: 强制 UTF-8 输出 ===
@@ -258,7 +259,7 @@ def render_cmsis_template(name: str, rows: int, cols: int, dtype: str) -> str:
 # 辅助
 # ============================================================================
 
-def die(code: int, msg: str):
+def die(code: int, msg: str) -> NoReturn:
     sys.stderr.write(f"[export_gains_to_c] ERROR: {msg}\n")
     sys.exit(code)
 

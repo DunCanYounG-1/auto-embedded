@@ -76,6 +76,11 @@ CATCH_ALL_BLOCKLIST = re.compile(
     re.IGNORECASE,
 )
 
+# 逐飞开源库标准 mega-header — 白名单放行
+CATCH_ALL_WHITELIST = {
+    "zf_common_headfile.h",
+}
+
 # main.c 路径标识（含 TC264 双核 / RTOS 常见入口文件名）
 MAIN_C_PATTERNS = [
     r"[/\\]main\.c$",
@@ -147,8 +152,9 @@ def check_vendor_includes(content: str) -> str | None:
                 "正确做法：把硬件访问下沉到 L1 HAL Port (hal_*.h) 或 L3 Driver (drv_*.h)，"
                 "由 Port adapter 文件 include 厂商头。"
                 "详见 refs/embedded-architecture.md §0 + §3。")
-    m = CATCH_ALL_BLOCKLIST.search(content)
-    if m:
+    for m in CATCH_ALL_BLOCKLIST.finditer(content):
+        if m.group(1).lower() in CATCH_ALL_WHITELIST:
+            continue
         return ("应用层禁止 include catch-all mega-header（命中 `%s`，间接拉入厂商头）。" %
                 m.group(1) +
                 "正确做法：精确 include 用到的 `zf_driver_xxx.h` / `zf_device_xxx.h`，"

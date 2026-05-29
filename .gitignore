@@ -6,3 +6,10 @@ mcu_-gd_-main-board-master/
 # 速查通过 refs/mspm0g3507-seekfree-api.md 和 modes/mspm0-board.md 引用本地路径
 MSPM0G3507_Library-master/
 MSPM0G3507_Library-master.zip
+
+# Python 字节码缓存（hooks/ 与 tools/ 运行时生成）
+__pycache__/
+*.pyc
+
+# 工具自测产物（tools/export_gains_to_c.py --demo 生成）
+_demo_gains.h
