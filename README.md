@@ -69,9 +69,15 @@
 # 1. clone 到 Claude Code 技能目录
 git clone https://github.com/DunCanYounG-1/embedded-dev ~/.claude/skills/embedded-dev
 
-# 2. （可选）一键体检依赖
+# 2. 一键就位执行层兄弟 skill（编译/烧录/调试/串口/总线/分析，已随仓库打包）
+#    Windows(PowerShell): pwsh "$env:USERPROFILE\.claude\skills\embedded-dev\scripts\install-siblings.ps1"
+bash ~/.claude/skills/embedded-dev/scripts/install-siblings.sh
+
+# 3. （可选）一键体检依赖
 bash ~/.claude/skills/embedded-dev/hooks/verify-deps
 ```
+
+> 第 2 步把 25 个执行层 skill + `shared/` 契约层从仓库内 `siblings/` 复制到 `~/.claude/skills/`（Claude Code 只在该层发现 skill）。装完重启会话即可。只想用协议/知识库、不跑命令的话这步可跳过。`grok-search`（第三方联网检索）见 [`INSTALL.md`](INSTALL.md) §3.3 单独装。
 
 然后在 Claude Code 里直接说嵌入式需求即可触发，例如：
 
@@ -131,7 +137,8 @@ bash ~/.claude/skills/embedded-dev/hooks/verify-deps
 | `modes/` (12) | 按需专项流程：比赛模式、数据手册/网表查阅、MATLAB 工具箱、Workflow 编排… |
 | `agents/` (6 角色) | 比赛模式 subagent：`embedded-arch/drv/alg/qa/matlab/report`（另含 README） |
 | `tools/` | `arch-check` 配套：`include-graph.py`、`export_gains_to_c.py`、`competition-workflow.js`(+`.test.js`)、`vibe-workflow.js`、`register-hooks.py` |
-| `scripts/` | `arch-check.sh`（分层合规机械门禁） |
+| `siblings/` (25 skill + shared) | **随仓库打包的执行层兄弟 skill**：`build-*`/`flash-*`/`debug-*`/串口/总线/分析 + `shared/` 契约层，由 `scripts/install-siblings` 就位到 `~/.claude/skills/`（grok-search 第三方除外） |
+| `scripts/` | `arch-check.sh`（分层合规机械门禁）、`install-siblings.ps1`/`.sh`（一键就位执行层 skill） |
 | `hooks/` | SessionStart/PreToolUse 等 4 事件，`run-hook.cmd` 分流，全链路 fail-open |
 
 ---

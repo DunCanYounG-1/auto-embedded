@@ -1,0 +1,4 @@
+interface:
+  display_name: "Modbus 调试"
+  short_description: "通过 Modbus RTU/TCP 协议调试嵌入式设备通信。"
+  default_prompt: "使用 modbus-debug skill，探测 Modbus 环境，执行寄存器读写或从站扫描，并输出调试结果。"

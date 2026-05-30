@@ -36,6 +36,19 @@ git clone https://github.com/DunCanYounG-1/embedded-dev "$env:USERPROFILE\.claud
 git clone https://github.com/DunCanYounG-1/embedded-dev ~/.claude/skills/embedded-dev
 ```
 
+### 紧接着：一键就位执行层兄弟 skill（推荐）
+
+本仓库已把 25 个执行层兄弟 skill（编译/烧录/调试/串口/总线/分析）+ `shared/` 契约层 **vendor 进 `siblings/` 目录**。clone 完跑一次安装脚本即可全部就位（详见 §3.1）：
+
+```powershell
+pwsh "$env:USERPROFILE\.claude\skills\embedded-dev\scripts\install-siblings.ps1"   # Windows
+```
+```bash
+bash ~/.claude/skills/embedded-dev/scripts/install-siblings.sh                      # Linux/macOS/Git Bash
+```
+
+装完重启 Claude Code 会话即可。`grok-search`（第三方）见 §3.3 单独装。
+
 ---
 
 ## 2. 必装依赖（缺了核心 hook 不工作）
@@ -67,32 +80,45 @@ EXECUTE 阶段的"操作执行层兄弟 skill 路由"表（见 `SKILL.md` 第 4 
 | **分析** | `memory-analysis` `rtos-debug` `static-analysis` | 同上 |
 | **驱动适配** | `peripheral-driver` `stm32-hal-development` | 退回 Claude 手动按 `refs/driver-porting.md` 流程 |
 | **流水线** | `workflow` | 用户分步调用各 skill |
-| **代码质量** | `simplify` | REVIEW 阶段质量检查由 Claude 手动 |
+| **代码质量** | `simplify`（Claude Code **内置 `/simplify` 命令**，无需安装，不在打包内） | REVIEW 阶段质量检查由 Claude 手动 |
 | **外部协作** | `codex` | 失去 GPT 视角的"双模型擂台"能力 |
 
-> **数量基准**：以 `hooks/verify-deps` 实际探测为准（避免数量在多个文档间漂移）。`bash hooks/verify-deps` 会输出"已装 N 个 / 未装 M 个"。
+> **数量基准**：以 `hooks/verify-deps` 实际探测为准（避免数量在多个文档间漂移）。`bash hooks/verify-deps` 会输出"已装 N 个 / 未装 M 个"。打包随仓库的可安装 skill 为 **25 个**（上表去掉内置的 `simplify`）。
 
-**安装方法**：这些 skill 都是独立的 Claude Code skill，本仓库没有打包它们。**安装路径取决于你从哪获得**：
-- 如果你跟着某个嵌入式 AI 工具包整合安装的，整合包会自带 — 不用单独装
-- 如果你单独安装：每个 skill 都需要它自己的仓库地址。请向 skill 来源方索取，或在 [Anthropic 官方 plugin marketplace](https://claude.com/plugins) 检索（如可用）
-- 通用安装命令：`git clone <skill 仓库地址> ~/.claude/skills/<skill 名>`
+**安装方法（已随仓库打包，一条命令就位）**：这 25 个执行层 skill 现已 **vendor 进本仓库 `siblings/` 目录**。clone 完本仓库后跑一次安装脚本，即可把它们就位到 `~/.claude/skills/`——
 
-> ⚠ 本 skill 不会替你装这些兄弟 skill。它们是 embedded-dev 的"被调用方"，不是"被依赖方"。**没装的话只是 EXECUTE 阶段的执行环节降级，研究/创新/计划/审查四个阶段不受影响**。
+> ⚠ **为什么必须跑脚本**：Claude Code 只在 `~/.claude/skills/<名字>/` 这一层发现 skill；嵌套在 `embedded-dev/siblings/` 里的副本不会被自动识别。安装脚本就是把它们从 `siblings/` 复制到发现层。
+
+```powershell
+# Windows (PowerShell)：预览加 -DryRun，更新已装的加 -Force
+pwsh "$env:USERPROFILE\.claude\skills\embedded-dev\scripts\install-siblings.ps1"
+```
+
+```bash
+# Linux / macOS / Git Bash：预览加 --dry-run，更新已装的加 --force
+bash ~/.claude/skills/embedded-dev/scripts/install-siblings.sh
+```
+
+- 默认**跳过已存在**的同名 skill（不覆盖你本地可能更新的版本），`-Force` / `--force` 才覆盖。
+- 装完**重启 Claude Code 会话**，这些 skill 才会被发现、并可被 EXECUTE 阶段路由调用。
+- `grok-search` 是第三方 skill，**不在打包内**，见 §3.3 用真实仓库地址单独装。
+
+> ⚠ 不跑安装脚本也能用：协议主流程、四文件记忆、分层规范全部正常，只是 EXECUTE 阶段的执行环节降级为"Claude 给命令、你手动跑"。研究/创新/计划/审查四阶段不受影响。
 
 ### 3.2 shared/ 工具（工程画像 + 工具路径管理）
 
 | 文件 | 用途 | 安装方法 | 缺失时降级 |
 |---|---|---|---|
-| `~/.claude/skills/shared/project_detect.py` | RESEARCH 阶段自动探测构建系统/芯片/产物 | 由兄弟 skill 安装包带入 `~/.claude/skills/shared/`；本仓库不直接打包它 | Claude 手动按文件包含/API 调用/项目结构识别（见 RESEARCH 步骤 2） |
+| `~/.claude/skills/shared/project_detect.py` | RESEARCH 阶段自动探测构建系统/芯片/产物 | **已随仓库打包**，由 §3.1 的 `install-siblings` 脚本一并就位 | Claude 手动按文件包含/API 调用/项目结构识别（见 RESEARCH 步骤 2） |
 | `~/.claude/skills/shared/tool_config.py` | OpenOCD/Keil UV4/arm-gcc/J-Link 工具路径登记 | 同上 | 兄弟 skill 自己探测工具路径，可能需要用户指定 |
 
-> 这两个脚本是各操作执行层兄弟 skill 共享的契约层。如果你装了任何一个 `build-*` / `flash-*` skill，通常 shared/ 会一起来。
+> 这两个脚本是各操作执行层兄弟 skill 共享的契约层。`shared/` 已 vendor 进 `siblings/shared/`，跑 §3.1 安装脚本时会一起就位，无需单独操作。
 
 ### 3.3 grok-search（联网检索）
 
 | 依赖 | 用途 | 安装方法 | 缺失时降级 |
 |---|---|---|---|
-| `~/.claude/skills/grok-search/` | 所有联网检索（驱动/报错/数据手册入口）首选工具 | 单独获取 grok-search skill 包后 clone 到 `~/.claude/skills/grok-search/`；在 `config.json` 填 API key + base_url（如 `https://www.micuapi.ai/v1`） | 自动 fallback 到 Claude 内置 WebSearch / WebFetch |
+| `~/.claude/skills/grok-search/` | 所有联网检索（驱动/报错/数据手册入口）首选工具 | 第三方 skill，单独 clone：`git clone https://github.com/Frankieli123/grok-skill ~/.claude/skills/grok-search`，再在 `config.json` 填 API key + base_url（如 `https://www.micuapi.ai/v1`） | 自动 fallback 到 Claude 内置 WebSearch / WebFetch |
 
 ### 3.4 Context7 MCP（库 API 即时文档）
 
@@ -172,9 +198,9 @@ clone 完成 + 装好 Python + Git Bash（Windows）即可启动以下功能：
 - UserPromptSubmit 四文件提醒 / PostToolUse 改后更新提醒
 - **不注册 = degraded**：以上自动化失效，但协议规则仍由 Claude 手动遵守，主流程不受影响
 
-⚠ 装了对应兄弟 skill 后可用：
+⚠ 跑过 `scripts/install-siblings.ps1`/`.sh`（把打包的执行层 skill 就位）后可用：
 - 真正执行编译/烧录/调试/串口/总线/分析等操作
-- 工程画像自动探测（`project_detect.py`）
+- 工程画像自动探测（`project_detect.py`，随 `shared/` 一并就位）
 
 ⚠ 装了对应 MCP/CLI 后可用：
 - Context7 即时库文档
@@ -185,7 +211,7 @@ clone 完成 + 装好 Python + Git Bash（Windows）即可启动以下功能：
 
 ## 7. 完全 minimal install（只用核心协议）
 
-如果你只想用本 skill 的"研究方法论 + 分层架构规范 + 引脚规划检查 + 反自欺协议"，**只需要装 Python + Git Bash（Windows）+ clone 本仓库**。其他全部可以不装。RESEARCH/INNOVATE/PLAN/REVIEW 四个阶段对外部依赖近乎为零；只有 EXECUTE 真正跑命令时才需要兄弟 skill。
+如果你只想用本 skill 的"研究方法论 + 分层架构规范 + 引脚规划检查 + 反自欺协议"，**只需要装 Python + Git Bash（Windows）+ clone 本仓库**。其他全部可以不装（连 `install-siblings` 都不用跑）。RESEARCH/INNOVATE/PLAN/REVIEW 四个阶段对外部依赖近乎为零；只有 EXECUTE 真正跑命令时才需要跑 `install-siblings` 就位执行层 skill。
 
 ---
 

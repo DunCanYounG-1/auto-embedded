@@ -1,0 +1,4 @@
+interface:
+  display_name: "CAN 总线调试"
+  short_description: "通过 USB-CAN 适配器调试 CAN 总线通信。"
+  default_prompt: "使用 can-debug skill，探测 CAN 环境，执行总线监听、帧发送或节点扫描，并输出调试结果。"

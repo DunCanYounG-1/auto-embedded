@@ -1,0 +1,4 @@
+interface:
+  display_name: "ESP-IDF 编译"
+  short_description: "配置目标芯片并构建 ESP-IDF 固件工程。"
+  default_prompt: "使用 build-idf skill，探测 ESP-IDF 环境，设置目标芯片，执行构建并定位固件产物，输出下一步建议。"

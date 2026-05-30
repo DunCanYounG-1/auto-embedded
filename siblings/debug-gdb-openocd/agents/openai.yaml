@@ -1,0 +1,4 @@
+interface:
+  display_name: "GDB 调试"
+  short_description: "通过 OpenOCD + GDB 调试嵌入式固件。"
+  default_prompt: "使用 debug-gdb-openocd skill，探测调试环境，启动 OpenOCD 会话，连接 GDB，执行指定调试模式，并输出关键观察结论。"

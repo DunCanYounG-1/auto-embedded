@@ -1,0 +1,4 @@
+interface:
+  display_name: "串口监视"
+  short_description: "识别串口、抓取日志、分析启动行为。"
+  default_prompt: "使用串口监视 skill，选择合适的串口与波特率，抓取所需日志，分析运行状态，并输出下一步建议。"

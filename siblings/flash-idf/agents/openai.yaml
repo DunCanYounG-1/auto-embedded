@@ -1,0 +1,4 @@
+interface:
+  display_name: "ESP-IDF 烧录调试"
+  short_description: "通过 ESP-IDF 工具链烧录固件并支持 JTAG 调试。"
+  default_prompt: "使用 flash-idf skill，自动探测串口与构建产物，执行烧录，并输出下一步建议。"

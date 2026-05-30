@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenOCD 烧录"
+  short_description: "通过 OpenOCD 烧录固件到目标板并校验。"
+  default_prompt: "使用 flash-openocd skill，自动探测探针与配置，选择合适的烧录命令，执行烧录与校验，并输出下一步建议。"

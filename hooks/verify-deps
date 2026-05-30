@@ -146,14 +146,16 @@ check_path "grok_search.py" "$HOME/.claude/skills/grok-search/scripts/grok_searc
 check_path "grok-search config.json" "$HOME/.claude/skills/grok-search/config.json"
 
 echo ""
-echo "  -- 兄弟 skill (按需安装) --"
+echo "  -- 兄弟 skill (已随仓库打包，跑 scripts/install-siblings 就位) --"
+# 这 25 个执行层 skill 已 vendor 进 siblings/，由 install-siblings 脚本就位。
+# 注意：simplify 不在此列 —— 它是 Claude Code 内置的 /simplify 命令，无需安装。
 sibling_skills=(build-cmake build-keil build-iar build-platformio build-idf build-makefile
                 flash-openocd flash-keil flash-platformio flash-idf flash-jlink
                 debug-gdb-openocd debug-jlink debug-platformio
                 serial-monitor modbus-debug can-debug visa-debug
                 memory-analysis rtos-debug static-analysis
                 peripheral-driver stm32-hal-development workflow
-                simplify codex)
+                codex)
 installed=0
 missing=0
 for s in "${sibling_skills[@]}"; do
@@ -163,8 +165,13 @@ for s in "${sibling_skills[@]}"; do
     ((missing++))
   fi
 done
-printf "  汇总：%b 已装 %d 个 / %b 未装 %d 个 (共 %d，按需补)\n" \
+printf "  汇总：%b 已装 %d 个 / %b 未装 %d 个 (共 %d，已打包)\n" \
   "$OK" "$installed" "$WARN" "$missing" "$((installed + missing))"
+if [ "$missing" -gt 0 ]; then
+  printf "  %b 有 %d 个未就位 —— 跑一次安装脚本即可补齐：\n" "$WARN" "$missing"
+  echo "       pwsh  $SKILL_ROOT/scripts/install-siblings.ps1   (Windows)"
+  echo "       bash  $SKILL_ROOT/scripts/install-siblings.sh    (Linux/macOS/Git Bash)"
+fi
 
 # ============================================================================
 # Section 4: OPTIONAL — MCPs, CLIs for specific scenarios

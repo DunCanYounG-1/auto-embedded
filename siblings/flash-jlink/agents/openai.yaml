@@ -1,0 +1,4 @@
+interface:
+  display_name: "J-Link 烧录"
+  short_description: "通过 SEGGER J-Link 烧录固件到目标板，支持 RTT 日志捕获。"
+  default_prompt: "使用 flash-jlink skill，探测 J-Link 探针，选择合适的烧录参数，执行烧录与校验，并输出下一步建议。"

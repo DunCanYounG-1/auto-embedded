@@ -1,0 +1,4 @@
+interface:
+  display_name: "静态分析"
+  short_description: "运行 cppcheck/clang-tidy/GCC analyzer 静态分析，支持 MISRA-C 2012 合规检查。"
+  default_prompt: "使用 static-analysis skill，探测可用的静态分析工具，对源码运行分析，按严重级别输出发现，并给出修复建议。"

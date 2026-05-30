@@ -1,0 +1,4 @@
+interface:
+  display_name: "CMake 构建"
+  short_description: "配置、编译 CMake 嵌入式工程并定位固件产物。"
+  default_prompt: "使用 build-cmake skill，自动探测工程配置，选择合适的生成器和构建类型，执行编译，定位固件产物，并输出下一步建议。"

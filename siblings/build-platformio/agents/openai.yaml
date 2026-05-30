@@ -1,0 +1,4 @@
+interface:
+  display_name: "PlatformIO 构建"
+  short_description: "通过 PlatformIO CLI 编译嵌入式工程并定位固件产物。"
+  default_prompt: "使用 build-platformio skill，自动探测 PlatformIO 环境和工程配置，选择合适的环境，执行编译，定位固件产物，并输出下一步建议。"

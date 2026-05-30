@@ -1,0 +1,4 @@
+interface:
+  display_name: "Keil MDK 烧录"
+  short_description: "通过 Keil MDK 内置调试器烧录固件到目标板。"
+  default_prompt: "使用 flash-keil skill，自动探测 Keil MDK 环境和调试器配置，执行烧录，并输出下一步建议。"

@@ -1,0 +1,4 @@
+interface:
+  display_name: "固件内存分析"
+  short_description: "解析 .map 文件或 ELF，生成内存使用报告、符号大小排名和版本对比。"
+  default_prompt: "使用 memory-analysis skill，分析固件内存使用情况，找出大符号，检查内存使用率是否接近上限，并给出优化建议。"
