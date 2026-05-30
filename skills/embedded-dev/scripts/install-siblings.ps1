@@ -1,12 +1,13 @@
 <#
 .SYNOPSIS
-  把 embedded-dev/siblings/ 下随仓库打包的执行层兄弟 skill 安装到 ~/.claude/skills/。
+  【LEGACY / 非 plugin 安装备选】把本仓库 skills/ 下打包的全部 skill 复制到 ~/.claude/skills/。
 
 .DESCRIPTION
-  Claude Code 只在 ~/.claude/skills/<name>/ 这一层发现 skill；嵌套在
-  embedded-dev/siblings/ 里的副本不会被自动识别。本脚本把 vendor 进仓库的
-  25 个执行层兄弟 skill + shared/ 契约层就位到 ~/.claude/skills/，实现
-  「clone 一次即可用」。grok-search 是第三方，未打包，见 INSTALL.md §3.3。
+  首选方式是装成 plugin（一条命令、hooks 自动注册，见 INSTALL.md §1）。
+  仅当你不想用 plugin、要走传统 user-skill 安装时才需要本脚本：Claude Code 只在
+  ~/.claude/skills/<name>/ 这一层发现 skill，本脚本把仓库 skills/ 下打包的全部 skill
+  （embedded-dev 本体 + 25 个执行层 skill + shared/ 契约层）就位到 ~/.claude/skills/。
+  grok-search 是第三方，未打包，见 INSTALL.md §3.3。
 
   默认跳过已存在的同名目录（不覆盖你本地可能更新的版本）；-Force 才覆盖。
 
@@ -33,8 +34,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$SkillRoot = Split-Path -Parent $ScriptDir
-$Source    = Join-Path $SkillRoot "siblings"
+$SkillRoot = Split-Path -Parent $ScriptDir          # skills/embedded-dev
+$Source    = Split-Path -Parent $SkillRoot          # 仓库的 skills/ 目录（上两级）
 
 if (-not (Test-Path $Source)) {
   Write-Error "找不到打包目录: $Source（仓库可能不完整，请重新 clone）"
@@ -55,6 +56,13 @@ Get-ChildItem -Path $Source -Directory | Sort-Object Name | ForEach-Object {
   $name   = $_.Name
   $dst    = Join-Path $TargetRoot $name
   $exists = Test-Path $dst
+
+  # 同路径自我覆盖防护：仓库本身就在 ~/.claude/skills/embedded-dev 时，源=目标，跳过。
+  if ($exists -and ((Resolve-Path $_.FullName).Path -eq (Resolve-Path $dst).Path)) {
+    Write-Host ("  [skip]    {0} — 源与目标同路径，跳过" -f $name)
+    $script:skipped++
+    return
+  }
 
   if ($exists -and -not $Force) {
     Write-Host ("  [skip]    {0} — 已存在（加 -Force 覆盖）" -f $name)

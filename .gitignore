@@ -13,3 +13,6 @@ __pycache__/
 
 # 工具自测产物（tools/export_gains_to_c.py --demo 生成）
 _demo_gains.h
+
+# Claude Code 会话锁（harness 运行时生成，非仓库内容）
+.claude/scheduled_tasks.lock

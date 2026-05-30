@@ -1,0 +1,19 @@
+{
+  "name": "embedded-dev",
+  "displayName": "embedded-dev — RIPER-5 嵌入式固件开发协议",
+  "version": "1.0.0",
+  "description": "RIPER-5 嵌入式固件开发协议 + 25 个执行层 skill（编译/烧录/调试/串口/总线/分析）+ 分层架构门禁 + 四文件磁盘记忆 + 多 Agent 比赛模式。装一次：skill 全到位、hooks 自动注册。",
+  "author": {
+    "name": "DuncanY",
+    "url": "https://github.com/DunCanYounG-1"
+  },
+  "homepage": "https://github.com/DunCanYounG-1/embedded-dev",
+  "repository": "https://github.com/DunCanYounG-1/embedded-dev",
+  "license": "MIT",
+  "keywords": [
+    "嵌入式", "单片机", "固件", "firmware", "STM32", "ESP32", "GD32", "MSPM0",
+    "RISC-V", "外设驱动", "RIPER-5", "分层架构", "MATLAB", "电赛", "比赛模式"
+  ],
+  "hooks": "./skills/embedded-dev/hooks/hooks.json",
+  "agents": ["./agents/"]
+}

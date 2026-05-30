@@ -2,35 +2,10 @@
 name: embedded-dev
 description: "RIPER-5 嵌入式固件开发协议：为 STM32/ESP32/Arduino/RISC-V/GD32/MSPM0/国产 MCU 提供结构化开发流程（RESEARCH→INNOVATE→PLAN→EXECUTE→REVIEW），含证据优先交付、四文件磁盘记忆、分层架构强约束、Git 快照回退、多 Agent 分工（Scout/Builder/Verifier），并扩展比赛模式、MATLAB 算法到固件、工业数据采集等专项流程。当主交付物是固件代码、外设驱动（GPIO/UART/SPI/I2C/DMA/ADC/PWM/定时器/CAN/USB）、中断与寄存器排障、引脚规划、驱动移植、数据手册或网表分析、RTOS、Bootloader、低功耗、看门狗、烧录调试，或 MATLAB 控制/滤波算法落地到 MCU、电赛/嵌入式竞赛开发时使用。不适用于纯 Web/移动端/桌面软件、与硬件无关的通用 C/C++、纯文档或项目管理任务。"
 keywords: "嵌入式, 单片机, 固件, firmware, STM32, ESP32, Arduino, RISC-V, GD32, MSPM0, 外设驱动, 寄存器, 中断, DMA, 引脚规划, 驱动移植, 数据手册, 网表, RTOS, 比赛模式, MATLAB, 烧录"
-hooks:
-  SessionStart:
-    - matcher: "startup|clear|compact"
-      hooks:
-        - type: command
-          command: "bash \"${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}/hooks/run-hook.cmd\" session-start.py"
-          async: false
-  UserPromptSubmit:
-    - hooks:
-        - type: command
-          command: "bash \"${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}/hooks/run-hook.cmd\" check-memory-files"
-  PreToolUse:
-    - matcher: "Write|Edit|MultiEdit"
-      hooks:
-        - type: command
-          command: "bash \"${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}/hooks/run-hook.cmd\" pre-write-check.py"
-        - type: command
-          command: "bash \"${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}/hooks/run-hook.cmd\" inject-context"
-    - matcher: "Bash"
-      hooks:
-        - type: command
-          command: "bash \"${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}/hooks/run-hook.cmd\" inject-context"
-  PostToolUse:
-    - matcher: "Write|Edit|Bash"
-      hooks:
-        - type: command
-          command: "bash \"${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}/hooks/run-hook.cmd\" remind-update"
 ---
-<!-- Hooks 设计：4 个事件（SessionStart / UserPromptSubmit / PreToolUse / PostToolUse）通过 hooks/run-hook.cmd polyglot 分流。Write/Edit/MultiEdit 现有两层 hook：pre-write-check.py 做**写入前 best-effort 预拦截**（命中明显分层违规即 exit 2 阻断，解析失败/非写工具 fail-open 放行），inject-context 注入上下文。Bash 仅注入上下文。**唯一硬门禁是 REVIEW/CP 阶段的 `scripts/arch-check.sh` + `tools/include-graph.py` + CP gate**，pre-write-check 只提前快速拦截、不替代它们。路径用 ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/embedded-dev}。详见 refs/hooks-design.md。 -->
+<!-- Hooks：本 skill 作为 **plugin** 分发，4 个事件（SessionStart / UserPromptSubmit / PreToolUse / PostToolUse）由插件清单声明、安装即自动注册——配置见同目录 `hooks/hooks.json`，命令经 `hooks/run-hook.cmd` polyglot 分流。Write/Edit/MultiEdit 两层 hook：pre-write-check.py 做写入前 best-effort 预拦截（命中明显分层违规即 exit 2 阻断，解析失败/非写工具 fail-open），inject-context 注入上下文；Bash 仅注入上下文。**唯一硬门禁是 REVIEW/CP 阶段的 `scripts/arch-check.sh` + `tools/include-graph.py` + CP gate**。详见 refs/hooks-design.md。
+
+路径约定（plugin / legacy 双模）：本 skill 根 = plugin 安装下 `${CLAUDE_PLUGIN_ROOT}/skills/embedded-dev`，传统 user-skill 安装下 `~/.claude/skills/embedded-dev`；shared 契约层同理为 `${CLAUDE_PLUGIN_ROOT}/skills/shared` 或 `~/.claude/skills/shared`。下文示例命令默认写 legacy 形式；plugin 模式下把对应前缀替换为 `${CLAUDE_PLUGIN_ROOT}/skills/...`，若环境变量未导出则用 Glob 在已加载的 skill 内定位脚本（这些辅助脚本均可优雅降级，找不到不阻断主流程）。 -->
 
 # RIPER-5 嵌入式芯片开发协议
 

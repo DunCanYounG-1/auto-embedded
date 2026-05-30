@@ -1,13 +1,15 @@
 # Shell / Python scripts must use LF endings. Git's autocrlf would otherwise
 # insert CRLF on Windows checkout, which makes bash refuse to run them
 # (shebang + \r) and breaks Python shebang execution on Unix.
-hooks/run-hook.cmd       text eol=lf
-hooks/session-start.py   text eol=lf
-hooks/check-memory-files text eol=lf
-hooks/inject-context     text eol=lf
-hooks/remind-update      text eol=lf
+#
+# 插件布局：hook 脚本随主 skill 移到 skills/embedded-dev/hooks/。整目录锁 LF，
+# 覆盖 run-hook.cmd（纯 bash）、无扩展名 bash hook、*.py hook、verify-deps、hooks.json。
+skills/embedded-dev/hooks/**            text eol=lf
 
 # arch-check 门禁脚本与 git 钩子同理：shell 脚本与 pre-commit 钩子必须 LF，
 # 否则 Unix/Git-bash 检出后 \r 会导致 "bad interpreter" 或钩子静默失效。
-*.sh                     text eol=lf
-scripts/hooks/pre-commit text eol=lf
+*.sh                                    text eol=lf
+skills/embedded-dev/scripts/hooks/pre-commit  text eol=lf
+
+# 兄弟 skill 的 Python 执行脚本经 `python` 调用，CRLF 虽可容忍，仍统一锁 LF 保一致。
+skills/*/scripts/*.py                   text eol=lf
