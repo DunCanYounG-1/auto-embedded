@@ -85,7 +85,7 @@ claude plugin install embedded-dev@embedded-dev
 帮我看一下 STM32F103 的 USART1 中断为什么不触发
 ```
 
-> **装完即得**：embedded-dev 主协议 + 25 个执行层 skill（编译/烧录/调试/串口/总线/分析）+ `shared/` 契约层 + 6 个比赛模式 subagent，**SessionStart 引导、写前分层拦截、四文件提醒等 hook 随插件自动生效**——无需再跑 `register-hooks.py` 或手改 settings.json。
+> **装完即得**：riper5 主协议 + 25 个执行层 skill（编译/烧录/调试/串口/总线/分析）+ `shared/` 契约层 + 6 个比赛模式 subagent，**SessionStart 引导、写前分层拦截、四文件提醒等 hook 随插件自动生效**——无需再跑 `register-hooks.py` 或手改 settings.json。
 >
 > `grok-search`（第三方联网检索）因许可与 API key 配置未并入，见 [`INSTALL.md`](INSTALL.md) §3.1 单独装。
 >

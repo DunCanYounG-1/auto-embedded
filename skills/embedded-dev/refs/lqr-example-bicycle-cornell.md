@@ -413,7 +413,7 @@ K = np.linalg.inv(R + Bd.T @ P @ Bd) @ (Bd.T @ P @ Ad)
 GUI 调参 → lqr_gain_generator.py → 输出 C 代码 → 手贴到 lqr_driver.c
 
 [新流程 — 用 mcp__matlab__* 调]
-embedded-dev skill 触发
+riper5 主协议触发
   ↓
 mcp__matlab__run_matlab_file bicycle_lqr_design.m
   ↓

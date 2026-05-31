@@ -1,6 +1,6 @@
 # 嵌入式分层架构规范（避免屎山）
 
-> 本文是 embedded-dev skill 生成代码的**结构标尺**。RIPER-5 的 PLAN / EXECUTE / REVIEW 阶段必须按本文约束。违反任何一条 = 屎山预警，立即停下回 PLAN。
+> 本文是 riper5 主协议生成代码的**结构标尺**。RIPER-5 的 PLAN / EXECUTE / REVIEW 阶段必须按本文约束。违反任何一条 = 屎山预警，立即停下回 PLAN。
 >
 > 来源：综合 ARM CMSIS、AUTOSAR MCAL、ESP-IDF、Zephyr、STM32 HAL、Hexagonal / Ports & Adapters / Clean Architecture，以及 [Hubble Network 嵌入式可维护性指南](https://hubble.com/community/guides/how-to-structure-embedded-firmware-for-maintainability/)、[RapidSEA 分层架构](https://www.rapidseasuite.com/blog/layered-embedded-architecture-application-middleware-&-hal)、[BugProve 固件架构](https://bugprove.com/firmware-architecture/)、[Beningo HAL vs API](https://www.beningo.com/embedded-basics-apis-vs-hals/)、[Embedded Designer BSP](https://embeddeddesigner.com/blog/embedded-software-bsp/)、[OARJ 架构论文](https://oarjpublication.com/journals/oarjet/sites/default/files/OARJET-2025-0058.pdf)。
 

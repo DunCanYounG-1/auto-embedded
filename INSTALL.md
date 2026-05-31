@@ -1,6 +1,6 @@
 # 安装与依赖
 
-本 skill 以 **Claude Code 插件（plugin）** 形式分发。**在已装好 Claude Code 的前提下**，一条 `/plugin install` 即可装齐 26 个 skill（embedded-dev 本体 + 25 个执行层 skill）的内置内容并**自动注册 hooks**，无需手动改 settings.json。
+本 skill 以 **Claude Code 插件（plugin）** 形式分发。**在已装好 Claude Code 的前提下**，一条 `/plugin install` 即可装齐 26 个 skill（riper5 主协议 + 25 个执行层 skill）的内置内容并**自动注册 hooks**，无需手动改 settings.json。
 
 > **诚实边界（不是"白板机器零依赖"）**：和所有带 hook 的插件一样，本插件**无法代劳 Claude Code 本身就需要的运行时**——Python / Bash / Git（Windows 还需 Git Bash 在 PATH）是**安装前置**，见 §2；缺它们时 hooks 静默失效（fail open），协议主流程仍由 Claude 手动遵守。`grok-search`（联网检索，§3.1）、各烧录/调试工具链等是**可选/可降级**项，需另配。
 
@@ -28,7 +28,7 @@ claude plugin install embedded-dev@embedded-dev
 
 装完即获得：
 
-- **26 个 skill 全部就位**：embedded-dev 主协议 + `build-*` / `flash-*` / `debug-*` / `serial-monitor` / `modbus-debug` / `can-debug` / `visa-debug` / `memory-analysis` / `rtos-debug` / `static-analysis` / `peripheral-driver` / `stm32-hal-development` / `workflow` / `codex` + `shared/` 契约层。
+- **26 个 skill 全部就位**：riper5 主协议 + `build-*` / `flash-*` / `debug-*` / `serial-monitor` / `modbus-debug` / `can-debug` / `visa-debug` / `memory-analysis` / `rtos-debug` / `static-analysis` / `peripheral-driver` / `stm32-hal-development` / `workflow` / `codex` + `shared/` 契约层。
 - **hooks 自动注册**：SessionStart 引导注入、PreToolUse 写前分层拦截、UserPromptSubmit/PostToolUse 四文件提醒——全部随插件生效，**不用再跑 `register-hooks.py`、不用手改 settings.json**。
 - **6 个比赛模式 subagent**：`embedded-arch/drv/alg/matlab/qa/report`。
 
@@ -126,7 +126,7 @@ bash /tmp/embedded-dev-src/skills/embedded-dev/scripts/install-siblings.sh
 python ~/.claude/skills/embedded-dev/tools/register-hooks.py --write --target ./.claude/settings.json
 ```
 
-- 第 2 步把 `skills/` 下 26 个 skill（含 embedded-dev 本体 + shared）复制到 `~/.claude/skills/`；`--dry-run` 预览、`--force` 覆盖更新。
+- 第 2 步把 `skills/` 下 26 个 skill（含 riper5 主协议本体 `skills/embedded-dev/` + shared）复制到 `~/.claude/skills/`；`--dry-run` 预览、`--force` 覆盖更新。
 - 第 3 步是 legacy 专用：插件安装会自动注册 hooks，user-skill 安装则必须显式注册（幂等、自动备份 `.bak`、可 `--remove` 撤销）。注册后**重启会话**生效。
 - **不注册也能用（degraded）**：协议主流程、四文件记忆、分层规范全部由 Claude 按规则手动遵守，只是失去 hook 的"机械提醒 + 写前预拦截"。此时唯一机械门禁是 REVIEW/CP 阶段主动跑 `scripts/arch-check.sh` + `tools/include-graph.py`。
 

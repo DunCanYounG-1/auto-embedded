@@ -126,9 +126,9 @@ if SKILL_ROOT is None:
 # Bootstrap content — the bare-minimum iron rules Claude must know BEFORE any
 # user turn. Everything else loads on demand. Keep this under ~60 lines.
 # --------------------------------------------------------------------------- #
-BOOTSTRAP = """# embedded-dev 协议引导（SessionStart 注入 / 仅索引，不复刻协议本体）
+BOOTSTRAP = """# riper5 协议引导（SessionStart 注入 / 仅索引，不复刻协议本体）
 
-你正在加载 embedded-dev skill（RIPER-5 嵌入式开发协议）。**收到首个用户消息后**，在判断任务是否属于嵌入式主线之前，先做以下三件事（顺序固定，不要跳）：
+你正在加载 riper5 主协议（embedded-dev 插件本体 / RIPER-5 嵌入式开发协议）。**收到首个用户消息后**，在判断任务是否属于嵌入式主线之前，先做以下三件事（顺序固定，不要跳）：
 
 1. **读取 SKILL.md**（协议本体，权威来源）— 用 Read 工具读，不要凭记忆假设
 2. **环境自检（一次）**：通过 Bash 工具运行

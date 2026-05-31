@@ -249,7 +249,7 @@ void temp_control_step(float Ts) {
 
 ## 7. 进阶：如何记录这次实验到四文件磁盘记忆
 
-按 embedded-dev 协议，把实验结果写入 `研究发现.md`：
+按 riper5 协议，把实验结果写入 `研究发现.md`：
 
 ```markdown
 ## 技术发现

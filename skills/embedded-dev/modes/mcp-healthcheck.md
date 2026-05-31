@@ -14,7 +14,7 @@
 
 ### 第一步：收集工具清单
 
-**仅检查本 skill（embedded-dev）的 SKILL.md "辅助工具调用规范"和 `refs/mcp-tools.md` 中引用的 MCP 工具**，不检查其他无关工具。
+**仅检查本 skill（riper5）的 SKILL.md "辅助工具调用规范"和 `refs/mcp-tools.md` 中引用的 MCP 工具**，不检查其他无关工具。
 
 **必测工具清单**（来源：SKILL.md 辅助工具调用规范表）：
 

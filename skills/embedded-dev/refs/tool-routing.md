@@ -8,6 +8,25 @@
 
 ## 1. 按需求查表（快速工具索引）
 
+### 1.0 工程内搜代码 / 找文件 / 读文件（任何探索的第一决策）
+
+> 在**已加载的工程目录里**找代码、找文件、读内容时，**一律用专用工具，禁止用 shell（PowerShell/Bash）的 `Select-String` / `Get-ChildItem` / `Get-Content` / `find` / `grep` / `cat` 去做**。专用工具结果接入权限 UI、可点击跳转、且彼此独立不会"连坐取消"。
+
+| 需求 | 用这个 | **禁止** | 说明 |
+|---|---|---|---|
+| 在工程内**搜文件内容**（符号、函数名、宏、字符串） | **Grep 工具** | PowerShell `Select-String`、Bash `grep/rg`、`findstr` | 全正则；`glob`/`type` 过滤；`output_mode=content` 看行、`files_with_matches` 看文件 |
+| 在工程内**按文件名/路径找文件** | **Glob 工具** | PowerShell `Get-ChildItem -Recurse`、Bash `find` | 如 `D:\proj\**\*.{c,h}`、`**\justfloat.{c,h}` |
+| **读文件内容**（含逐行看） | **Read 工具** | `Get-Content`、`cat`、`type` | 自带行号；大文件用 `offset`/`limit` 分页 |
+| 跨 GitHub 仓库搜代码（联网） | `gh` / grok-search | — | 见 §1.1，这是**联网**场景，与本地工程区分 |
+
+**并行批次纪律（本次"Cancelled: parallel tool call ... errored"的根因，必守）**：
+
+1. **专用工具优先**：探索阶段（摸结构、定位符号、读文件）只用 Glob / Grep / Read。它们稳定、独立，一个失败不影响同批其他调用。
+2. **不要把多条易错 shell 命令塞进同一个并行批次**：并行批次里**任意一条**报错（典型：路径不存在、`Get-Content` 找不到文件抛异常），harness 会**连带 `Cancelled` 整批剩余调用**——你会看到一串"errored / Cancelled"，但真正出错的往往只有一条，其余是陪葬，且**根本没执行**。
+3. **确需 shell 时单条、串行**：哪条错一目了然，也不连累其他。
+4. **先摸结构再搜，不要凭记忆猜路径**（八荣八耻：以瞎猜接口为耻）。先 `Glob **/*.{c,h}` 看真实目录结构（是 `code/app/` 还是 `user/src/`？），再按真实路径 Grep/Read。猜错路径正是触发上面那串报错的导火索。
+5. 被批次取消后，**先核实哪些真落地、哪些没执行**，再补跑，不要假设"取消=失败=要重来"。
+
 ### 1.1 信息检索 / 查证
 
 | 需求 | 触发工具 | 详细参考 |

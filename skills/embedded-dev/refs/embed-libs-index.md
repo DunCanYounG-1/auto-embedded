@@ -153,7 +153,7 @@
 | CAN 日志解析 | MATLAB Vehicle Network Toolbox / cantools |
 | 矩阵运算（嵌入式） | CMSIS-DSP（Cortex-M）/ Eigen（C++ 项目） |
 
-**与 embedded-dev skill 的协作**：
+**与 riper5 主协议的协作**：
 
 - 触发关键词（`LQR` / `滤波器设计` / `系统辨识` / `卡尔曼` / `FFT` 等）→ 自动进 `modes/matlab-embedded-toolkit.md`
 - 增益矩阵 / 滤波系数 / 查表 → 用 `tools/export_gains_to_c.py` 一键导出 C 头文件

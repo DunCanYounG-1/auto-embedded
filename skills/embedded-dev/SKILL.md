@@ -1,5 +1,5 @@
 ---
-name: embedded-dev
+name: riper5
 description: "RIPER-5 嵌入式固件开发协议：为 STM32/ESP32/Arduino/RISC-V/GD32/MSPM0/国产 MCU 提供结构化开发流程（RESEARCH→INNOVATE→PLAN→EXECUTE→REVIEW），含证据优先交付、四文件磁盘记忆、分层架构强约束、Git 快照回退、多 Agent 分工（Scout/Builder/Verifier），并扩展比赛模式、MATLAB 算法到固件、工业数据采集等专项流程。当主交付物是固件代码、外设驱动（GPIO/UART/SPI/I2C/DMA/ADC/PWM/定时器/CAN/USB）、中断与寄存器排障、引脚规划、驱动移植、数据手册或网表分析、RTOS、Bootloader、低功耗、看门狗、烧录调试，或 MATLAB 控制/滤波算法落地到 MCU、电赛/嵌入式竞赛开发时使用。不适用于纯 Web/移动端/桌面软件、与硬件无关的通用 C/C++、纯文档或项目管理任务。"
 keywords: "嵌入式, 单片机, 固件, firmware, STM32, ESP32, Arduino, RISC-V, GD32, MSPM0, 外设驱动, 寄存器, 中断, DMA, 引脚规划, 驱动移植, 数据手册, 网表, RTOS, 比赛模式, MATLAB, 烧录"
 ---
@@ -31,6 +31,8 @@ keywords: "嵌入式, 单片机, 固件, firmware, STM32, ESP32, Arduino, RISC-V
 ## 工具路由（按需求查表）
 
 需要联网检索、固件库 API、引脚分析、PDF 解析、编译/烧录/调试、内存分析、静态检查等任何"用工具"的场景，**先查 `refs/tool-routing.md`**（含按需求查表 + 工具优先级总表 + 路由原则 + 优先参考仓库）。**禁止凭记忆猜工具名**。
+
+> **工程内搜代码 / 找文件 / 读文件**：一律用 **Grep / Glob / Read 专用工具**，**禁止**用 PowerShell `Select-String` / `Get-ChildItem` / `Get-Content`（或 Bash `grep/find/cat`）去做。**不要把多条易错 shell 命令塞进同一个并行批次**——批次内任一条报错会**连带取消整批剩余调用**（出现一串 `Cancelled: parallel tool call ... errored`，真正出错的往往只有一条）。先 `Glob **/*.{c,h}` 摸清真实目录再按真实路径搜，别凭记忆猜路径。完整规则见 `refs/tool-routing.md §1.0`。
 
 > 工具的**具体调用方式 / 降级矩阵 / 恢复策略**见 `refs/mcp-tools.md`（讲怎么用，tool-routing.md 讲何时用）。
 

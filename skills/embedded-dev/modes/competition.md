@@ -48,7 +48,7 @@ Task(subagent_type="embedded-report", description="...", prompt="...")
 | `[REPORT]` | 报告答辩 | **必选** | 5 元组验收 + 答辩 why-evidence + LaTeX |
 | `[MATLAB]` | 算法仿真 | **看 MAIN**：SIGNAL/METER/MODEM/CONTROL/POWER 必选 / SYSTEM 看 TAGS / X 默认必选 | mcp__matlab__* + 导出 `.h` |
 
-**视觉题处理**：含摄像头/赛道识别/目标追踪的题目，由独立 `auto-vision` skill 承担（embedded-dev 通过 Skill Handoff Contract 调用，参考 `refs/contracts.md` 跨 skill 协作示例）。本 skill 只做控制、计算、底层驱动。
+**视觉题处理**：含摄像头/赛道识别/目标追踪的题目，由独立 `auto-vision` skill 承担（riper5 主协议通过 Skill Handoff Contract 调用，参考 `refs/contracts.md` 跨 skill 协作示例）。本 skill 只做控制、计算、底层驱动。
 
 **Agent 数量**：4-6 个，由 `refs/competition-task-router.md` §2.4 算出。完整 prompt 模板：`refs/competition-ai-max-workflow.md` §2。
 
