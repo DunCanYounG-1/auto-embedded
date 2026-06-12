@@ -2,7 +2,7 @@
 
 本文件为本仓库（`embedded-dev` 仓托管的 **auto-embedded** 框架）的维护规范，所有人（含 AI 助手）在修改本仓库时必须遵守。
 
-> 历史背景：本仓库原为上一代 `embedded-dev`（Claude Code 单插件）。现已合并升级为新一代 **auto-embedded**（全平台 aemb CLI 框架），上一代的 RIPER-5 协议、55+ 篇知识库、12 个专项流程与 6 个比赛 subagent 已全量吸收进 `templates/auto-embedded/`（refs/modes）与 `templates/common/agents/`。仓库地址仍为 `github.com/DunCanYounG-1/embedded-dev`，npm/品牌名为 `auto-embedded`。
+> 历史背景：本仓库原为上一代 `embedded-dev`（Claude Code 单插件）。现已合并升级为新一代 **auto-embedded**（全平台 aemb CLI 框架），上一代的 RIPER-5 协议、55+ 篇知识库、12 个专项流程与 6 个比赛 subagent 已全量吸收进 `templates/auto-embedded/`（refs/modes）与 `templates/common/agents/`。仓库已更名为 `github.com/DunCanYounG-1/auto-embedded`（与 npm 包名一致；旧地址 embedded-dev 由 GitHub 自动重定向），上一代源码归档在 `auto-embedded-legacy`。
 
 ## 文件位置约定
 

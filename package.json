@@ -25,10 +25,10 @@
     "embedded-dev",
     "competition"
   ],
-  "homepage": "https://github.com/DunCanYounG-1/embedded-dev",
+  "homepage": "https://github.com/DunCanYounG-1/auto-embedded",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DunCanYounG-1/embedded-dev.git"
+    "url": "git+https://github.com/DunCanYounG-1/auto-embedded.git"
   },
   "author": "DuncanY",
   "license": "MIT",

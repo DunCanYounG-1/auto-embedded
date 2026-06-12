@@ -178,7 +178,7 @@ aemb init ─► 工程内写入 .auto-embedded/（spec/tasks/scripts/tools/refs
 <details>
 <summary><b>与上一代 embedded-dev 的关系</b></summary>
 
-本仓库原是 `embedded-dev`——一个只支持 Claude Code 的单插件协议。auto-embedded 是它的新一代继任者：协议（RIPER-5）、知识库、比赛模式全部继承，但从"全局插件、靠 AI 自觉"升级为"装进工程、钩子强制注入、7 平台通用"（架构对标 [Trellis](https://github.com/mindfold-ai/Trellis) 的工程内基座方案）。两代合并在本仓库，老版本可在 git 历史 `1c984e5` 之前找到。
+本仓库原是 `embedded-dev`——一个只支持 Claude Code 的单插件协议。auto-embedded 是它的新一代继任者：协议（RIPER-5）、知识库、比赛模式全部继承，但从"全局插件、靠 AI 自觉"升级为"装进工程、钩子强制注入、7 平台通用"（架构对标 [Trellis](https://github.com/mindfold-ai/Trellis) 的工程内基座方案）。两代合并在本仓库（已更名 auto-embedded，旧地址自动重定向）：老版本在 git 历史 `1c984e5` 之前，原独立旧仓归档于 [auto-embedded-legacy](https://github.com/DunCanYounG-1/auto-embedded-legacy)。
 
 </details>
 
@@ -190,6 +190,6 @@ aemb init ─► 工程内写入 .auto-embedded/（spec/tasks/scripts/tools/refs
 
 - 基座架构（装进工程 / hook 注入 / 规范回流 / 多平台接线）对标 **[Trellis](https://github.com/mindfold-ai/Trellis)**（mindfold-ai）。
 - 长任务治理思路借鉴 `how-to-vibecoding`；感谢 **[LinuxDo](https://linux.do/)** 社区支持。
-- 问题反馈：[GitHub Issues](https://github.com/DunCanYounG-1/embedded-dev/issues)。
+- 问题反馈：[GitHub Issues](https://github.com/DunCanYounG-1/auto-embedded/issues)。
 
 <sub>本 README 是面向人类的介绍，不是规范。AI 遵循的权威规则见 [`SKILL.md`](SKILL.md) 与工程内 `.auto-embedded/workflow.md`；两者与本文冲突时以前者为准。</sub>
