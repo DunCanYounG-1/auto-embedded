@@ -1,200 +1,195 @@
 # auto-embedded
 
-> 对标 [Trellis](https://github.com/mindfold-ai/Trellis) 的**全平台嵌入式 AI 开发框架**——把那套
-> "装进工程、项目级 hook 必然运行、按需自动注入项目 spec、学习回流、一次写、全平台交付"的基座，
-> 换装成 **RIPER-5 + 四文件磁盘记忆 + 分层架构门禁 + Scout/Builder/Verifier + 22 工具技能 + 55+ 篇知识库 + 12 专项流程** 的嵌入式内核。
+> 让 AI 编码助手**可靠地**写嵌入式固件。
+> 一条命令装进你的固件工程，Claude / Cursor / Codex 等 7 个 AI 平台即获得：强制的开发流程、冻结的硬件资源表、断点续作的记忆、编译烧录调试的工具脚本，和 55+ 篇离线嵌入式知识库。
 
-[![protocol](https://img.shields.io/badge/protocol-RIPER--5-2ea44f)](SKILL.md)
-[![platforms](https://img.shields.io/badge/platforms-Claude%20%7C%20Cursor%20%7C%20Codex%20%7C%20OpenCode%20%7C%20Copilot%20%7C%20Gemini%20%7C%20Windsurf-1f6feb)](#支持平台)
-[![MCU](https://img.shields.io/badge/MCU-STM32%20%7C%20ESP32%20%7C%20GD32%20%7C%20MSPM0%20%7C%20RISC--V-1f6feb)](#支持的芯片平台)
+[![npm](https://img.shields.io/npm/v/auto-embedded?label=npm)](https://www.npmjs.com/package/auto-embedded)
+[![platforms](https://img.shields.io/badge/AI%20平台-Claude%20%7C%20Cursor%20%7C%20Codex%20%7C%20OpenCode%20%7C%20Copilot%20%7C%20Gemini%20%7C%20Windsurf-1f6feb)](#支持的-ai-平台)
+[![MCU](https://img.shields.io/badge/MCU-STM32%20%7C%20ESP32%20%7C%20GD32%20%7C%20MSPM0%20%7C%20RISC--V-1f6feb)](#支持的芯片)
 [![e2e](https://img.shields.io/badge/端到端自测-passing-brightgreen)](tests/test-auto-embedded.sh)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-`by` [DuncanY](https://github.com/DunCanYounG-1) · 协议入口见 [`SKILL.md`](SKILL.md) · 安装见 [`INSTALL.md`](INSTALL.md)
-
-> **关于本仓库**：`auto-embedded` 是上一代 [`embedded-dev`](https://github.com/DunCanYounG-1/embedded-dev)（Claude Code 单插件协议）的**新一代继任者**，并就地合并在同一仓库（`github.com/DunCanYounG-1/embedded-dev`）。上一代的 RIPER-5 协议、55+ 篇离线知识库、12 个专项流程与 6 个比赛 subagent **已全量吸收**进本框架的运行时内核，随 `aemb init` 装进每个工程。
-
----
-
-## 为什么有它（embedded-dev 做不到的那块）
-
-上一代 `embedded-dev` 是**全局单 skill 插件**：知识（refs）全局只读、靠模型自觉、frontmatter hook 在 user-skill 下不自动加载、且**只在 Claude 可用**。所以它**无法**像 Trellis 那样"把项目专属约定自动注入每次会话"，也无法跨平台。
-
-`auto-embedded` 复制 Trellis 的解法——**把基座装进工程、并抽象出平台层**：
-
-| 能力 | Trellis | auto-embedded | embedded-dev（上一代） |
-|---|---|---|---|
-| 注入触发器 | 项目级平台 hook（init 写入，必然运行） | ✅ 同（7 平台各自接线） | ❌ frontmatter hook 不生效 |
-| 约定存储 | `.trellis/spec/` | ✅ `.auto-embedded/spec/`（项目级、可演进） | ❌ 全局只读 refs |
-| 相关性注入 | per-task jsonl 选 spec | ✅ research/implement/verify.jsonl 按角色 push | ❌ 靠模型自己 pull |
-| 学习回流 | finish→update-spec | ✅ `task.py promote` 沉淀回 spec | ❌ 无 |
-| 多平台 | 14 平台 configurator | ✅ **7 已打通 + 7 预留** | ❌ 仅 Claude |
-| 工具链 | —（通用） | ✅ **22 工具技能** build/flash/debug/… | ✅（但仅 Claude） |
-| 知识库 / 专项流程 | —（通用） | ✅ **55+ 篇 refs + 12 modes（含比赛 6-Agent）** | ✅（同源，已被吸收） |
-| 工作流内核 | 通用 4 阶段 | **RIPER-5 + 分层门禁 + 四文件 + hw-lock** | RIPER-5（同源） |
-
-**已打通平台**：`claude` `cursor` `codex` `opencode` `copilot` `gemini` `windsurf`
-**预留位**：`kilo` `kiro` `antigravity` `qoder` `codebuddy` `droid` `pi`
+`by` [DuncanY](https://github.com/DunCanYounG-1) · 安装见 [`INSTALL.md`](INSTALL.md) · AI 协议入口见 [`SKILL.md`](SKILL.md)
 
 ---
 
 ## 它解决什么问题
 
-普通 AI 写嵌入式代码常见三宗罪：**乱猜引脚/寄存器、上下文一断就忘了做到哪、编译过就说"修好了"**。auto-embedded 用一条强约束流水线针对性压制这三点（显著降低概率、并在高风险处强制暂停，而非保证杜绝）：
+直接让 AI 写嵌入式代码，翻车通常是这三种：
 
-```
- RESEARCH ─► INNOVATE ─► PLAN ─[含写代码项→需你确认]─► EXECUTE ─► REVIEW
-   研究        创新       计划                          执行        审查
-  查证据      评方案    定清单+函数签名+审查标记        按轮次实现   验证门+回流
-    │                                                               │
-    └────────── 关键资料缺 / 高风险 → 暂停问你，绝不硬编 ◄───────────┘
-```
+| 三宗罪 | 现场 |
+|---|---|
+| 😤 **乱猜硬件** | 引脚随手编、DMA 通道撞车、中断优先级拍脑袋，"我记得 F103 的 USART1 是 PA9" |
+| 😤 **上下文断档** | 聊到一半上下文满了/新开会话，AI 把改了一半的工程忘得一干二净 |
+| 😤 **空口宣称修好** | 编译都没跑就说"问题已解决"，"理论上应该可以" |
 
-- **证据先于结论** —— 没有代码位置 / 编译输出 / 串口日志 / 数据手册 / 网表依据，禁止宣称"已修好"。
-- **复用先于造轮子** —— 本地离线索引 → 官方文档 → 开源驱动 → 最后才自己写。
-- **先规划后编码** —— 引脚、DMA、中断优先级、时钟先冻结成 `hw-lock.yaml`，再动代码。
+auto-embedded 把这三点变成**流程上做不到**：
 
----
+- ✅ **先冻结再动手** —— 引脚 / DMA / 中断写进 `hw-lock.yaml` 才能写代码，机械脚本查冲突
+- ✅ **现场落盘** —— 任务进度、硬件表、研究发现写在磁盘上，新会话自动注入恢复，AI 先回答"五问"再接着干
+- ✅ **证据才算完成** —— 必须出示编译输出 / 串口日志 / 手册页码，"应该没问题"会被流程拦下
+
+## 30 秒看它怎么干活
+
+装好后在工程里开 AI 会话，直接说需求：
+
+| 你说 | 它做什么 |
+|---|---|
+| `帮我给 STM32F103 移植一个 SSD1306 驱动` | 先搜本地知识库 → 找开源驱动评估 → 移植适配（复用优先，不重新造轮子） |
+| `查手册，确认 F103 ADC 时钟上限` | 进入查手册流程：搜 PDF → 提取参数 → 写回代码注释并带页码 |
+| `USART1 中断为什么不触发` | 按流程先查证据（寄存器配置/NVIC/网表），不瞎改碰运气 |
+| `启用比赛模式，做一个平衡车控制系统` | 6 个专职 AI 角色并行：先冻结引脚和接口契约 → MATLAB 仿真过门 → 驱动+算法分头推进 |
+
+每条回复都会声明自己处在哪个阶段（如 `[MODE: RESEARCH]`），要写代码必须先给出计划清单并经你确认。
 
 ## 快速开始
 
+**前置**：Node ≥ 18、Python ≥ 3.9，以及任意一个支持的 AI 编码工具（如 Claude Code、Cursor）。
+
 ```bash
-# 0)（一次）全局安装 aemb CLI（TypeScript/Node 包，零运行时依赖）
+# 1) 全局安装 aemb 命令行
 npm install -g auto-embedded
-#   或从源码：git clone https://github.com/DunCanYounG-1/embedded-dev && cd embedded-dev && npm install -g .
 
-# 1) 在固件工程里安装运行时 + 选定平台的注入接线
-aemb init /path/to/firmware-project -u your-name --platforms claude,cursor,codex
-#   或 --claude --cursor …，或 --all 装全部已打通平台
+# 2) 装进你的固件工程（--platforms 选你在用的 AI 工具，或 --all 全装）
+aemb init /path/to/your-firmware-project -u 你的名字 --platforms claude,cursor
 
-# 2) 在该工程用对应 AI 工具新开会话 → 注入 hook 自动带出 RIPER 现场 + spec 索引 + 开发者
+# 3) 在该工程里用对应 AI 工具新开一个会话 —— 完成
+#    会话开头会自动出现项目现场（当前阶段/硬件表/上次进度），直接说需求即可
 ```
 
-> 技术栈：CLI 用 **TypeScript/Node**（零运行时依赖）；注入 hooks 与运行时脚本用 **Python**（与 Trellis 一致）。需 Node ≥ 18 + Python ≥ 3.9。Windows 注意见 [`INSTALL.md`](INSTALL.md)。
-
-之后日常用 **slash 命令 / 技能**（init 已写进工程）：
+装完后每个平台都有一套日常命令（init 结束时会按你装的平台打印对应语法）：
 
 ```
-/aemb:brainstorm <标题>  需求不清先一问一答收敛 → prd
-/aemb:start  <标题>      建任务进 RESEARCH
-/aemb:continue           恢复现场 + 五问重启 + 按阶段路由
-/aemb:check              机械门禁（arch-check ARCH-1~8 + 硬件冲突 + spec）
-/aemb:break-loop         bug 根因复盘，防"修了又犯"，沉淀进 spec
-/aemb:finish-work        REVIEW 验证门 + promote 回流 + journal + 归档
-/aemb:journal <摘要>     写跨会话记忆
-/aemb:status             现场状态
+/aemb:start <标题>     开一个新任务
+/aemb:continue         断点续作（恢复现场）
+/aemb:check            机械检查：架构分层 + 硬件资源冲突
+/aemb:finish-work      收尾：验证 → 沉淀经验 → 归档
+/aemb:status           看当前状态
 ```
-（Cursor/Windsurf 为 `/aemb-…`，Codex/Qoder 为 `$aemb-…`，Copilot 为 `/aemb-…`。）
+（以上是 Claude 语法；Cursor/Windsurf 为 `/aemb-…`，Codex 为 `$aemb-…`。）
 
-体检 / 升级 / 卸载：`aemb doctor <工程>` · `aemb update <工程>` · `aemb uninstall <工程>`。
+维护：`aemb doctor <工程>` 体检 · `aemb update <工程>` 升级 · `aemb uninstall <工程>` 干净卸载。
 
----
+## 核心概念（5 分钟）
 
-## 工作原理（注入闭环）
+### ① RIPER-5：AI 必须走的五个阶段
 
 ```
-aemb init ─► .auto-embedded/(spec/tasks/workspace/scripts/tools/refs/modes/config/workflow) + 各平台接线（settings.json/hooks.json/config.toml/JS 插件…）
-                                   │
-   会话开始 ─ SessionStart ────────┼─► 注入：RIPER 阶段 + active task + spec 索引 + hw-lock 摘要 + journal + 五问重启
-   每轮     ─ 每轮提交 hook ───────┼─► 注入：按当前阶段从 workflow.md 取面包屑
-   派子Agent ─ 派发 hook/prelude ──┴─► 注入：按角色读 research/implement/verify.jsonl，只 push 相关 spec
-                                   
-   REVIEW ─► task.py promote <layer> "<学习>" ─► 写回 .auto-embedded/spec/（下次自动注入，知识复利）
+ RESEARCH ─► INNOVATE ─► PLAN ─[写代码？需你确认]─► EXECUTE ─► REVIEW
+   研究        创新       计划                       执行        审查
+  查证据      评方案    清单+函数签名               按轮次实现   验证门
+    │                                                            │
+    └──────── 关键资料缺失 / 高风险 → 暂停问你，绝不硬编 ◄────────┘
 ```
 
-工具技能脚本随框架装进 `.auto-embedded/tools/`，按需用 `python` 调；离线知识库 `.auto-embedded/refs/` 与专项流程 `.auto-embedded/modes/` 命中场景时按需读取（不自动全量注入，防撑爆上下文）。
+| 阶段 | 干什么 | 严禁 |
+|---|---|---|
+| RESEARCH | 查芯片手册、找现成驱动、规划引脚写入 `hw-lock.yaml` | 改代码、下结论 |
+| INNOVATE | 对比方案（中断还是 DMA？自己写还是移植？） | 写代码 |
+| PLAN | 出实施清单：文件路径 + 函数签名 + 验证标准，零占位符 | 含糊其辞 |
+| EXECUTE | 按清单逐项实现，每项给证据，每项确认后本地 git 快照 | 计划外"顺手优化" |
+| REVIEW | 跑机械检查 + 实测验证，把经验沉淀回项目规范 | "应该/理论上" |
 
----
+### ② 硬件资源先冻结
 
-## RIPER-5 五阶段
+写代码之前，引脚分配、DMA 通道、中断优先级、时钟先写进 `.auto-embedded/spec/hardware/hw-lock.yaml`。之后 AI 用任何资源都要对照这张表，`aemb check` 会机械地查冲突（pin/dma/irq/timer）——不是靠 AI 自觉，是脚本 exit code 说了算。
 
-每条回复开头声明当前阶段 `[MODE: XXX]`。权威规则以工程内 `.auto-embedded/workflow.md` 与本仓 [`SKILL.md`](SKILL.md) 为准。
+### ③ 断了也能接着干
 
-| 阶段 | 干什么 | 严禁 | 角色 |
-|---|---|---|---|
-| RESEARCH | 查芯片/库、读 spec、引脚规划写 `hw-lock.yaml`、证据写 research.md | 改代码、下最终结论 | Scout（只读） |
-| INNOVATE | 对比候选方案（中断/轮询/DMA、自研/移植） | 写代码、定具体计划 | — |
-| PLAN | 出实施清单（路径+签名+寄存器+验证标准+`review` 标记+层级 L1~L6）；零占位符 | `main.c` 堆业务 | — |
-| EXECUTE | 按轮次最小实现，每轮带 trace_id+验证标准+证据；本地 git 快照 | 计划外改进、跳验证 | Builder（单写者） |
-| REVIEW | 验证门→硬件合规（对照 hw-lock）→分层门禁→**promote 回流** | 用"应该/理论上"声明完成 | Verifier（只审） |
+任务进度、改过的文件、研究发现都落盘在 `.auto-embedded/` 里。每次开新会话，**hook 自动注入**当前现场（这不依赖 AI 记性，是各平台的钩子机制保证注入必然发生）；AI 要先回答"五问"（在哪个阶段？改了什么？硬件现状？发现了什么？该谁继续？）才能动手。
 
-多文件/长任务按 Scout→Builder→Verifier 分权，同一时刻只一个 Builder 写。
+### ④ 项目会越用越懂你
 
----
+每个任务收尾时，AI 把这次学到的（设计决策、踩过的坑、约定）写回项目的 `spec/` 规范库，下个任务自动注入——知识在**你的工程里**积累，不是在对话里蒸发。
 
-## 工具调用技能（22，全平台交付）
+### ⑤ 自带工具和知识库
 
-脚本随框架装进 `.auto-embedded/tools/<skill>/scripts/`，按需用 `python` 调，SKILL 描述自动触发：
+- **22 个工具技能**：编译（CMake/Keil/IAR/ESP-IDF/Makefile/PlatformIO）、烧录（J-Link/OpenOCD/Keil/PIO）、调试（GDB/J-Link）、串口监视、CAN/Modbus/VISA 总线、静态分析（MISRA）、内存分析、RTOS 调试、外设驱动移植——脚本随框架装进工程，AI 按需调用
+- **55+ 篇离线知识库**（`.auto-embedded/refs/`）：STM32/GD32 API 速查、引脚规划、IMU 调试清单、故障排查、驱动移植方法论……AI 命中主题时自动查阅，不靠它的记忆瞎答
+- **12 个专项流程**（`.auto-embedded/modes/`）：查数据手册、读网表、比赛模式、MATLAB→固件流水线、GD32/MSPM0 板级模板……
 
-- **编译**：`build-cmake` `build-iar` `build-idf` `build-keil` `build-makefile` `build-platformio`
-- **烧录**：`flash-idf` `flash-jlink` `flash-keil` `flash-openocd` `flash-platformio`
-- **调试**：`debug-gdb-openocd` `debug-jlink` `debug-platformio`
-- **观测/分析**：`serial-monitor` `static-analysis` `memory-analysis` `rtos-debug`
-- **总线/仪器**：`can-debug` `modbus-debug` `visa-debug`
-- **驱动**：`peripheral-driver`（开源驱动搜索→评估→适配/骨架；方法论 + BSP 模板见 `.auto-embedded/refs/stm32-hal/`）
+### ⑥ 比赛模式（电赛 / 智能车 / 西门子杯）
 
----
+说一句"启用比赛模式"，6 个专职 AI 角色上场：**arch**（总架构，唯一决策者）、**drv**（驱动）、**alg**（算法）、**matlab**（仿真）、**qa**（验证门）、**report**（报告）。流程带 CP-0~CP-5 决策门：接口契约不冻结不开工、MATLAB 仿真不过不写固件、QA 不绿灯不集成。
 
-## 知识库与专项流程（自上一代 embedded-dev 全量吸收）
+> 6 角色**并行**编排目前完整支持 Claude；其他平台会装入角色定义，但降级为单代理按相同门禁顺序执行。
 
-随 `aemb init` 装入工程，**按需加载**：
+## 支持的 AI 平台
 
-- **`.auto-embedded/refs/`（55+ 篇离线知识库）** —— STM32/GD32 API 速查、引脚规划、IMU、故障分类、编码规范、驱动移植、竞赛清单/契约……总览见 `refs/index.md`；`refs/stm32-hal/` 为 STM32 HAL 方法论 + BSP 模板领域包。
-- **`.auto-embedded/modes/`（12 个专项流程）** —— RIPER-5 主干外的专项工作流：`competition`（比赛）、`datasheet-lookup`、`netlist-lookup`、`gd32-board`、`mspm0-board`、`seekfree-lib`、`matlab-*`、`industrial-data-acquisition`、`mcp-healthcheck`、`workflow-orchestration`。总览见 `modes/index.md`。
-
-**比赛模式**：用户说"启用比赛模式" → 进入 `modes/competition.md`，由 6 个专职 subagent 并行推进：
-`embedded-arch`（唯一决策者/路由/集成）· `embedded-drv`（驱动）· `embedded-alg`（算法）· `embedded-matlab`（MATLAB 仿真）· `embedded-qa`（验证门）· `embedded-report`（报告），配合 CP-0~CP-5 决策门与 Defect Ticket 回派协议。
-
-> 平台边界（诚实说明）：6-Agent **并行编排完整支持 Claude**（原生 Task 子代理 + 可选 Workflow 确定性后端）；其余平台会装入 agent 定义，但派发能力受限（如 Codex 子代理出于防死锁禁用 spawn、Copilot 无 Task 工具映射），实际降级为**单代理按 `modes/competition.md` 顺序走 CP 门禁**。
-
----
-
-## 支持的芯片平台
-
-STM32（StdPeriph / HAL） · ESP32（ESP-IDF / Arduino） · Arduino（AVR） · RISC-V（GD32VF / CH32V） · NXP（MCUXpresso） · TI MSP430 / **MSPM0**（SDK + 逐飞 Seekfree 库） · 国产 MCU（GD32 / CH32 / AT32 / APM32）。
-
-深度本地化（含专属 API 速查 + 主板模板）：**STM32 · GD32F470 · MSPM0G3507**；其余平台走通用方法论 + 联网检索。
-
----
-
-## 仓库组成
-
-| 路径 | 内容 |
+| 已打通（7） | 预留位（7） |
 |---|---|
-| [`SKILL.md`](SKILL.md) | 协议入口：何时 init、RIPER-5 + spec 注入工作流、平台/工具/知识库速查 |
-| `src/cli/` `src/commands/` | aemb CLI：init/update/status/doctor/check/uninstall（零依赖、手写参数解析） |
-| `src/types/ai-tools.ts` | 平台注册表（数据单一事实源：7 已打通 + 7 预留） |
-| `src/configurators/` | 每平台 configurator + `shared.ts`(占位符) + `merge.ts`(配置合并) + `hooks.ts`(共享 hook 分发) + `workflow.ts`(运行时内核装入) |
-| `templates/common/` | 共享 body：命令/技能/Agent（含 6 比赛 subagent）+ 22 工具技能 SKILL body（占位符渲染） |
-| `templates/shared-hooks/` | 三个平台无关 Python hook：session-start / inject-workflow-state / inject-subagent-context |
-| `templates/<平台>/` | 平台私有模板（config.toml / JS 插件 / copilot session-start 等） |
-| `templates/auto-embedded/` | 装进工程的运行时内核：`scripts/` + `spec/` + `workflow.md` + `tools/`(22 工具脚本) + `refs/`(55+ 知识库) + `modes/`(12 专项流程) |
-| [`tests/test-auto-embedded.sh`](tests/test-auto-embedded.sh) | 端到端自测：init --all → 结构/doctor/幂等/内核/工具脚本/refs+modes 装入/注入/卸载 全链路断言 |
+| Claude Code · Cursor · Codex · OpenCode · GitHub Copilot · Gemini CLI · Windsurf | Kilo · Kiro · Antigravity · Qoder · CodeBuddy · Droid · Pi |
 
----
+同一套规则写一次，`aemb init` 时按平台各自的语法和钩子机制接线——不需要每个工具重复配置。
+
+## 支持的芯片
+
+STM32（StdPeriph / HAL） · ESP32（ESP-IDF / Arduino） · Arduino（AVR） · RISC-V（GD32VF / CH32V） · NXP（MCUXpresso） · TI MSP430 / **MSPM0**（SDK + 逐飞库） · 国产 MCU（GD32 / CH32 / AT32 / APM32）。
+
+深度本地化（专属 API 速查 + 主板模板）：**STM32 · GD32F470 · MSPM0G3507**；其余走通用方法论 + 联网检索。
 
 ## 能力边界（诚实说明）
 
-这套框架覆盖的是**固件软件全链路**，不是"整个嵌入式项目"。如实分桶：
+覆盖的是**固件软件全链路**，不是"整个嵌入式项目"：
 
-| 可编排/委托闭环（依赖工具链 + 硬件在位） | 必须人在环 / 真实硬件 | 完全不覆盖 |
+| 能闭环（工具链 + 硬件在位） | 必须人来 | 完全不覆盖 |
 |---|---|---|
-| 架构设计 · 算法仿真(MIL) · 驱动 · 应用层 · 编译 · 烧录 · 调试 · 验证 · 报告；分层合规有真机械门禁 | 焊接 · 示波器/逻辑分析仪实测 · PCB 打样 · PIL 处理器在环 · 答辩 | 原理图/PCB 设计 · 器件选型/BOM · 需求挖掘 · 量产/EMC/安规认证 |
+| 架构设计 · 算法仿真 · 驱动 · 应用层 · 编译 · 烧录 · 调试 · 验证 · 报告 | 焊接 · 示波器实测 · PCB 打样 · 硬件在环 · 答辩 | 原理图/PCB 设计 · 器件选型 · 量产/EMC 认证 |
 
-> 准确定位：**嵌入式固件软件全链路工程执行框架**——硬件设计与物理在环注定靠人，本框架不替代它们，也不假装能。
-
----
-
-## 许可
-
-本项目采用 [MIT 许可证](LICENSE)，可自由使用、修改、分发，保留版权与许可声明即可。
-
-## 致谢
-
-- 基座架构（装进工程 / hook 注入 / spec / promote 回流 / 多平台 configurator）对标 **Trellis**（mindfold-ai）。
-- 工作流内核（RIPER-5 / 四文件 / 分层门禁 / 多 Agent）、22 工具技能、55+ 篇知识库与 12 专项流程沿用自上一代 **embedded-dev**，本次合并已全量吸收。
-- 感谢 **[LinuxDo](https://linux.do/)** 社区的支持。问题反馈 / 建议：[GitHub Issues](https://github.com/DunCanYounG-1/embedded-dev/issues)。
+硬件设计与物理实测注定靠人——本框架不替代它们，也不假装能。
 
 ---
 
-<sub>本 README 面向人类读者，是介绍而非规范。协议规则、触发条件、refs/modes 清单一律**以 [`SKILL.md`](SKILL.md) 及工程内 `.auto-embedded/workflow.md` 为准**；两者冲突时以 `SKILL.md` 为准。</sub>
+## 进阶
+
+<details>
+<summary><b>工作原理（注入闭环）</b></summary>
+
+```
+aemb init ─► 工程内写入 .auto-embedded/（spec/tasks/scripts/tools/refs/modes/workflow）
+             + 各 AI 平台的钩子接线（settings.json / hooks.json / config.toml / JS 插件…）
+
+会话开始   ─ SessionStart hook ──► 注入：当前阶段 + 任务 + 规范索引 + 硬件表摘要 + 上次进度
+每轮对话   ─ 每轮提交 hook ─────► 注入：当前阶段的行为约束（从 workflow.md 取）
+派子 Agent ─ 派发 hook ─────────► 注入：按角色（研究/实现/审查）只给相关的规范文件
+
+任务收尾   ─► task.py promote ──► 经验写回 spec/（下次自动注入，知识复利）
+```
+
+注入有字符预算控制（默认单文件 6000 / 总量 16000），知识库变大不会撑爆上下文。
+
+</details>
+
+<details>
+<summary><b>仓库结构（开发者向）</b></summary>
+
+| 路径 | 内容 |
+|---|---|
+| `src/` | aemb CLI（TypeScript，零运行时依赖）：`commands/` 子命令 · `configurators/` 每个 AI 平台的接线器 · `types/ai-tools.ts` 平台注册表 |
+| `templates/auto-embedded/` | 装进工程的运行时：`scripts/`（流程引擎）`spec/`（规范种子）`tools/`（22 工具脚本）`refs/`（知识库）`modes/`（专项流程）`workflow.md` |
+| `templates/common/` | 跨平台共享的命令/技能/Agent 模板（占位符渲染成各平台语法） |
+| `templates/shared-hooks/` | 平台无关的 3 个 Python 注入钩子 |
+| [`tests/test-auto-embedded.sh`](tests/test-auto-embedded.sh) | 端到端自测：7 平台安装/体检/幂等/注入/卸载全链路断言 |
+
+新增平台：注册表加条目 + 写一个 configurator。新增知识：md 文件放进 `refs/` 或 `modes/` 并在 index.md 登记即可。
+
+</details>
+
+<details>
+<summary><b>与上一代 embedded-dev 的关系</b></summary>
+
+本仓库原是 `embedded-dev`——一个只支持 Claude Code 的单插件协议。auto-embedded 是它的新一代继任者：协议（RIPER-5）、知识库、比赛模式全部继承，但从"全局插件、靠 AI 自觉"升级为"装进工程、钩子强制注入、7 平台通用"（架构对标 [Trellis](https://github.com/mindfold-ai/Trellis) 的工程内基座方案）。两代合并在本仓库，老版本可在 git 历史 `1c984e5` 之前找到。
+
+</details>
+
+---
+
+## 许可与致谢
+
+[MIT 许可证](LICENSE)，自由使用、修改、分发。
+
+- 基座架构（装进工程 / hook 注入 / 规范回流 / 多平台接线）对标 **[Trellis](https://github.com/mindfold-ai/Trellis)**（mindfold-ai）。
+- 长任务治理思路借鉴 `how-to-vibecoding`；感谢 **[LinuxDo](https://linux.do/)** 社区支持。
+- 问题反馈：[GitHub Issues](https://github.com/DunCanYounG-1/embedded-dev/issues)。
+
+<sub>本 README 是面向人类的介绍，不是规范。AI 遵循的权威规则见 [`SKILL.md`](SKILL.md) 与工程内 `.auto-embedded/workflow.md`；两者与本文冲突时以前者为准。</sub>
