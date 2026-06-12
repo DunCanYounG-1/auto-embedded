@@ -1,15 +1,16 @@
-# Shell / Python scripts must use LF endings. Git's autocrlf would otherwise
-# insert CRLF on Windows checkout, which makes bash refuse to run them
-# (shebang + \r) and breaks Python shebang execution on Unix.
-#
-# 插件布局：hook 脚本随主 skill 移到 skills/embedded-dev/hooks/。整目录锁 LF，
-# 覆盖 run-hook.cmd（纯 bash）、无扩展名 bash hook、*.py hook、verify-deps、hooks.json。
-skills/embedded-dev/hooks/**            text eol=lf
+# 行尾锁定：
+# - Windows 批处理 .cmd/.bat 必须 CRLF，否则 cmd.exe 逐行误解析（实测会报 '_DIR'/'defined' 非命令）。
+# - POSIX shell 与 bin/aemb 启动器必须 LF，否则 bash 报 bad interpreter。
+# - 其余按 LF 归一，避免跨平台噪声。
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+bin/aemb text eol=lf
+*.sh text eol=lf
 
-# arch-check 门禁脚本与 git 钩子同理：shell 脚本与 pre-commit 钩子必须 LF，
-# 否则 Unix/Git-bash 检出后 \r 会导致 "bad interpreter" 或钩子静默失效。
-*.sh                                    text eol=lf
-skills/embedded-dev/scripts/hooks/pre-commit  text eol=lf
-
-# 兄弟 skill 的 Python 执行脚本经 `python` 调用，CRLF 虽可容忍，仍统一锁 LF 保一致。
-skills/*/scripts/*.py                   text eol=lf
+# ── GitHub Linguist 语言统计 ──
+# templates/auto-embedded/tools/ 是从 embedded-dev 插件 bundled 进来的 21 个工具脚本（上游载荷，
+# 非本仓库自研 CLI）；tests/ 为自测脚本。二者标 vendored，让语言条反映 auto-embedded 自研主体
+# （TypeScript 脚手架 CLI + Python 运行时内核），而非被 bundled 的工具脚本体量淹没。
+templates/auto-embedded/tools/** linguist-vendored
+tests/** linguist-vendored

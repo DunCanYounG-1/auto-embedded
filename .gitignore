@@ -1,18 +1,14 @@
-# GD32F470 主板 SDK / 模板（体积大，本地原位使用，不进 Git 历史）
-# 速查通过 refs/gd32f4xx-api.md 和 modes/gd32-board.md 引用本地路径
-mcu_-gd_-main-board-master/
+# Node
+node_modules/
+dist/
+package-lock.json
 
-# MSPM0G3507 逐飞开源库（体积大，本地原位使用，不进 Git 历史）
-# 速查通过 refs/mspm0g3507-seekfree-api.md 和 modes/mspm0-board.md 引用本地路径
-MSPM0G3507_Library-master/
-MSPM0G3507_Library-master.zip
-
-# Python 字节码缓存（hooks/ 与 tools/ 运行时生成）
+# Python 字节码
 __pycache__/
 *.pyc
 
-# 工具自测产物（tools/export_gains_to_c.py --demo 生成）
-_demo_gains.h
-
-# Claude Code 会话锁（harness 运行时生成，非仓库内容）
-.claude/scheduled_tasks.lock
+# 测试临时产物（自测在 mktemp 下进行，正常不会落仓库；.tmp-* 为 Codex/审查在仓库内的临时工程，双保险）
+*.tmp
+.tmp-*/
+.tmp-*
+r*verify.js

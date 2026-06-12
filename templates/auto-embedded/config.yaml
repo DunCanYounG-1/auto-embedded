@@ -1,0 +1,27 @@
+# auto-embedded 项目配置（registry）。aemb_core 据此枚举 spec 层。
+# 增删 spec 层时改这里；path 相对 .auto-embedded/。
+project: ""        # 可填工程名
+version: 1
+spec_layers:
+  - name: architecture
+    path: spec/architecture
+  - name: conventions
+    path: spec/conventions
+  - name: hardware
+    path: spec/hardware
+  - name: guides
+    path: spec/guides
+  - name: governance
+    path: spec/governance
+  # 下面两层是随框架装入的只读知识面（managed，aemb update 会覆盖；项目级学习走 promote 进上面的 spec 层）。
+  # 注册进 registry 使 SessionStart 注入索引行、check.py 校验 index.md 存在；正文按需读取。
+  - name: refs
+    path: refs
+  - name: modes
+    path: modes
+
+# 注入预算（字符数，约 token×3~4）。控制 hook 注入量，防 spec 库变大后撑爆上下文。
+# 也可用环境变量覆盖：AEMB_BUDGET_SUBAGENT_TOTAL / AEMB_BUDGET_PER_FILE。
+inject_budget:
+  subagent_total: 16000   # 派子 Agent 时所有 spec 注入正文的总上限；超出的文件只给路径(懒加载)
+  per_file: 6000          # 单个 spec 文件注入上限

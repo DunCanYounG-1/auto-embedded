@@ -1,0 +1,22 @@
+# auto-embedded 为 Codex 工作流提供的工程级默认配置。
+# Codex 在该工程被标记为受信任时，会把这一层合并到用户级配置之后。
+# 要信任本工程，请在 ~/.codex/config.toml 的 [projects] 下添加，例如：
+#
+#   [projects."/abs/path/to/this/repo"]
+#   trust_level = "trusted"
+
+# 保持 AGENTS.md 作为主工程说明文件。
+project_doc_fallback_filenames = ["AGENTS.md"]
+
+# 本目录的 hooks.json 仅在用户级配置启用 hook 时才会触发：
+# 需在 ~/.codex/config.toml 设 `[features].hooks = true`
+# （Codex 0.129+；旧名 `codex_hooks = true` 仍可用但会告警）。
+# 工程级 config.toml 无法设置 feature 开关，必须在用户级设置。
+# Codex 0.129+ 还会对每个已安装 hook 做一次性 `/hooks` 审核，
+# 未批准前 hook 不生效（此时靠 inject-workflow-state.py 的 bootstrap 兜底）。
+
+# 注意：auto-embedded 刻意不在此写 [features.multi_agent_v2] 块。
+# Codex 在 0.130 与 0.131 之间改了 features 反序列化：结构化表单形式
+# 只有 0.131+ 接受；0.130 及更早（含 Codex 桌面端内置 CLI）会报
+# `data did not match any variant of untagged enum FeatureToml` 并中断整个
+# 配置加载、阻止 Codex 启动。这里沿用 Codex 自带默认值，需要可在用户级配置调整。

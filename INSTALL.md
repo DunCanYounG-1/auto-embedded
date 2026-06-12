@@ -1,149 +1,68 @@
-# 安装与依赖
+# 安装与使用 auto-embedded
 
-本 skill 以 **Claude Code 插件（plugin）** 形式分发。**在已装好 Claude Code 的前提下**，一条 `/plugin install` 即可装齐 26 个 skill（riper5 主协议 + 25 个执行层 skill）的内置内容并**自动注册 hooks**，无需手动改 settings.json。
+## 0. 依赖
+- **Node ≥ 18**（必须，aemb CLI 是 TypeScript/Node 包，零运行时依赖）。
+- **Python ≥ 3.9**（必须，注入 hooks 与运行时/工具脚本用）。Windows 注意：`python3` 常是 Microsoft Store 伪 stub，
+  `aemb init` 会**实跑探测**真正可用的 python（py/python/python3），把正确命令写进各平台 hook 接线。
+- **git**（可选，用于定位工程根；无 git 时按传入目录或 CWD）。
+- 目标 AI 工具之一：Claude Code / Cursor / Codex / OpenCode / GitHub Copilot / Gemini CLI / Windsurf。
 
-> **诚实边界（不是"白板机器零依赖"）**：和所有带 hook 的插件一样，本插件**无法代劳 Claude Code 本身就需要的运行时**——Python / Bash / Git（Windows 还需 Git Bash 在 PATH）是**安装前置**，见 §2；缺它们时 hooks 静默失效（fail open），协议主流程仍由 Claude 手动遵守。`grok-search`（联网检索，§3.1）、各烧录/调试工具链等是**可选/可降级**项，需另配。
-
-依赖按**必装 / 推荐 / 可选**三级列出，每项缺失都有降级方案；缺什么 hooks 都 fail open，协议主流程不卡死。
-
----
-
-## 1. 安装（plugin，推荐）★
-
-### 1.1 一条命令
-
-在 Claude Code 里：
-
-```text
-/plugin marketplace add DunCanYounG-1/embedded-dev
-/plugin install embedded-dev@embedded-dev
-```
-
-或用 CLI：
-
+## 1. 全局安装 aemb CLI
 ```bash
-claude plugin marketplace add DunCanYounG-1/embedded-dev
-claude plugin install embedded-dev@embedded-dev
+npm install -g auto-embedded
 ```
-
-装完即获得：
-
-- **26 个 skill 全部就位**：riper5 主协议 + `build-*` / `flash-*` / `debug-*` / `serial-monitor` / `modbus-debug` / `can-debug` / `visa-debug` / `memory-analysis` / `rtos-debug` / `static-analysis` / `peripheral-driver` / `stm32-hal-development` / `workflow` / `codex` + `shared/` 契约层。
-- **hooks 自动注册**：SessionStart 引导注入、PreToolUse 写前分层拦截、UserPromptSubmit/PostToolUse 四文件提醒——全部随插件生效，**不用再跑 `register-hooks.py`、不用手改 settings.json**。
-- **6 个比赛模式 subagent**：`embedded-arch/drv/alg/matlab/qa/report`。
-
-### 1.2 验证
-
-```text
-/plugin            # Installed 标签页应看到 embedded-dev 及其组件
-/help              # 技能以 /embedded-dev:<name> 形式出现
-/hooks             # 应列出本插件的 4 个事件 hook
-```
-
-功能性自检：①新会话首条响应应自动出现 SessionStart 引导文本；②故意让 Claude 往 app 层写一个 `#include "stm32f4xx.h"`，应被 `pre-write-check.py` 以 exit 2 拦截。两者都发生 = hooks 已生效。
-
----
-
-## 2. 必装依赖（缺了核心 hook 不工作）
-
-| 依赖 | 用途 | 安装方法 | 缺失时降级 |
-|---|---|---|---|
-| **Python 3.8+** | `hooks/session-start.py` 注入协议引导；`shared/project_detect.py` 工程画像探测 | Windows: <https://www.python.org/downloads/> 或 `winget install Python.Python.3`；macOS: `brew install python@3.12`；Linux: 系统包管理器 | SessionStart hook 静默失效；协议主流程仍由 Claude 手动遵守 |
-| **Bash** | 4 个 bash hook（`check-memory-files` / `inject-context` / `remind-update` / `run-hook.cmd` 分发器） | Linux/macOS 原生；Windows 装 **Git for Windows** <https://git-scm.com/download/win>（自带 Git Bash） | 对应 bash hook 静默失效；`run-hook.cmd` 自动 `exit 0`，协议主流程仍生效 |
-| **Git** | 插件市场拉取 / 自动存档 | <https://git-scm.com/downloads> | 插件安装与 Git 快照回档失效 |
-
-**Windows 用户特别注意**：装 Git for Windows 时勾选"Add Git to PATH"。Claude Code 在 Windows 下的 hook command 经 `bash` 执行，需要 Git Bash 在 PATH。
-
-> hook 命令统一用 `${CLAUDE_PLUGIN_ROOT}` 解析插件根（Claude Code 安装插件时自动设置），无需手工配置路径。
-
----
-
-## 3. 推荐依赖（缺了关键功能降级，但能用）
-
-### 3.1 grok-search（联网检索，第三方）
-
-| 依赖 | 用途 | 安装方法 | 缺失时降级 |
-|---|---|---|---|
-| `~/.claude/skills/grok-search/` | 所有联网检索（驱动/报错/数据手册入口）首选工具 | 第三方 skill，单独 clone：`git clone https://github.com/Frankieli123/grok-skill ~/.claude/skills/grok-search`，再在 `config.json` 填 API key + base_url（如 `https://www.micuapi.ai/v1`） | 自动 fallback 到 Claude 内置 WebSearch / WebFetch |
-
-> grok-search 因许可与 API key 配置原因**未并入本插件**，需单独安装。
-
-### 3.2 Context7 MCP（库 API 即时文档）
-
-| 依赖 | 用途 | 安装方法 | 缺失时降级 |
-|---|---|---|---|
-| Context7 MCP 服务器 | STM32/ESP-IDF/HAL 等库 API 即时文档；超出离线 refs 覆盖时使用 | `claude mcp add --transport http context7 https://mcp.context7.com/mcp` | 离线 refs 覆盖不到时降级到 grok-search 联网检索 |
-
-### 3.3 gh CLI（GitHub 检索）
-
-| 依赖 | 用途 | 安装方法 | 缺失时降级 |
-|---|---|---|---|
-| GitHub CLI `gh` | 检索 EmbedSummary 等开源驱动库 | <https://cli.github.com/> 后 `gh auth login` | grok-search + WebSearch site:github.com |
-
----
-
-## 4. 可选依赖（特定场景才需要）
-
-| 依赖 | 触发场景 | 安装方法 |
-|---|---|---|
-| **Sequential Thinking MCP** | 引脚冲突 / DMA 分配复杂推理 | `claude mcp add` 加入 |
-| **Document Skills**（`pdf` / `docx` / `xlsx` / `pptx`） | 解析数据手册 PDF / 原理图 / 报告 | Anthropic 官方插件市场提供 |
-| **agent-browser** | 在线数据手册页面交互、厂商 Web 配置器、截图留档 | 由 skill 提供方安装 |
-| **MATLAB MCP** | LQR/Kalman/滤波器仿真 → 导出 `.h` 上板（MIL/SIL） | 视厂商而定 |
-| **Mermaid CLI** | 文档生成里的流程图渲染 | `npm i -g @mermaid-js/mermaid-cli` |
-
----
-
-## 5. 平台特定注意事项
-
-### Windows
-- **Git Bash 必装**：所有 bash hook 通过它执行（`run-hook.cmd` 是纯 bash 脚本）。
-- **路径分隔符**：Python hook 已自动处理 `/c/Users/` / `/cygdrive/c/` / `/mnt/c/` → `C:\` 规范化。
-- **Python 3 命令名**：建议用 `python`（Windows 标准）。`python3` 在 Windows 上常指向 Store stub（无实际 Python）——`run-hook.cmd` 会自动探测真解释器并绕过 stub。
-- **行尾符**：仓库已通过 `.gitattributes` 锁 `*.sh` / hook 脚本为 LF；不要本地改 git autocrlf。
-
-### macOS
-- macOS 自带 `python3` 通常够用，建议装 `python@3.12` 保证版本一致。
-
-### Linux
-- Python / Bash / Git 通常预装；串口权限：`sudo usermod -a -G dialout $USER`（Debian/Ubuntu）。
-
----
-
-## 6. legacy：传统 user-skill 安装（不推荐，仅在不用 plugin 时）
-
-如果你不想用插件机制，可走传统 user-skill 安装，但要手动两步、且 hooks 不自动注册：
-
+或从源码（`npm install` 会触发 `prepare` 跑 tsc 编译出 `dist/`）：
 ```bash
-# 1) clone 仓库（任意位置）
-git clone https://github.com/DunCanYounG-1/embedded-dev /tmp/embedded-dev-src
-
-# 2) 把打包的全部 skill 复制到 ~/.claude/skills/
-bash /tmp/embedded-dev-src/skills/embedded-dev/scripts/install-siblings.sh
-#    Windows(PowerShell): pwsh /tmp/embedded-dev-src/skills/embedded-dev/scripts/install-siblings.ps1
-
-# 3) 手动注册 hooks（user-skill 不自动注册 frontmatter/插件 hooks）
-python ~/.claude/skills/embedded-dev/tools/register-hooks.py --write --target ./.claude/settings.json
+git clone https://github.com/DunCanYounG-1/auto-embedded
+cd auto-embedded
+npm install -g .
 ```
 
-- 第 2 步把 `skills/` 下 26 个 skill（含 riper5 主协议本体 `skills/embedded-dev/` + shared）复制到 `~/.claude/skills/`；`--dry-run` 预览、`--force` 覆盖更新。
-- 第 3 步是 legacy 专用：插件安装会自动注册 hooks，user-skill 安装则必须显式注册（幂等、自动备份 `.bak`、可 `--remove` 撤销）。注册后**重启会话**生效。
-- **不注册也能用（degraded）**：协议主流程、四文件记忆、分层规范全部由 Claude 按规则手动遵守，只是失去 hook 的"机械提醒 + 写前预拦截"。此时唯一机械门禁是 REVIEW/CP 阶段主动跑 `scripts/arch-check.sh` + `tools/include-graph.py`。
+## 2. 在固件工程里安装运行时 + 平台接线
+```bash
+aemb init /path/to/firmware-project -u your-name --platforms claude,cursor,codex
+# 也可：--claude --cursor … 逐个；或 --all 装全部已打通平台；不指定则默认 claude
+```
+`-u` 写开发者身份到 `.auto-embedded/.developer`（注入时显示、`doctor` 可查）。会做三件事：
+1. 写 `.auto-embedded/`：运行时内核（scripts: aemb_core/task/get_context/check）+ spec/ + workflow.md + config.yaml + **tools/**（21 个工具脚本 + shared）。
+2. 为每个选定平台写注入接线 + agents/skills/commands（格式各平台不同：Claude `settings.json`、Cursor/Codex/Copilot `hooks.json`、Codex `config.toml`、OpenCode JS 插件、Gemini `settings.json`、Windsurf workflows）。
+3. **合并**共享配置文件：只增删 aemb 自己的片段，已有配置保留、按命令去重、可重复跑不重复（幂等）。
 
----
+> 已打通：`claude cursor codex opencode copilot gemini windsurf`。预留位（暂不可装）：`kilo kiro antigravity qoder codebuddy droid pi`。
 
-## 7. 最小可用集 / 完全 minimal
+## 3. 验证
+```bash
+aemb doctor /path/to/firmware-project
+```
+全 OK 后，在该工程**新开一个会话**（让注入 hook 触发），首条回复前应能看到注入的
+`<auto-embedded-session>`（RIPER 阶段 + spec 索引 + 硬件锁 + 五问重启）。
 
-clone + Python + Git Bash（Windows）即可启动**纯协议/知识库**部分（不依赖任何 hook 或兄弟 skill）：
+> 平台开关提示：**Codex** 需在 `~/.codex/config.toml` 设 `[features].hooks = true` 并跑一次 `/hooks` 审核，hook 才生效（未生效时靠每轮面包屑的 bootstrap 提示用 `$aemb-start` 兜底）。
 
-✅ 立即可用：
-- RIPER-5 五阶段协议（RESEARCH / INNOVATE / PLAN / EXECUTE / REVIEW）
-- 四文件磁盘记忆、PLAN/EXECUTE 三件套、6 层架构规范
-- 所有 `refs/*.md` 离线知识库（API 速查、引脚规划、IMU、Mahony AHRS、故障排查…）
-- 6 个扩展模式（competition / datasheet-lookup / gd32-board / netlist-lookup / seekfree-lib / mcp-healthcheck）
+## 4. 日常（slash 命令 / 技能）
+```
+/aemb:start <标题>     建任务并进 RESEARCH
+/aemb:continue         恢复现场 + 五问重启 + 按阶段路由
+/aemb:finish-work      REVIEW 验证门 + promote 学习回流 + 归档
+/aemb:status           现场状态
+```
+（Cursor/Windsurf/Copilot 为 `/aemb-…`，Codex/Qoder 为 `$aemb-…`。）这些在 `init` 时已写进工程。内部就是调脚本，也可手动：
+```bash
+python .auto-embedded/scripts/task.py start "<任务>" | phase PLAN | select builder spec/architecture/index.md "原因" | promote conventions "<学习>" | journal "<摘要>" | archive
+```
+工具技能（编译/烧录/调试/串口/总线/静态/内存/RTOS）脚本在 `.auto-embedded/tools/<skill>/scripts/`，按需 `python` 调，详见各 `references/usage.md`。
 
-⚠ 装插件（或 legacy 注册 hook）后自动生效：SessionStart 引导、pre-write-check 写前拦截、四文件提醒。
-⚠ 插件自带 / legacy 装齐兄弟 skill 后可用：真正执行编译/烧录/调试/串口/总线/分析，工程画像自动探测（`shared/project_detect.py`）。
-⚠ 装对应 MCP/CLI 后可用：Context7 即时库文档、gh 仓库检索、grok-search 联网搜索。
+## 5. 升级与卸载
+- 升级：`aemb update <工程>`（只覆盖 managed：脚本/hooks/agents/commands/工具/workflow.md；保留 spec/tasks/workspace/config 与你的改动，冲突写 `.new`）。
+- 临时关闭注入：设环境变量 `AEMB_HOOKS=0`（或 `AEMB_DISABLE_HOOKS=1`）。
+- 卸载：`aemb uninstall <工程>`（按 manifest 删 aemb 独占文件 + 从共享配置剥除 aemb 片段 + 删 `.auto-embedded/`；卸载前自动备份到 `.auto-embedded.bak.N`；用户固件源码不动）。
 
-RESEARCH/INNOVATE/PLAN/REVIEW 四阶段对外部依赖近乎为零；只有 EXECUTE 真正跑命令时才需要执行层 skill。
+## 6. 自测
+```bash
+bash tests/test-auto-embedded.sh
+```
+在临时工程里 `init --all` 并断言整条闭环（7 平台脚手架/doctor/幂等/内核/工具脚本 shared 导入/SessionStart+面包屑+子 Agent 注入/卸载全清）。
+
+## 7. 故障排查
+- 没注入：跑 `aemb doctor`；确认对应平台的注入接线已写入、命令里的 python 能在该工具的 PATH 下运行（Windows 纯 Store stub 会失败——重跑 `init` 重新探测）。
+- 子 Agent 没拿到 spec：确认 active task 的 `implement.jsonl`/`verify.jsonl`/`research.jsonl` 里有 `{"file":"spec/...","reason":"..."}`（用 `task.py select` 写），且 `_example` 行已删。pull 类平台（Codex/Copilot/Gemini 子 Agent）改由 Agent 定义里的 prelude 自取。

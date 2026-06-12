@@ -1,0 +1,16 @@
+# 硬件资源锁（机器可读）。RESEARCH 阶段填写并冻结；SessionStart hook 注入其摘要。
+# 同一资源不可重复占用——填写时自查 pin/dma/irq/timer 无重复。
+# 示例条目见注释，正式条目顶格写在各 section 下。
+
+pins:
+  # - {id: PA9,  func: USART1_TX, owner: bsp_uart}
+  # - {id: PA10, func: USART1_RX, owner: bsp_uart}
+
+dma:
+  # - {stream: DMA1_CH4, peripheral: USART1_TX, owner: drv_uart_dma}
+
+irq:
+  # - {irqn: USART1_IRQn, priority_preempt: 1, priority_sub: 0, owner: drv_uart}
+
+timers:
+  # - {id: TIM2, func: 1ms_tick, owner: svc_scheduler}
