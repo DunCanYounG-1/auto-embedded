@@ -40,6 +40,8 @@
     "templates/",
     "SKILL.md",
     "README.md",
+    "README_EN.md",
+    "docs/",
     "INSTALL.md",
     "!**/__pycache__/**",
     "!**/*.pyc"

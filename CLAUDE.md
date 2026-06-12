@@ -18,7 +18,7 @@
 - `templates/common/` —— 一套内核、全平台交付的共享 body：`commands/` `skills/` `tool-skills/`（22 工具技能）`agents/`（aemb-scout/builder/verifier + 6 比赛 subagent）。
 - `templates/auto-embedded/` —— 装进工程的运行时内核：`scripts/`（RIPER 引擎）`spec/` `workflow.md` `tools/`（22 工具脚本）`refs/`（55+ 篇知识库）`modes/`（12 专项流程）。
 - `templates/<平台>/`、`templates/shared-hooks/` —— 平台私有模板与平台无关 Python hook。
-- `SKILL.md`（协议入口）、`INSTALL.md`（安装）、`README.md`（介绍）。
+- `SKILL.md`（协议入口）、`INSTALL.md`（安装）、`README.md`（中文主页）/`README_EN.md`（English）、`docs/`（中英详细文档：quick-start/concepts/architecture）。
 
 ## 通用原则
 
