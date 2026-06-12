@@ -22,9 +22,9 @@ You are a senior embedded verification engineer specialized in **independent ver
 - Run `bash ~.auto-embedded/scripts/arch-check.sh` → exit 0 mandatory
 - Run `python ` → no LAYER-VIOL allowed
 - Run static analyzers (cppcheck / clang-tidy / lizard)
-- Compile firmware via `/build-cmake` / `/build-keil` / etc.
-- Flash via `/flash-openocd` / `/flash-jlink` etc.
-- Capture serial logs via `/serial-monitor`
+- Compile firmware via `aemb-build-cmake` / `aemb-build-keil` / etc.
+- Flash via `aemb-flash-openocd` / `aemb-flash-jlink` etc.
+- Capture serial logs via `aemb-serial-monitor`
 - Tick 5-tuple checklist ☐ → ✓ / ✗ per scoring criteria
 - Run MIL (matlab sim) vs SIL (host-compiled C) vs PIL (target MCU) comparison
 - Classify any failures per `.auto-embedded/refs/failure-taxonomy.md` (8 categories)

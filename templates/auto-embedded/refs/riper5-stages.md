@@ -24,7 +24,7 @@
 2. **识别芯片平台和固件库**：
    - **优先调用工程画像探测器**（一键完成构建系统/芯片/产物识别）：
      ```bash
-     python ~/.claude/skills/shared/project_detect.py <工作区路径>
+     python .auto-embedded/tools/shared/project_detect.py <工作区路径>
      ```
      输出标准化 `Project Profile`（字段定义见 `.auto-embedded/refs/contracts.md`）：`workspace_root` / `workspace_os` / `build_system` / `target_mcu` / `probe` / `artifact_path` / `artifact_kind` / `serial_port` 等。
    - 探测器无法识别或字段缺失时，回退到人工识别：检查文件包含、API 调用、项目结构（参见原识别规则）
@@ -181,20 +181,20 @@ NO IMPLEMENTATION LIST WITHOUT FILE PATHS + VERIFY CRITERIA + REVIEW MARKERS + L
 
 **操作执行层兄弟 skill 路由（强制优先调用，禁止手敲命令重造轮子）**：
 
-涉及"真去跑命令"的步骤，**必须**路由到对应兄弟 skill，不要在 EXECUTE 内手写 Bash 命令再现造一遍，因为兄弟 skill 已封装：① 工程画像探测、② 工具路径解析（`em_config.py`）、③ 跨平台路径处理、④ 标准化 `Command Outcome` 输出（status / summary / evidence / next_action / failure_category）。
+涉及"真去跑命令"的步骤，**必须**路由到对应兄弟 skill，不要在 EXECUTE 内手写 Bash 命令再现造一遍，因为兄弟 skill 已封装：① 工程画像探测、② 工具路径解析（`tools/shared/tool_config.py`）、③ 跨平台路径处理、④ 标准化 `Command Outcome` 输出（status / summary / evidence / next_action / failure_category）。
 
 | 操作类型 | 优先 skill | 何时使用 |
 |---------|-----------|---------|
-| 编译 CMake / Keil / IAR / PlatformIO / ESP-IDF / Makefile 工程 | `/build-cmake` `/build-keil` `/build-iar` `/build-platformio` `/build-idf` `/build-makefile` | 需要 ELF/HEX/BIN 产物时 |
-| 烧录 OpenOCD / Keil / PlatformIO / ESP-IDF / J-Link | `/flash-openocd` `/flash-keil` `/flash-platformio` `/flash-idf` `/flash-jlink` | 已有 artifact 需要下载到 MCU 时；BIN 烧录前必须明确基地址 |
-| GDB 在线调试（下载/附着/崩溃排查） | `/debug-gdb-openocd` `/debug-jlink` `/debug-platformio` | 需要单步、断点、查看寄存器或栈帧时 |
-| 串口日志抓取 | `/serial-monitor` | 验证固件运行、查看 printf/log 输出 |
-| Modbus / CAN / VISA 通信调试 | `/modbus-debug` `/can-debug` `/visa-debug` | 工业总线寄存器读写、CAN 帧监听、仪器 SCPI 通信 |
-| 内存使用报告 / RTOS 线程检查 | `/memory-analysis` `/rtos-debug` | .map/ELF 内存超限分析；FreeRTOS 任务/栈水位/死锁排查 |
-| 静态分析 / MISRA 合规 | `/static-analysis` | 提交前代码扫描 |
-| 外设驱动搜索→评估→适配 | `/peripheral-driver` | 新接传感器/显示屏/存储芯片时（与"驱动库移植优先原则"配合） |
-| STM32 CubeMX HAL 工程开发 | `/stm32-hal-development` | 需要 BSP 模板、HAL 速查、HAL 专属 troubleshooting |
-| 编译→烧录→监控/调试 串接 | `/workflow` | 一个命令完成完整链路 |
+| 编译 CMake / Keil / IAR / PlatformIO / ESP-IDF / Makefile 工程 | `aemb-build-cmake` `aemb-build-keil` `aemb-build-iar` `aemb-build-platformio` `aemb-build-idf` `aemb-build-makefile` | 需要 ELF/HEX/BIN 产物时 |
+| 烧录 OpenOCD / Keil / PlatformIO / ESP-IDF / J-Link | `aemb-flash-openocd` `aemb-flash-keil` `aemb-flash-platformio` `aemb-flash-idf` `aemb-flash-jlink` | 已有 artifact 需要下载到 MCU 时；BIN 烧录前必须明确基地址 |
+| GDB 在线调试（下载/附着/崩溃排查） | `aemb-debug-gdb-openocd` `aemb-debug-jlink` `aemb-debug-platformio` | 需要单步、断点、查看寄存器或栈帧时 |
+| 串口日志抓取 | `aemb-serial-monitor` | 验证固件运行、查看 printf/log 输出 |
+| Modbus / CAN / VISA 通信调试 | `aemb-modbus-debug` `aemb-can-debug` `aemb-visa-debug` | 工业总线寄存器读写、CAN 帧监听、仪器 SCPI 通信 |
+| 内存使用报告 / RTOS 线程检查 | `aemb-memory-analysis` `aemb-rtos-debug` | .map/ELF 内存超限分析；FreeRTOS 任务/栈水位/死锁排查 |
+| 静态分析 / MISRA 合规 | `aemb-static-analysis` | 提交前代码扫描 |
+| 外设驱动搜索→评估→适配 | `aemb-peripheral-driver` | 新接传感器/显示屏/存储芯片时（与"驱动库移植优先原则"配合） |
+| STM32 CubeMX HAL 工程开发 | 知识包 `.auto-embedded/refs/stm32-hal/`（方法论+BSP 模板）+ `aemb-peripheral-driver` | 需要 BSP 模板、HAL 速查、HAL 专属 troubleshooting |
+| 编译→烧录→监控/调试 串接 | 依序调用 `aemb-build-*` → `aemb-flash-*` → `aemb-serial-monitor`/`aemb-debug-*` | 完整链路按 Outcome 逐级推进（上一代 workflow 技能未保留） |
 
 **调用规范**：
 1. 在轮次声明里标注"本轮将调用 `<skill 名>` 执行 `<动作词>`"，动作词使用 `.auto-embedded/refs/contracts.md` 的统一动词（detect / build / flash / attach / monitor / reset / verify）

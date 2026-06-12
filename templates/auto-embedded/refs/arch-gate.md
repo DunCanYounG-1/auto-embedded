@@ -73,8 +73,8 @@ pwsh -File scripts/install-arch-check-hook.ps1 C:\path\to\firmware-project
 3. 有违规 → 打印清单并 **阻断提交**（exit 1）；
 4. 确需临时跳过：`git commit --no-verify`。
 
-> 钩子按 `工程内 scripts/` → `$EMBEDDED_DEV_DIR`（未设置时默认 `~/.claude/skills/embedded-dev`）下的 `scripts/`
-> 顺序定位检查脚本，因此工程内没有拷贝 `arch-check.*` 时也能用 skill 安装目录里的版本。
+> auto-embedded 下检查脚本随 `aemb init` 装在工程内 `.auto-embedded/scripts/`，钩子直接调用该路径；
+> （上一代按 $EMBEDDED_DEV_DIR 全局目录回退的机制已不需要。）
 
 ## 5. 自测
 

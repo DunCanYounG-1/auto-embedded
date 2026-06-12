@@ -1008,15 +1008,15 @@ PIL 失败 → 三层定位矩阵；定位后回对应层修
 | 触发场景 | 需要的 skill | 何时调用 |
 |---|---|---|
 | 所有 | `mcp__matlab__*` 工具组 | 数学计算/仿真 |
-| 1 / 7 | `/serial-monitor` | MCU 端数据采集 |
+| 1 / 7 | `aemb-serial-monitor` | MCU 端数据采集 |
 | 4 / 5 | ` | 增益 → .h 导出 |
-| 部署 | `/build-cmake` / `/flash-openocd` | 编译烧录 |
+| 部署 | `aemb-build-cmake` / `aemb-flash-openocd` | 编译烧录 |
 | 6 实测 | `/pid-tune` | 串口实时整定 |
-| 7 CAN | `/can-debug` | CAN 总线监听 |
-| 全 | `/static-analysis` | REVIEW 阶段 |
+| 7 CAN | `aemb-can-debug` | CAN 总线监听 |
+| 全 | `aemb-static-analysis` | REVIEW 阶段 |
 | 9 Simulink | Embedded Coder + Simulink Coder | `slbuild` 一键生成 C |
 | 10 验证链 | MATLAB SIL/PIL 模式 + 目标 MCU 工具链 | 编译并下载 PIL 测试桩 |
-| 9 / 10 | `/build-cmake` + `/flash-openocd` | 把生成的 C 集成到固件并烧录 |
+| 9 / 10 | `aemb-build-cmake` + `aemb-flash-openocd` | 把生成的 C 集成到固件并烧录 |
 
 ### 10.3 失败分类对照
 

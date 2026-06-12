@@ -357,9 +357,9 @@ scheduler 内每 5 ms 唤醒一次 `balance_control_step()`。
 |---|---|
 | MATLAB 设计完成 | `mcp__matlab__run_matlab_file` 输出含"闭环稳定: 1" |
 | `.h` 生成 | `ls app\control\lqr_gains.h` |
-| 编译通过 | `/build-cmake` exit 0 |
-| 烧录成功 | `/flash-openocd` verify ok |
-| 实测稳定 | `/serial-monitor` 抓 30 秒日志，俯仰角 RMS < 0.05 rad |
+| 编译通过 | `aemb-build-cmake` exit 0 |
+| 烧录成功 | `aemb-flash-openocd` verify ok |
+| 实测稳定 | `aemb-serial-monitor` 抓 30 秒日志，俯仰角 RMS < 0.05 rad |
 
 ### Step 2 — 硬件合规
 

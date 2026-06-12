@@ -93,7 +93,7 @@ Workflow({
 2. `result.passed_cps` → 写 `competition_state.passed_cps`，并按 `.auto-embedded/refs/contracts.md` 的 git tag 表逐个打 tag（CP-1.5→`v0.15-sim`、CP-2→`v0.2-dev` …）。
 3. `result.defects` → 写 `competition_state.defect_queue` + 把各 `编辑清单_<ROLE>.md` 合并进主 `编辑清单.md`（删临时子清单）。
 4. `result.blocked !== null` → 进入 §3 人工裁决 + 续跑；若 reason 是「预算用尽」类，按契约把根因写入 `研究发现.md`。
-5. `result.cp4_qa.hardware_steps_pending` → 编译/烧录/PIL 由人工 + `build-*`/`flash-*`/`serial-monitor` 兄弟 skill 完成。
+5. `result.cp4_qa.hardware_steps_pending` → 编译/烧录/PIL 由人工 + `aemb-build-*`/`aemb-flash-*`/`aemb-serial-monitor` 兄弟 skill 完成。
 
 **SYSTEM / 工业集成题（跳 CP-1.5、不派 MATLAB）的 routing**——别照抄上面的 CONTROL 示例，否则会给集成题派 MATLAB 空转（踩 `competition.md` §工业系统集成题分支红线）：
 

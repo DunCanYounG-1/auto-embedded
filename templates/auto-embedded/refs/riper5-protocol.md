@@ -7,7 +7,7 @@ keywords: "嵌入式, 单片机, 固件, firmware, STM32, ESP32, Arduino, RISC-V
 
 <!-- Hooks：本 skill 作为 **plugin** 分发，4 个事件（SessionStart / UserPromptSubmit / PreToolUse / PostToolUse）由插件清单声明、安装即自动注册——配置见同目录 `hooks/hooks.json`，命令经 `hooks/run-hook.cmd` polyglot 分流。Write/Edit/MultiEdit 两层 hook：pre-write-check.py 做写入前 best-effort 预拦截（命中明显分层违规即 exit 2 阻断，解析失败/非写工具 fail-open），inject-context 注入上下文；Bash 仅注入上下文。**唯一硬门禁是 REVIEW/CP 阶段的 `scripts/arch-check.sh` + ` + CP gate**。详见 .auto-embedded/refs/hooks-design.md。
 
-路径约定（plugin / legacy 双模）：本 skill 根 = plugin 安装下 `${CLAUDE_PLUGIN_ROOT}/skills/embedded-dev`，传统 user-skill 安装下 `~/.claude/skills/embedded-dev`；shared 契约层同理为 `${CLAUDE_PLUGIN_ROOT}/skills/shared` 或 `~/.claude/skills/shared`。下文示例命令默认写 legacy 形式；plugin 模式下把对应前缀替换为 `${CLAUDE_PLUGIN_ROOT}/skills/...`，若环境变量未导出则用 Glob 在已加载的 skill 内定位脚本（这些辅助脚本均可优雅降级，找不到不阻断主流程）。 -->
+路径约定（auto-embedded 现行）：本协议与辅助脚本随 aemb init 装进工程，统一以 `.auto-embedded/` 为根（scripts/ tools/ refs/ modes/ spec/）；下文出现的旧式 skill 根路径仅为上一代历史示例。 -->
 
 # RIPER-5 嵌入式芯片开发协议
 
@@ -152,7 +152,7 @@ test -e /dev/null && echo "[embedded-dev] hooks env: ok" \
 ### 阶段关键引用入口（按需读 .auto-embedded/refs/riper5-stages.md 对应段）
 
 - **RESEARCH 步骤 1**：复用搜索 → `.auto-embedded/refs/embed-libs-index.md` / `.auto-embedded/refs/stm32-stdperiph-api.md` / `.auto-embedded/refs/stm32-hal-api.md` / `.auto-embedded/refs/gd32f4xx-api.md`
-- **RESEARCH 步骤 2**：工程画像探测 → `python ~/.claude/skills/shared/project_detect.py <ws>`；字段定义 `.auto-embedded/refs/contracts.md`
+- **RESEARCH 步骤 2**：工程画像探测 → `python .auto-embedded/tools/shared/project_detect.py <ws>`；字段定义 `.auto-embedded/refs/contracts.md`
 - **RESEARCH 步骤 7**：引脚规划 → `.auto-embedded/refs/pin-planning.md`；网表优先 → `.auto-embedded/modes/netlist-lookup.md`
 - **INNOVATE 步骤 1**：驱动移植评估 → `.auto-embedded/refs/driver-porting.md`
 - **PLAN 架构硬约束**：`main.c` 仅做编排；零占位符规则；**每个新文件必须标明层级（L1~L6）+ 命名前缀 + #include 白名单**（依据 `.auto-embedded/refs/embedded-architecture.md`）
@@ -257,11 +257,11 @@ test -e /dev/null && echo "[embedded-dev] hooks env: ok" \
 ---
 ## Skill Handoff Contract（跨 skill 上下文交接协议）
 
-本协议运行在多 skill 协作架构上：`embedded-dev` 持主流程（治理 / 计划 / 审查），由若干操作执行层兄弟 skill 持操作执行（构建 / 烧录 / 调试 / 通信 / 分析）。所有跨 skill 调用必须遵守 `.auto-embedded/refs/contracts.md` 的统一接口。实际已装 skill 列表见 `hooks/verify-deps` 输出。
+本协议运行在多 skill 协作架构上：`embedded-dev` 持主流程（治理 / 计划 / 审查），由若干操作执行层兄弟 skill 持操作执行（构建 / 烧录 / 调试 / 通信 / 分析）。所有跨 skill 调用必须遵守 `.auto-embedded/refs/contracts.md` 的统一接口。实际已装技能见各平台技能目录（aemb- 前缀，随 aemb init 安装）。
 
 **核心约定**（详细字段定义见 `.auto-embedded/refs/contracts.md`）：
 
-1. **Project Profile** — 工程画像，由 RESEARCH 阶段调用 `python ~/.claude/skills/shared/project_detect.py` 生成，写入 `硬件资源表.md` 顶部，所有兄弟 skill 共用
+1. **Project Profile** — 工程画像，由 RESEARCH 阶段调用 `python .auto-embedded/tools/shared/project_detect.py` 生成，写入 `硬件资源表.md` 顶部，所有兄弟 skill 共用
 2. **统一动作词** — `detect` / `build` / `flash` / `attach` / `monitor` / `reset` / `verify`，每轮 EXECUTE 必须用这套动词描述操作
 3. **Command Outcome Schema** — 兄弟 skill 返回 4 种状态之一：`success` / `partial_success` / `blocked` / `failure`，并附带 `summary` / `evidence` / `next_action` / `failure_category`
 4. **Failure Taxonomy** — 失败必须归类到 `.auto-embedded/refs/failure-taxonomy.md` 的 8 类标准分类，作为 `failure_category` 字段值

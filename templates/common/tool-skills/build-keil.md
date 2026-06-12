@@ -78,9 +78,9 @@ description: 当需要通过 Keil MDK 命令行编译嵌入式工程，调用自
 ```
 
 - 用 `artifact_path`、`artifact_kind`、`target_mcu` 和 `toolchain` 更新 `Project Profile`。
-- 成功后推荐 `flash-keil`、`flash-openocd` 或 `debug-gdb-openocd`。
+- 成功后推荐 `aemb-flash-keil`、`aemb-flash-openocd` 或 `aemb-debug-gdb-openocd`。
 
 ## 交接关系
 
-- 当下一步意图是给硬件烧录程序时，将成功构建结果交给 `flash-keil`（使用 Keil 内置调试器）或 `flash-openocd`（使用 OpenOCD）。
-- 当下一步需要符号信息或调试会话时，将成功构建结果交给 `debug-gdb-openocd`。
+- 当下一步意图是给硬件烧录程序时，将成功构建结果交给 `aemb-flash-keil`（使用 Keil 内置调试器）或 `aemb-flash-openocd`（使用 OpenOCD）。
+- 当下一步需要符号信息或调试会话时，将成功构建结果交给 `aemb-debug-gdb-openocd`。

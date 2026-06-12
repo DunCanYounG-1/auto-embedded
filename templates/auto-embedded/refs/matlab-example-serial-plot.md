@@ -52,7 +52,7 @@ void control_isr(void) {
 
 **采样间隔建议**：与你控制周期一致（如 5 ms），但 UART 115200 bps 单行 ~30 字节，最快只能 ~400 行/秒，所以高频信号可考虑每 N 次中断写一次（如 `if (cnt++ % 5 == 0) csv_log_row(...);`）。
 
-PC 端用串口助手 / `/serial-monitor` skill 抓 30 秒，存成 `control_log.csv`。
+PC 端用串口助手 / `aemb-serial-monitor` skill 抓 30 秒，存成 `control_log.csv`。
 
 ---
 

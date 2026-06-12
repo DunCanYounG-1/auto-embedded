@@ -804,12 +804,12 @@ float emag_get_offset(void) {
 | 场景 | 主要兄弟 skill |
 |---|---|
 | 全部 | `mcp__matlab__*` + ` |
-| E1 信号源 | `/build-cmake` + `/flash-openocd` 烧 DAC 程序 |
-| E2 调制 | `/serial-monitor` 抓实测信号 + `mcp__matlab__*` 离线分析 |
-| E3 仪表 | `/build-cmake` + `/serial-monitor` 验证 |
+| E1 信号源 | `aemb-build-cmake` + `aemb-flash-openocd` 烧 DAC 程序 |
+| E2 调制 | `aemb-serial-monitor` 抓实测信号 + `mcp__matlab__*` 离线分析 |
+| E3 仪表 | `aemb-build-cmake` + `aemb-serial-monitor` 验证 |
 | E5 LMS | `mcp__matlab__*` 训练初值 + 嵌入式实时更新 |
 | E6 电路 | 不落 MCU（除非 PWM 控制器） |
-| E7 电磁 | `/serial-monitor` 录电感数据 + `mcp__matlab__*` 调参 |
+| E7 电磁 | `aemb-serial-monitor` 录电感数据 + `mcp__matlab__*` 调参 |
 
 ### 9.4 一键流水线（结合 matlab-firmware-pipeline）
 

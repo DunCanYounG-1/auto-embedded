@@ -71,5 +71,5 @@ description: 当需要调试 Modbus RTU（串口）或 Modbus TCP（网络）设
 
 ## 交接关系
 
-- 从 `build-keil` / `build-platformio` 烧录固件后，用此 skill 验证 Modbus 通信。
-- 与 `serial-monitor` 互补：serial-monitor 查看串口原始输出，modbus-debug 进行协议级调试。
+- 从 `aemb-build-keil` / `aemb-build-platformio` 烧录固件后，用此 skill 验证 Modbus 通信。
+- 与 `aemb-serial-monitor` 互补：serial-monitor 查看串口原始输出，modbus-debug 进行协议级调试。

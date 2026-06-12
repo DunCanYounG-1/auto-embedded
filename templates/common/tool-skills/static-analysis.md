@@ -59,5 +59,5 @@ description: 当需要对嵌入式 C/C++ 代码运行 cppcheck、clang-tidy 或 
 
 ## 交接关系
 
-- 当发现严重缺陷需要修复后重新构建时，交给对应的 `build-*` skill。
-- 当需要了解代码内存影响时，交给 `memory-analysis`。
+- 当发现严重缺陷需要修复后重新构建时，交给对应的 `aemb-build-*` skill。
+- 当需要了解代码内存影响时，交给 `aemb-memory-analysis`。

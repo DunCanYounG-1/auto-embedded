@@ -12,7 +12,7 @@
 4. 硬编码常见安装路径
 5. `PATH` 搜索（`shutil.which`）
 
-配置文件通过 `shared/tool_config.py` 读写，CLI 管理工具为 `scripts/em_config.py`。
+配置文件通过 `tools/shared/tool_config.py` 读写。
 
 ## 构建工具
 

@@ -62,5 +62,5 @@ description: 当需要通过 PlatformIO 内置调试功能对目标板进行 GDB
 
 ## 交接关系
 
-- 从 `build-platformio` 接收编译成功的工程信息。
-- 调试发现问题后可回交给 `build-platformio` 修改代码重新编译。
+- 从 `aemb-build-platformio` 接收编译成功的工程信息。
+- 调试发现问题后可回交给 `aemb-build-platformio` 修改代码重新编译。

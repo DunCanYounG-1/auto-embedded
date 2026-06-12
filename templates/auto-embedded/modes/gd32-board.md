@@ -140,7 +140,7 @@ Copy-Item -Recurse $src $dst
 拷贝完成后，调用工程画像探测器写入用户项目的 `硬件资源表.md`：
 
 ```bash
-python ~/.claude/skills/shared/project_detect.py <dst>
+python .auto-embedded/tools/shared/project_detect.py <dst>
 ```
 
 预期 `Project Profile`：
@@ -153,9 +153,9 @@ python ~/.claude/skills/shared/project_detect.py <dst>
 
 | 操作 | 兄弟 skill | 命令模板 |
 |---|---|---|
-| 编译 | `/build-keil` | 工程根 `MDK\Project.uvprojx` |
-| 烧录 | `/flash-keil`（Keil 内置）或 `/flash-jlink` | 起始地址按版本选 `0x08000000`（Standalone）或 `0x0800D000`（Bootloader 的 App） |
-| 串口监视 | `/serial-monitor` | Debug 默认 USART0 `PA9/PA10 @115200` |
+| 编译 | `aemb-build-keil` | 工程根 `MDK\Project.uvprojx` |
+| 烧录 | `aemb-flash-keil`（Keil 内置）或 `aemb-flash-jlink` | 起始地址按版本选 `0x08000000`（Standalone）或 `0x0800D000`（Bootloader 的 App） |
+| 串口监视 | `aemb-serial-monitor` | Debug 默认 USART0 `PA9/PA10 @115200` |
 
 ### Step 7：UART OTA 升级（仅 Bootloader 模板）
 

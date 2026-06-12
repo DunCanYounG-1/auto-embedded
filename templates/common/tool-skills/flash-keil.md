@@ -20,7 +20,7 @@ description: 当需要通过 Keil MDK 内置调试器烧录固件到目标板时
 
 ## 自动探测
 
-- 复用 `build-keil` 的 UV4.exe 探测逻辑（配置文件 → 环境变量 → 常见路径 → PATH）。
+- 复用 `aemb-build-keil` 的 UV4.exe 探测逻辑（配置文件 → 环境变量 → 常见路径 → PATH）。
 - 解析工程 XML 中的 `<DriverSelection>` 识别调试器类型（ST-Link、J-Link、CMSIS-DAP、ULINK）。
 - 若未指定目标，默认使用工程中的第一个 Target。
 
@@ -68,10 +68,10 @@ description: 当需要通过 Keil MDK 内置调试器烧录固件到目标板时
   状态: Erase Done → Programming Done → Verify OK → Application running
 ```
 
-- 成功后推荐 `serial-monitor`（查看串口输出）或 `debug-gdb-openocd`（在线调试）。
+- 成功后推荐 `aemb-serial-monitor`（查看串口输出）或 `aemb-debug-gdb-openocd`（在线调试）。
 - 失败时输出失败分类和日志证据，帮助用户定位问题。
 
 ## 交接关系
 
-- 从 `build-keil` 接收编译成功的工程信息。
-- 烧录成功后交给 `serial-monitor`（查看串口输出）或 `debug-gdb-openocd`（在线调试）。
+- 从 `aemb-build-keil` 接收编译成功的工程信息。
+- 烧录成功后交给 `aemb-serial-monitor`（查看串口输出）或 `aemb-debug-gdb-openocd`（在线调试）。

@@ -4,7 +4,7 @@
 >
 > 6 步：**MATLAB 算参数 → `.mat` → `.h` → 编译 → 烧录 → 串口监视 → MATLAB 读回画图与仿真对比**。
 >
-> 解决的痛点：你已经能用 `.auto-embedded/modes/matlab-embedded-toolkit.md` 算系数、能 `/build-cmake` 编译、能 `/flash-openocd` 烧录、能 `/serial-monitor` 抓日志，但**串起来需要 4 次"等待 + 复制 + 切窗口"**。本 mode 让 Claude 一次跑完 6 步并返回最终对比图。
+> 解决的痛点：你已经能用 `.auto-embedded/modes/matlab-embedded-toolkit.md` 算系数、能 `aemb-build-cmake` 编译、能 `aemb-flash-openocd` 烧录、能 `aemb-serial-monitor` 抓日志，但**串起来需要 4 次"等待 + 复制 + 切窗口"**。本 mode 让 Claude 一次跑完 6 步并返回最终对比图。
 
 ---
 
@@ -15,7 +15,7 @@
 ### 适用范围
 
 - 已经知道 `.auto-embedded/modes/matlab-embedded-toolkit.md` 8 大场景的人；用本 mode 把单场景 + 后续步骤串起来
-- 工程已经能 `/build-cmake` 编译通过、`/flash-openocd` 能烧、`/serial-monitor` 能看到日志（**三者各自跑通才上流水线**）
+- 工程已经能 `aemb-build-cmake` 编译通过、`aemb-flash-openocd` 能烧、`aemb-serial-monitor` 能看到日志（**三者各自跑通才上流水线**）
 
 ### 不适用
 
@@ -161,7 +161,7 @@ failure_category: ambiguous-context (实测振荡 = 调参 vs 模型错？)
 | Step 2 导出报错 | `artifact-missing` | ✓ | 回 Step 1 检查 .mat 字段名 |
 | Step 3 编译错 | `project-config-error` | ✓ | 看错误：① 头文件路径未加 → 改 CMakeLists ② 函数命名冲突 → 改导出器 `--name` |
 | Step 4 烧录错 | `connection-failure` / `permission-problem` | ✓ | 物理检查；阻塞向用户索取 |
-| Step 5 没日志 | `target-response-abnormal` | ✓ | 不能盲烧 → 用 `/debug-gdb-openocd` 进 MCU 看 |
+| Step 5 没日志 | `target-response-abnormal` | ✓ | 不能盲烧 → 用 `aemb-debug-gdb-openocd` 进 MCU 看 |
 | Step 6 误差超阈 | `ambiguous-context` | ✓ | **人工判定**：是调参还是模型错？回 RIPER-5 PLAN 决策 |
 
 **Iron Rule**：**任一步 status != success，流水线暂停**。不允许"先继续看下一步成不成"。这是流水线 mode 与"手工跑 4 个 skill"的核心区别 — 全部成功才报 success。
@@ -291,7 +291,7 @@ Step 6 误差阈值不固定，按算法类型分级：
 | Step 2 | Python 3 + numpy + scipy（仅 .mat 输入需要 scipy）| `pip install numpy scipy` |
 | Step 3 | 你工程的构建链（cmake / gcc-arm-none-eabi / Keil 等） | 没有就先别上流水线 |
 | Step 4 | OpenOCD / J-Link / Keil 任一 + 探针 | 同上 |
-| Step 5 | Python + pyserial / `/serial-monitor` skill | 同上 |
+| Step 5 | Python + pyserial / `aemb-serial-monitor` skill | 同上 |
 | Step 6 | MATLAB Base + plot 能力 | 降级 Python matplotlib |
 
 ---

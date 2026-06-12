@@ -53,9 +53,9 @@ description: 当需要配置或构建基于 CMake 的嵌入式固件工程，调
 
 - 输出配置命令、构建命令、构建目录、所选生成器和首选产物路径。
 - 用 `artifact_path`、`artifact_kind` 和探测到的工具链细节更新 `Project Profile`。
-- 成功后推荐 `flash-openocd` 或 `debug-gdb-openocd`。
+- 成功后推荐 `aemb-flash-openocd` 或 `aemb-debug-gdb-openocd`。
 
 ## 交接关系
 
-- 当下一步意图是给硬件烧录程序时，将成功构建结果交给 `flash-openocd`。
-- 当下一步需要符号信息或调试会话时，将成功构建结果交给 `debug-gdb-openocd`。
+- 当下一步意图是给硬件烧录程序时，将成功构建结果交给 `aemb-flash-openocd`。
+- 当下一步需要符号信息或调试会话时，将成功构建结果交给 `aemb-debug-gdb-openocd`。

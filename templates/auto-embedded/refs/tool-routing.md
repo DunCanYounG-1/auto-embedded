@@ -45,15 +45,15 @@
 
 | 需求 | 兄弟 skill | 备注 |
 |---|---|---|
-| **工程画像自动探测** | `python ~/.claude/skills/shared/project_detect.py <ws>` | EXECUTE 前识别构建系统/芯片/产物，避免手工枚举 |
-| **构建固件** | `/build-cmake` `/build-keil` `/build-iar` `/build-platformio` `/build-idf` `/build-makefile` | 按工程类型选；输出 Project Profile + ELF/HEX/BIN 路径 |
-| **烧录固件** | `/flash-openocd` `/flash-keil` `/flash-platformio` `/flash-idf` `/flash-jlink` | 烧录前必须有 build 输出的 artifact_path |
-| **GDB 在线调试** | `/debug-gdb-openocd` `/debug-jlink` `/debug-platformio` | 下载后调试 / 仅附着 / 崩溃现场分析 |
-| **串口监视** | `/serial-monitor` | 自动选 COM/tty 端口并抓日志 |
-| **协议总线调试** | `/modbus-debug` `/can-debug` `/visa-debug` | Modbus RTU/TCP / CAN 帧 / VISA 仪器 SCPI |
-| **内存与 RTOS 分析** | `/memory-analysis` `/rtos-debug` | .map/ELF 内存报告；FreeRTOS/RT-Thread/Zephyr 线程感知 |
-| **静态分析 / MISRA** | `/static-analysis` | cppcheck / clang-tidy / GCC analyzer |
-| **外设驱动适配** | `/peripheral-driver` | 开源驱动搜索→评估→适配脚本 |
+| **工程画像自动探测** | `python .auto-embedded/tools/shared/project_detect.py <ws>` | EXECUTE 前识别构建系统/芯片/产物，避免手工枚举 |
+| **构建固件** | `aemb-build-cmake` `aemb-build-keil` `aemb-build-iar` `aemb-build-platformio` `aemb-build-idf` `aemb-build-makefile` | 按工程类型选；输出 Project Profile + ELF/HEX/BIN 路径 |
+| **烧录固件** | `aemb-flash-openocd` `aemb-flash-keil` `aemb-flash-platformio` `aemb-flash-idf` `aemb-flash-jlink` | 烧录前必须有 build 输出的 artifact_path |
+| **GDB 在线调试** | `aemb-debug-gdb-openocd` `aemb-debug-jlink` `aemb-debug-platformio` | 下载后调试 / 仅附着 / 崩溃现场分析 |
+| **串口监视** | `aemb-serial-monitor` | 自动选 COM/tty 端口并抓日志 |
+| **协议总线调试** | `aemb-modbus-debug` `aemb-can-debug` `aemb-visa-debug` | Modbus RTU/TCP / CAN 帧 / VISA 仪器 SCPI |
+| **内存与 RTOS 分析** | `aemb-memory-analysis` `aemb-rtos-debug` | .map/ELF 内存报告；FreeRTOS/RT-Thread/Zephyr 线程感知 |
+| **静态分析 / MISRA** | `aemb-static-analysis` | cppcheck / clang-tidy / GCC analyzer |
+| **外设驱动适配** | `aemb-peripheral-driver` | 开源驱动搜索→评估→适配脚本 |
 | **STM32 HAL 工程开发** | `/stm32-hal-development` | CubeMX/HAL 工程的 BSP 模板与 troubleshooting |
 | **多 skill 流水线** | `/workflow` | 编译→烧录→监控/调试 一键链路 |
 | **代码质量审查** | `/simplify` | REVIEW 阶段质量检查 |
@@ -80,8 +80,8 @@
 | MCP | **Embedded Debugger / Serial** | 实时硬件调试、烧录、串口交互 | 串口日志 / 断言 / 手工烧录 |
 | CLI | **gh** | GitHub 仓库搜索、代码搜索、读取源文件 | grok-search + `site:github.com` |
 | External CLI | **agent-browser**（若已安装） | 在线数据手册页面、厂商 Web 配置器、后台取证、截图留档 | `/playwright-skill` / 手工浏览 |
-| Python | **shared/project_detect.py** | 工程画像自动探测（构建系统/芯片/产物） | 见 `.auto-embedded/refs/contracts.md`；命令：`python ~/.claude/skills/shared/project_detect.py <ws>` |
-| Python | **shared/tool_config.py** | 嵌入式工具路径管理（OpenOCD / Keil UV4 / arm-gcc / J-Link 等） | 命令：`python ~/.claude/skills/shared/tool_config.py list` |
+| Python | **shared/project_detect.py** | 工程画像自动探测（构建系统/芯片/产物） | 见 `.auto-embedded/refs/contracts.md`；命令：`python .auto-embedded/tools/shared/project_detect.py <ws>` |
+| Python | **shared/tool_config.py** | 嵌入式工具路径管理（OpenOCD / Keil UV4 / arm-gcc / J-Link 等） | 命令：`python .auto-embedded/tools/shared/tool_config.py list` |
 | Skill 集 | **操作执行层兄弟 skill** | 真正执行编译/烧录/调试/串口/总线/分析；数量以 `hooks/verify-deps` 探测为准 | 见 §1.2 |
 | MCP | **MATLAB MCP**（`mcp__matlab__*`）| 数学计算 / 控制器设计 / 滤波器 / FFT / 系统辨识 / Kalman / 电机辨识 / 定点化 / 日志可视化（8 场景） | 缺 MATLAB → python-control / scipy / numpy；详见 `.auto-embedded/modes/matlab-embedded-toolkit.md` |
 

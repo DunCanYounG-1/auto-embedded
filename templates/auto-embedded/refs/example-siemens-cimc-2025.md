@@ -625,10 +625,10 @@ T+72h     剩 50+ 小时缓冲：
 | 多 Agent 协同 | `.auto-embedded/modes/competition.md` v2 |
 | sysFunction/ 集成 | `.auto-embedded/modes/industrial-data-acquisition.md` |
 | 12 命令解析 | `.auto-embedded/refs/cli-command-framework.md` |
-| 工程画像探测 | `python ~/.claude/skills/shared/project_detect.py` |
-| 编译 | `/build-keil` 或 `/build-cmake` |
-| 烧录 | `/flash-openocd` 或 `/flash-keil` |
-| 串口测试 | `/serial-monitor` |
+| 工程画像探测 | `python .auto-embedded/tools/shared/project_detect.py` |
+| 编译 | `aemb-build-keil` 或 `aemb-build-cmake` |
+| 烧录 | `aemb-flash-openocd` 或 `aemb-flash-keil` |
+| 串口测试 | `aemb-serial-monitor` |
 | 静态检查 | `scripts/arch-check.sh` + ` |
 | 答辩演练 | `.auto-embedded/modes/competition.md` v2 CP-5 |
 

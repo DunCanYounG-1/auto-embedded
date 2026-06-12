@@ -52,7 +52,7 @@ description: 当需要通过 ESP-IDF 工具链烧录固件到 ESP32 系列芯片
 - 当 `idf.py` 不可用时，返回 `environment-missing`，提示用户安装 ESP-IDF 并激活环境（v5.x 使用 `export.sh`，v6.0+ 使用 EIM 激活脚本）。
 - 当串口设备不存在或被占用时，返回 `connection-failure`。
 - 当 Linux 用户无串口访问权限时，返回 `permission-problem`，建议添加 `dialout` 组。
-- 当 `build/` 目录不存在或产物缺失时，返回 `artifact-missing`，推荐 `build-idf`。
+- 当 `build/` 目录不存在或产物缺失时，返回 `artifact-missing`，推荐 `aemb-build-idf`。
 - 当烧录过程中芯片无响应时，返回 `target-response-abnormal`。
 - 当存在多个串口设备且无法确定目标时，返回 `ambiguous-context`。
 
@@ -67,10 +67,10 @@ description: 当需要通过 ESP-IDF 工具链烧录固件到 ESP32 系列芯片
 
 - 输出烧录命令、串口设备、波特率、Flash 大小和烧录状态。
 - 在 `Project Profile` 中保留或更新 `serial_port`、`baud_rate`、`idf_target`。
-- 根据用户意图推荐下一步 skill：查看运行日志推荐 `serial-monitor`，需要调试推荐 `debug-gdb-openocd`。
+- 根据用户意图推荐下一步 skill：查看运行日志推荐 `aemb-serial-monitor`，需要调试推荐 `aemb-debug-gdb-openocd`。
 
 ## 交接关系
 
-- 当下一步要看运行日志时，将成功烧录结果交给 `serial-monitor`。
-- 当用户需要断点调试或崩溃分析时，将结果交给 `debug-gdb-openocd`。
-- 当固件产物缺失时，推荐用户先使用 `build-idf` 编译。
+- 当下一步要看运行日志时，将成功烧录结果交给 `aemb-serial-monitor`。
+- 当用户需要断点调试或崩溃分析时，将结果交给 `aemb-debug-gdb-openocd`。
+- 当固件产物缺失时，推荐用户先使用 `aemb-build-idf` 编译。
