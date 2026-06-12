@@ -1,10 +1,35 @@
 {
   "name": "auto-embedded",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "对标 Trellis 的全平台嵌入式 AI 开发框架：RIPER-5 + 四文件记忆 + 分层架构门禁 + Scout/Builder/Verifier + 22 个工具调用技能（build/flash/debug/serial/can/modbus/visa/static/memory/rtos/peripheral-driver）+ 55+ 篇离线知识库 + 12 个专项流程（含比赛 6-Agent 模式），装进工程、项目级 hook 自动注入 spec、学习回流，一次写全平台交付（Claude/Cursor/Codex/OpenCode/Copilot/Gemini/Windsurf）。aemb CLI(TypeScript/Node) 把运行时与各平台注入接线安装进固件工程；注入 hooks 为 Python。上一代 embedded-dev 的协议与知识库已全量吸收。",
-  "keywords": ["claude-code", "cursor", "codex", "opencode", "copilot", "gemini", "windsurf", "agent-skill", "embedded", "firmware", "stm32", "esp32", "gd32", "mspm0", "riper-5", "trellis", "harness", "multi-platform", "ai-coding", "embedded-dev", "competition"],
+  "keywords": [
+    "claude-code",
+    "cursor",
+    "codex",
+    "opencode",
+    "copilot",
+    "gemini",
+    "windsurf",
+    "agent-skill",
+    "embedded",
+    "firmware",
+    "stm32",
+    "esp32",
+    "gd32",
+    "mspm0",
+    "riper-5",
+    "trellis",
+    "harness",
+    "multi-platform",
+    "ai-coding",
+    "embedded-dev",
+    "competition"
+  ],
   "homepage": "https://github.com/DunCanYounG-1/embedded-dev",
-  "repository": { "type": "git", "url": "git+https://github.com/DunCanYounG-1/embedded-dev.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DunCanYounG-1/embedded-dev.git"
+  },
   "author": "DuncanY",
   "license": "MIT",
   "bin": {
@@ -31,5 +56,9 @@
     "@types/node": "^20.0.0",
     "typescript": "^5.4.0"
   },
-  "os": ["win32", "linux", "darwin"]
+  "os": [
+    "win32",
+    "linux",
+    "darwin"
+  ]
 }
