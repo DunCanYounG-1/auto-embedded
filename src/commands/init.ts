@@ -11,6 +11,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { RUNTIME_DIR } from "../constants/paths";
+import { RUNTIME_VERSION } from "../migrations/index";
 import { AEMB_TOOLS, type AITool } from "../types/ai-tools";
 import { getConfigurator, implementedTools } from "../configurators/index";
 import { getRuntimeManaged, getRuntimeSeed } from "../configurators/workflow";
@@ -111,6 +112,18 @@ export function cmdInit(target: string, opts: InitOpts): number {
   for (const d of ["tasks", "workspace", ".runtime"]) safeMkdir(target, path.join(target, RUNTIME_DIR, d));
   const rtIgnore = path.join(target, RUNTIME_DIR, ".runtime", ".gitignore");
   if (!fs.existsSync(rtIgnore)) safeWrite(target, rtIgnore, "*\n!.gitignore\n");
+  // .auto-embedded/.gitignore：运行时 git 卫生 + 负例护栏。seed-like，仅缺失才写（保留用户改动）。
+  const aeIgnore = path.join(target, RUNTIME_DIR, ".gitignore");
+  if (!fs.existsSync(aeIgnore)) {
+    safeWrite(
+      target,
+      aeIgnore,
+      "# auto-embedded 运行时 git 卫生（init 生成，可按需调整）。\n" +
+        "# 切勿用 `git add -f .auto-embedded/`：-f 会强加忽略目录，把 .runtime/ 缓存、备份、*.new 一并提交\n" +
+        "# （Trellis 曾因此误提交 548 个无关文件）。要提交就按精确路径 git add，绝不 -f 整个目录。\n" +
+        ".runtime/\n.cache/\n*.new\n*.aemb-bak\n",
+    );
+  }
 
   console.log(`  ✓ 运行时内核: scripts/workflow 覆盖；seed 新写 ${seeded}，保留 ${skippedSeed}`);
 
@@ -130,7 +143,7 @@ export function cmdInit(target: string, opts: InitOpts): number {
   // 5) 元数据（.platforms 取 既有 ∪ 本次，保留之前已装平台，使 uninstall 能清全部）
   const allPlatforms = [...new Set([...readPlatforms(target), ...usable])];
   writePlatforms(target, allPlatforms);
-  safeWrite(target, path.join(target, RUNTIME_DIR, ".version"), "2\n");
+  safeWrite(target, path.join(target, RUNTIME_DIR, ".version"), `${RUNTIME_VERSION}\n`);
   if (opts.user) {
     const clean = sanitizeDeveloper(opts.user);
     if (clean && safeWrite(target, path.join(target, RUNTIME_DIR, ".developer"), clean + "\n")) {

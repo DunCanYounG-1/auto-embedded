@@ -10,7 +10,9 @@ import { getRuntimeManaged } from "../configurators/workflow";
 import { detectPython } from "../utils/python";
 import { writeFile } from "../utils/file-writer";
 import { toPosix } from "../utils/posix";
+import { RUNTIME_DIR } from "../constants/paths";
 import { type Manifest, loadManifest, saveManifest, sha256 } from "../utils/manifest";
+import { RUNTIME_VERSION, applyMigrations, readRuntimeVersion, writeRuntimeVersion } from "../migrations/index";
 import {
   applyMerge,
   escapingManagedRoots,
@@ -42,8 +44,29 @@ export function cmdUpdate(target: string): number {
     );
     return 1;
   }
+  // 版本感知迁移：写 desired 之前，按版本升序重放 (installed, RUNTIME_VERSION] 的布局迁移（rename/delete），
+  // 修复"升级链断裂、无法 update"——老装机无 .version 视为 0，整链重放。
+  const fromVer = readRuntimeVersion(target);
+  const mig =
+    fromVer < RUNTIME_VERSION
+      ? applyMigrations(target, fromVer, RUNTIME_VERSION)
+      : { log: [] as string[], renamed: [] as [string, string][], deleted: [] as string[] };
+  for (const line of mig.log) console.log(`  · 迁移: ${line}`);
+
   const manifest = loadManifest(target);
   const next: Manifest = { owned: { ...manifest.owned }, merges: [...manifest.merges] };
+  // 迁移重命名/删除后同步 manifest.owned：移动/删除对应键，否则旧路径变孤儿（路径被复用时会误判 user-modified 或静默覆盖）。
+  for (const [from, to] of mig.renamed) {
+    const f = toPosix(from);
+    const t = toPosix(to);
+    if (f in next.owned) {
+      next.owned[t] = next.owned[f];
+      delete next.owned[f];
+    }
+  }
+  for (const d of mig.deleted) delete next.owned[toPosix(d)];
+  // workflow.md 是路由关键文件（每轮面包屑/子 Agent 注入按它的 [workflow-state] 标签路由）。
+  const WORKFLOW_MD_REL = toPosix(`${RUNTIME_DIR}/workflow.md`);
 
   // 期望的 managed 文件集合：运行时 managed + 各平台 plan.files；顺带重放 merges
   const desired = new Map<string, string>();
@@ -95,6 +118,9 @@ export function cmdUpdate(target: string): number {
     }
     const curHash = sha256(cur);
     const recorded = manifest.owned[rel];
+    // workflow.md 已被 `aemb workflow <variant>` 切到非 native 变体（manifest 不再记录它）→ 用户自管：
+    // 不回写 native、也不产生 .new（durable-state 契约，与 Track C 的切换命令配合）。
+    if (rel === WORKFLOW_MD_REL && recorded === undefined) continue;
     if (curHash === newHash) {
       next.owned[rel] = newHash;
       same++;
@@ -110,9 +136,17 @@ export function cmdUpdate(target: string): number {
   }
 
   saveManifest(target, next);
+  writeRuntimeVersion(target); // 升级链完成，落地当前布局版本
   console.log(`  ✓ managed: 更新 ${updated}，已最新 ${same}，保留用户改动 ${preserved}`);
   for (const [rel, side] of conflicts) {
-    process.stderr.write(`    ⚠ ${rel} 你改过 → 新版写到 ${side}，请手动比对合并\n`);
+    if (rel === WORKFLOW_MD_REL) {
+      process.stderr.write(
+        `    ⚠ ${rel} 路由关键文件被你改过 → 新版写到 ${side}。每轮面包屑/子 Agent 注入按它的` +
+          ` [workflow-state] 标签路由，不合并会导致 Codex/hook 路由停在旧配置，请尽快比对合并。\n`,
+      );
+    } else {
+      process.stderr.write(`    ⚠ ${rel} 你改过 → 新版写到 ${side}，请手动比对合并\n`);
+    }
   }
   const migrated = migrateConfigKnowledgeLayers(target);
   console.log(

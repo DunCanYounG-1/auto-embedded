@@ -101,8 +101,10 @@ function renderCodexAgentToml(name: string, rawContent: string): string {
   const role = detectAgentRole(name);
   const prelude = role && role !== "research" ? buildPullPrelude(role) : "";
   const instructions = prelude ? `${prelude}${body}` : body;
-  // 防御：正文若含 """ 会提前结束 TOML 多行串。把每个 """ 改成 ""\"（\" 是合法转义引号，不构成结束分隔符）。
-  const safeInstructions = instructions.replace(/"""/g, '""\\"');
+  // 防御正文进 TOML 多行 basic 串：① 先把所有反斜杠转义成 \\——否则 \| 等 LaTeX/路径会被 Codex 严格 TOML
+  //   解析器当成非法转义序列、中断整个 .toml 加载（embedded-qa 的 ‖y - y_target‖ 即触发）；
+  //   ② 再把 """ 改成 ""\"（合法转义引号，不构成结束分隔符）。顺序：先转义反斜杠，再加 """ 守卫注入的 \"。
+  const safeInstructions = instructions.replace(/\\/g, "\\\\").replace(/"""/g, '""\\"');
 
   return [
     `name = "${tomlBasic(name)}"`,
@@ -113,14 +115,13 @@ function renderCodexAgentToml(name: string, rawContent: string): string {
     safeInstructions,
     `"""`,
     ``,
-    `# 彻底关掉本子 Agent 的 Codex collab 工具：multi_agent 与 multi_agent_v2 都关，`,
-    `# spawn_agent / wait_agent / list_agents / close_agent 根本不注册到工具列表，`,
+    `# multi_agent = false 即不注册 spawn_agent/wait_agent/list_agents/close_agent，`,
     `# 从结构上杜绝父子继承 transcript 时 wait_agent 自死锁。`,
+    `# 刻意不再写 [features.multi_agent_v2] 结构化表：Codex 0.130- 不识别该键，会以`,
+    `# FeatureToml untagged-enum 反序列化失败中断整个配置加载、阻止 Codex/子 Agent 启动`,
+    `# （v0.6.0 修复项）。该 bare-bool flag 跨版本都被接受，已足够关掉 collab 工具。`,
     `[features]`,
     `multi_agent = false`,
-    ``,
-    `[features.multi_agent_v2]`,
-    `enabled = false`,
     ``,
   ].join("\n");
 }

@@ -32,7 +32,7 @@
 [/workflow-state]
 
 [workflow-state:EXECUTE]
-[MODE: EXECUTE] 按轮次实现，一轮一个改动点：先声明 trace_id+目标+验证标准+停止条件，再改，再给证据。review:true 步骤先展示代码+证据等用户确认。每步确认后本地 git 快照（不自动 push、不用 git add -A）。改动写入 edits.md。
+[MODE: EXECUTE] 按轮次实现，一轮一个改动点：先声明 trace_id+目标+验证标准+停止条件，再改，再给证据。review:true 步骤先展示代码+证据等用户确认。每步确认后本地 git 快照（不自动 push、不用 git add -A、更不用 git add -f .auto-embedded/——-f 会把 .runtime 缓存/备份/*.new 一并提交，按精确路径 add）。改动写入 edits.md。
 [/workflow-state]
 
 [workflow-state:REVIEW]
