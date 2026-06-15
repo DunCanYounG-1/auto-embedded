@@ -8,6 +8,8 @@
 
 ---
 
+> 若流水线涉及 **Simulink 模型**（非纯 .m 脚本），用 `simubridge` 技能/MCP 操控建模与仿真（与 Step 1 的裸 MATLAB eval 互补，若已装为全局 skill）。见 `refs/companion-skills.md`。
+
 ## 0. 触发条件
 
 `MATLAB 一键流水线` / `matlab pipeline` / `MATLAB 到固件` / `仿真到实测` / `一键算到烧` / `算参数烧上板` / `闭环到端验证` / `一键 LQR 上板`

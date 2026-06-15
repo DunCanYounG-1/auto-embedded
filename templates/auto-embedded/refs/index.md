@@ -10,6 +10,7 @@
 | `checklist-templates.md` | 清单格式模板参考 |
 | `cli-command-framework.md` | CLI 命令解析框架（嵌入式串口命令行） |
 | `coding-standards.md` | 嵌入式代码规范（风格细则） |
+| `companion-skills.md` | 配套全局技能：电路(multisim-spice) / Simulink(simubridge) 何时用、怎么衔接 RIPER-5 |
 | `competition-ai-max-workflow.md` | 自动完赛极限工作流（AI Max Throughput Mode） |
 | `competition-index.md` | 全国大学生电子设计竞赛赛题索引 |
 | `competition-quickstart-1page.md` | 竞赛 AI 完赛 — 单页 15 分钟快速通道 |
