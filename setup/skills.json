@@ -1,0 +1,22 @@
+{
+  "_comment": "全局技能注册表 —— 来源链接在此，便于一键更新（git pull 本仓 + 再跑 install.ps1）。新增技能加一条即可。",
+  "skillsDir": "~/.claude/skills",
+  "skills": [
+    {
+      "name": "multisim-spice",
+      "repo": "https://github.com/zuoliangyu/multisim-spice.git",
+      "subdir": "",
+      "kind": "skill",
+      "desc": "自然语言 → SPICE 网表 → 自带 ngspice 批处理自检 → 导入 NI Multisim（电路设计/仿真）",
+      "notes": "自带 ngspice 绿色版(vendor/)，开箱即用；仅最后导入需本机已装 NI Multisim 14.x。技能在仓库根，直接克隆到 skills/ 并保留 git remote。"
+    },
+    {
+      "name": "simubridge",
+      "repo": "https://github.com/naaomiur/simubridge-skills.git",
+      "subdir": "skill/simubridge",
+      "kind": "skill+mcp",
+      "desc": "AI 驱动 MATLAB Simulink 模型操作（建/查/改/连线/仿真，20+ 工具）",
+      "notes": "技能本体即装即用作 AI 指导；完整 Simulink 操控需 MCP 后端：Python 3.9-3.12（3.13+ 不兼容）+ MATLAB 引擎 + pip install -e <仓库> + ~/.claude.json 配 mcpServers.simubridge + MATLAB 内 matlab.engine.shareEngine。用 -Mcp 半自动，或见 setup/README.md。"
+    }
+  ]
+}
