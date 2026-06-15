@@ -25,3 +25,14 @@ spec_layers:
 inject_budget:
   subagent_total: 16000   # 派子 Agent 时所有 spec 注入正文的总上限；超出的文件只给路径(懒加载)
   per_file: 6000          # 单个 spec 文件注入上限
+
+# 任务生命周期 hooks（可选，对标 Trellis 的配置化 hooks）。在 RIPER-5 任务事件后跑你自己的命令。
+#   · 命令由宿主 OS shell 解释（Windows cmd.exe / POSIX sh）——跨平台优先用 && 串联、避免 POSIX 专属语法；
+#   · 失败只打 [WARN] 到 stderr，绝不阻断任务操作（capture_output 防交互卡死）；
+#   · 可用环境变量：TASK_JSON_PATH（当前 task.json 绝对路径）、AEMB_TASK_ID、AEMB_PHASE（仅 after_phase）。
+# 事件：after_start（起任务后）、after_phase（切阶段后）、after_archive（归档时，active 仍指向本任务）、after_journal（写 journal 后）。
+# hooks:
+#   after_journal:
+#     - git add .auto-embedded/workspace/journal.md && git commit -m "chore: 记录 journal"   # journal 提交
+#   after_phase:
+#     - echo "auto-embedded 进入 $AEMB_PHASE 阶段"

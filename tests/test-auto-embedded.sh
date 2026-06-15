@@ -30,7 +30,7 @@ for f in \
 done; ok "7 平台关键文件齐全"
 
 n=$(find "$TMP/.claude/skills" -mindepth 1 -maxdepth 1 -type d | wc -l)
-[ "$n" -eq 25 ] || fail "claude 技能数=$n，应=25（3 工作流 + 22 工具）"; ok "claude 25 技能（3 工作流 + 22 工具）"
+[ "$n" -eq 27 ] || fail "claude 技能数=$n，应=27（5 工作流 + 22 工具）"; ok "claude 27 技能（5 工作流 + 22 工具）"
 
 tn=$(find "$TMP/.auto-embedded/tools" -name '*.py' | wc -l)
 [ "$tn" -ge 25 ] || fail "工具脚本数=$tn，应≥25"; ok "22 工具脚本 + shared 装入运行时"

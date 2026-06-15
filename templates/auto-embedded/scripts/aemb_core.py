@@ -119,6 +119,138 @@ def load_config(root: Path) -> dict:
     return cfg
 
 
+# ---------------------------------------------------------------------------
+# 配置化 hooks（config.yaml 的 hooks: 段）—— 任务生命周期事件可挂用户命令
+# 依赖自由的嵌套 YAML 解析（对标 Trellis config.py parse_simple_yaml），不引入 PyYAML。
+# 与上面的扁平 load_config 并存、互不影响（lowest-risk：新增而非改写 load_config）。
+# ---------------------------------------------------------------------------
+def _yaml_unquote(s: str) -> str:
+    """剥掉最外层一对匹配引号（保留内部引号），不匹配则原样返回。"""
+    if len(s) >= 2 and s[0] == s[-1] and s[0] in ('"', "'"):
+        return s[1:-1]
+    return s
+
+
+def _yaml_strip_inline_comment(value: str) -> str:
+    """剥 ` #` 行内注释，但保留引号内的 #（YAML 把『空格+#』视为注释起点）。"""
+    in_quote = None
+    for idx, ch in enumerate(value):
+        if in_quote:
+            if ch == in_quote:
+                in_quote = None
+            continue
+        if ch in ('"', "'"):
+            in_quote = ch
+            continue
+        if ch == "#" and (idx == 0 or value[idx - 1].isspace()):
+            return value[:idx]
+    return value
+
+
+def _yaml_next_content_line(lines: list, start: int) -> tuple:
+    i = start
+    while i < len(lines):
+        stripped = lines[i].strip()
+        if stripped and not stripped.startswith("#"):
+            return i, lines[i]
+        i += 1
+    return i, ""
+
+
+def _parse_yaml_block(lines: list, start: int, min_indent: int, target: dict) -> int:
+    """把一段 YAML 解析进 target（按缩进判嵌套：深 2+ 空格=子级），返回下一行下标。
+    支持 key: value（字符串）/ key:（后跟 - 列表）/ key:（后跟缩进嵌套 dict）。"""
+    i = start
+    current_list = None
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            i += 1
+            continue
+        indent = len(line) - len(line.lstrip())
+        if indent < min_indent:
+            break
+        if stripped.startswith("- "):
+            if current_list is not None:
+                current_list.append(_yaml_unquote(stripped[2:].strip()))
+            i += 1
+        elif ":" in stripped:
+            key, _, value = stripped.partition(":")
+            key = key.strip()
+            value = _yaml_unquote(_yaml_strip_inline_comment(value).strip())
+            current_list = None
+            if value:
+                target[key] = value
+                i += 1
+            else:
+                next_i, next_line = _yaml_next_content_line(lines, i + 1)
+                if next_i >= len(lines):
+                    target[key] = {}
+                    i = next_i
+                elif next_line.strip().startswith("- "):
+                    current_list = []
+                    target[key] = current_list
+                    i += 1
+                else:
+                    next_indent = len(next_line) - len(next_line.lstrip())
+                    if next_indent > indent:
+                        nested: dict = {}
+                        target[key] = nested
+                        i = _parse_yaml_block(lines, i + 1, next_indent, nested)
+                    else:
+                        target[key] = {}
+                        i += 1
+        else:
+            i += 1
+    return i
+
+
+def parse_yaml(text: str) -> dict:
+    """依赖自由的简易嵌套 YAML 解析（只认我们自己写的结构：key:value / 列表 / 缩进嵌套 dict）。"""
+    result: dict = {}
+    _parse_yaml_block(text.splitlines(), 0, 0, result)
+    return result
+
+
+def get_hooks(root: Path, event: str) -> list:
+    """读 config.yaml 的 hooks.<event> 命令列表（缺失/类型不符 → []）。"""
+    cfg = parse_yaml(_read_text(aemb_dir(root) / "config.yaml"))
+    hooks = cfg.get("hooks")
+    if isinstance(hooks, dict) and isinstance(hooks.get(event), list):
+        return [str(c) for c in hooks[event] if str(c).strip()]
+    return []
+
+
+def run_hooks(root: Path, event: str, extra_env=None) -> None:
+    """跑某生命周期事件挂的 hook 命令（对标 Trellis run_task_hooks）。
+    env 注入 TASK_JSON_PATH / AEMB_TASK_ID（+ 调用方 extra_env，如 AEMB_PHASE）；
+    shell=True → 命令由宿主 OS shell 解释（Windows cmd.exe / POSIX sh）；
+    capture_output 防交互卡死；非零退出只打 [WARN] 到 stderr，绝不阻断任务操作。"""
+    import os
+    import subprocess
+    cmds = get_hooks(root, event)
+    if not cmds:
+        return
+    env = {**os.environ}
+    td = resolve_active_task(root)
+    if td is not None:
+        env["TASK_JSON_PATH"] = str(td / "task.json")
+        env["AEMB_TASK_ID"] = td.name
+    if extra_env:
+        env.update({k: str(v) for k, v in extra_env.items()})
+    for cmd in cmds:
+        try:
+            r = subprocess.run(cmd, shell=True, cwd=str(root), env=env,
+                               capture_output=True, text=True, encoding="utf-8", errors="replace")
+            if r.returncode != 0:
+                print(f"[WARN] hook 失败（{event}）: {cmd}", file=sys.stderr)
+                if (r.stderr or "").strip():
+                    print(f"  {r.stderr.strip()}", file=sys.stderr)
+        except Exception as e:  # noqa: BLE001
+            print(f"[WARN] hook 执行错误（{event}）: {cmd} — {e}", file=sys.stderr)
+
+
 def runtime_dir(root: Path) -> Path:
     return aemb_dir(root) / ".runtime"
 
@@ -373,14 +505,34 @@ def hw_lock_conflicts(root: Path) -> list:
 # ---------------------------------------------------------------------------
 # 输出（Claude Code hook：纯文本 stdout 即被注入 SessionStart/UserPromptSubmit 上下文）
 # ---------------------------------------------------------------------------
-def force_utf8_stdout() -> None:
-    """把 stdout/stderr 切到 UTF-8，避免 Windows gbk/cp936 编码不了 ✓✗/部分字符而崩溃。"""
-    if sys.platform.startswith("win"):
-        for name in ("stdout", "stderr"):
+def force_utf8_streams() -> None:
+    """把 stdin/stdout/stderr 三条流都切到 UTF-8（仅 Windows）。两类崩溃都要防：
+      · 读 stdin —— hook 载荷（任务名/prd 含中文）在 cp936/cp1252 下 json.load(sys.stdin) 抛 UnicodeDecodeError；
+      · 写 stdout/stderr —— ✓✗ 与中文在 gbk 下 UnicodeEncodeError。
+    reconfigure 为 Py3.7+ 接口，老解释器回退到 TextIOWrapper(detach())；errors='replace' 保证单个坏字节降级不中断整个 hook。"""
+    if not sys.platform.startswith("win"):
+        return
+    import io as _io
+    for _name in ("stdin", "stdout", "stderr"):
+        stream = getattr(sys, _name, None)
+        if stream is None:
+            continue
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        except Exception:
             try:
-                getattr(sys, name).reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+                setattr(sys, _name, _io.TextIOWrapper(stream.detach(), encoding="utf-8", errors="replace"))
             except Exception:
                 pass
+
+
+# 向后兼容别名：task.py/check.py/emit() 等旧调用点继续用 force_utf8_stdout，现也覆盖 stdin。
+force_utf8_stdout = force_utf8_streams
+
+# 导入即生效（仅 Windows）：保证任何 `import aemb_core` 的 hook 在 json.load(sys.stdin) 之前 stdin 已是 UTF-8。
+# reconfigure 必须在任何读取之前完成，否则缓冲区错乱——hook 均在 import 之后才读 stdin，故此处安全。
+if sys.platform.startswith("win"):
+    force_utf8_streams()
 
 
 def emit(text: str) -> None:

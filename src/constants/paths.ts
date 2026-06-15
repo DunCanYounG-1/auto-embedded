@@ -14,6 +14,8 @@ export const RUNTIME_DIR = ".auto-embedded";
 /** 各类模板子目录。 */
 export const TPL = {
   runtime: path.join(TEMPLATES_DIR, "auto-embedded"),
+  // workflow 模板变体（native 源自 runtime/workflow.md，其余在此；与 runtime 同级，故不被 getRuntimeManaged 的遍历收入）
+  workflows: path.join(TEMPLATES_DIR, "auto-embedded-workflows"),
   commonCommands: path.join(TEMPLATES_DIR, "common", "commands"),
   commonSkills: path.join(TEMPLATES_DIR, "common", "skills"),
   commonToolSkills: path.join(TEMPLATES_DIR, "common", "tool-skills"),

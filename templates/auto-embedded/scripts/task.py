@@ -91,6 +91,7 @@ def cmd_start(args: list) -> int:
     (rd / "active_task").write_text(tid, encoding="utf-8")
     print(f"✓ 创建任务 {tid}（active），阶段 RESEARCH，trace_id={trace}")
     print(f"  目录: .auto-embedded/tasks/{tid}/")
+    C.run_hooks(root, "after_start")
     return 0
 
 
@@ -107,6 +108,7 @@ def cmd_phase(args: list) -> int:
     task["phase"] = args[0].upper()
     _write(td / "task.json", json.dumps(task, ensure_ascii=False, indent=2))
     print(f"✓ {task['id']} 阶段 → {task['phase']}")
+    C.run_hooks(root, "after_phase", {"AEMB_PHASE": task["phase"]})
     return 0
 
 
@@ -221,6 +223,7 @@ def cmd_archive(_args: list) -> int:
     task = C.read_task(td)
     task["status"] = "archived"
     _write(td / "task.json", json.dumps(task, ensure_ascii=False, indent=2))
+    C.run_hooks(root, "after_archive")  # 在清 active 之前跑：active_task 仍指向本任务，TASK_JSON_PATH 正确
     at = C.runtime_dir(root) / "active_task"
     if at.exists():
         at.unlink()
@@ -249,6 +252,7 @@ def cmd_journal(args: list) -> int:
     with open(jp, "a", encoding="utf-8") as f:
         f.write(block)
     print(f"✓ 已写入 workspace/journal.md（#{seq}）")
+    C.run_hooks(root, "after_journal")
     return 0
 
 

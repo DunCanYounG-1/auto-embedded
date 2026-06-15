@@ -127,6 +127,10 @@ const SKILL_DESC: Record<string, string> = {
     "机械门禁：分层架构 ARCH-1~8 + 硬件资源锁冲突(pin/dma/irq/timer) + spec 完整性。REVIEW 阶段与提交前、或长会话中怀疑漂移时用。",
   "break-loop":
     "修完 bug 后做深度根因复盘，打破修了又犯：分析根因类别/为何没发现/真正修复/防复发机制/同类排查，并沉淀进 spec。修完 bug（尤其反复出现的）后用。",
+  "spec-bootstrap":
+    "从真实代码库创建/刷新 .auto-embedded/spec/ 五层规范(architecture/conventions/hardware/guides/governance)：分析芯片/HAL/构建链与分层现状，写入带真实文件路径与正反例的规范、冻结 hw-lock、杜绝占位符。新项目初始化规范、或规范陈旧需重建时用。",
+  "session-insight":
+    "翻本机过去的 Claude/Codex 历史会话(纯本地 ~/.claude ~/.codex，不上传)找上次的解法/决策/讨论。问『上次怎么解的』『之前讨论过吗』『这个决策当时怎么定的』、跨会话续作、调一个似曾相识的 bug、或收尾复盘时用 aemb mem 搜。",
 };
 
 /** 命令调色板里的一行简述。 */
@@ -139,6 +143,8 @@ const CMD_DESC: Record<string, string> = {
   brainstorm: "进 PLAN 前一问一答收敛需求 → prd。",
   check: "跑机械门禁（分层架构 + 硬件冲突 + spec）。",
   "break-loop": "bug 根因复盘，防修了又犯，沉淀进 spec。",
+  "spec-bootstrap": "从真实代码库重建 .auto-embedded/spec/ 五层规范（含 hw-lock 与分层门禁）。",
+  "session-insight": "翻历史 Claude/Codex 会话找上次怎么解的（aemb mem，纯本地）。",
 };
 
 /** 包成 SKILL.md 的 YAML frontmatter（用 aemb- 前缀）。 */
