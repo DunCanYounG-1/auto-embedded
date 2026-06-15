@@ -12,6 +12,7 @@
 ```
 
 **知识库与专项流程**（按需读取，不自动全量注入）：命中相关主题时打开 `.auto-embedded/refs/`（离线知识库，总览 `refs/index.md`）；需要比赛/MATLAB/板级/查手册/查网表等专项工作流时进入 `.auto-embedded/modes/`（总览 `modes/index.md`，如"启用比赛模式" → `modes/competition.md` 的 6-Agent + CP 门禁）。
+**配套全局技能**（若已装为全局 skill，详见 `refs/companion-skills.md`）：画电路 / 做 SPICE 仿真 → `multisim-spice`；MATLAB Simulink 建模与仿真 → `simubridge`。日常开发中按需直接调用。
 
 三角色（多文件/长任务）：Scout 只收证据、Builder 只做最小实现、Verifier 只审验收；
 同一时刻只允许一个 Builder 写。派 Agent 时 hook 会按 research/implement/verify.jsonl
@@ -20,7 +21,7 @@
 ---
 
 [workflow-state:RESEARCH]
-[MODE: RESEARCH] 收集事实：识别芯片/库、查现成驱动、读 spec（architecture/conventions/hardware）、做引脚规划写入 hw-lock.yaml。命中专题（芯片 API/驱动移植/IMU/竞赛/MATLAB/查手册/查网表…）先查离线知识库 .auto-embedded/refs/index.md 与专项流程 .auto-embedded/modes/index.md，勿凭记忆。禁止改代码、禁止下最终方案。证据写入 active task 的 research.md。关键资料（pinout/datasheet/netlist）缺失则暂停问用户，不硬编。
+[MODE: RESEARCH] 收集事实：识别芯片/库、查现成驱动、读 spec（architecture/conventions/hardware）、做引脚规划写入 hw-lock.yaml。命中专题（芯片 API/驱动移植/IMU/竞赛/MATLAB/查手册/查网表…）先查离线知识库 .auto-embedded/refs/index.md 与专项流程 .auto-embedded/modes/index.md，勿凭记忆。禁止改代码、禁止下最终方案。证据写入 active task 的 research.md。要画电路/做 SPICE 仿真用 multisim-spice 技能、要 Simulink 建模/仿真用 simubridge 技能（若已装；详见 refs/companion-skills.md）。关键资料（pinout/datasheet/netlist）缺失则暂停问用户，不硬编。
 [/workflow-state]
 
 [workflow-state:INNOVATE]

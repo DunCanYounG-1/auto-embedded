@@ -8,6 +8,8 @@
 
 ---
 
+> **Simulink 的实际操控落地用 `simubridge` 技能/MCP**（建模/读拓扑/加模块/连线/改参/仿真，20+ 工具，若已装为全局 skill）；本 mode 侧重 MATLAB 数学场景，Simulink 那部分交给 simubridge。见 `refs/companion-skills.md`。
+
 ## 0. 谁该读这个 mode
 
 ### 0.1 触发词
