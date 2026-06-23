@@ -6,7 +6,8 @@
 >
 > 这是**决策脊柱**：只回答"何时 reach for 哪个"，不写实现。具体实现见各专篇：
 > `.auto-embedded/refs/mahony-ahrs-reference.md`、`.auto-embedded/refs/imu-wheel-ekf-fusion.md`、
-> `.auto-embedded/refs/omni-wheel-odometry.md`、`.auto-embedded/refs/imu-gyroscope-checklist.md`。
+> `.auto-embedded/refs/omni-wheel-odometry.md`、`.auto-embedded/refs/imu-gyroscope-checklist.md`、
+> `.auto-embedded/refs/attitude-estimation-sota.md`（高精度 VQF/MEKF 深化）。
 
 ---
 
@@ -25,8 +26,10 @@
 | 方案 | 机理 | 传感器 | 给不确定度? | 计算@M4F | 漂移行为 | 何时选 | MCU/电赛判据 |
 |---|---|---|---|---|---|---|---|
 | 一阶互补滤波 | 高通陀螺 + 低通加计（欧拉角） | 6 轴 | 否 | 极低 | roll/pitch 稳；yaw 漂 | 只要 roll/pitch、资源极紧 | ✅ 入门首选 |
-| **Mahony** | PI 反馈修正四元数 | 6/9 轴 | 否 | 低(~150cyc) | 同上；9 轴可定 yaw | 平衡车/四旋翼默认姿态 | ✅ **电赛默认** |
-| **Madgwick** | 梯度下降对齐重力/磁 | 6/9 轴 | 否 | 中(FPU) | 同上；快速旋转更优 | 有磁力计、动态强 | ✅ Mahony 的同类替代 |
+| **Mahony** | PI 反馈修正四元数 | 6/9 轴 | 否 | 低(~150cyc) | 同上；9 轴可定 yaw | 平衡车/四旋翼、精度够用 | ✅ 轻量默认 |
+| **Madgwick** | 梯度下降对齐重力/磁 | 6/9 轴 | 否 | 中(FPU) | 同上；快速旋转更优 | 有磁力计、动态强 | ✅ Mahony 同类替代 |
+| **VQF** ⭐ | 准惯性系低通 + 磁扰抑制 + 在线零偏 | 6/9 轴 | 否 | 中 | 抗动态加速度，精度最高 | **要解算很准**、强动态/磁扰 | ✅ **高精度首选**（见 sota 篇） |
+| **MEKF** | 乘性 EKF（四元数误差状态） | 6/9 轴 | 是 | 中高 | 带协方差 | 卡尔曼范式/航天级纯姿态 | ✅ 见 sota 篇 |
 | 标准 EKF 姿态 | 四元数 EKF + Jacobian | 6/9 轴 | 是 | 中 | 带协方差 | 需不确定度、要门控异常观测 | ✅ 但多数姿态场景 Mahony 够 |
 | **ESKF（IMU+编码器）** | 误差状态卡尔曼，轮速作观测 | IMU+编码器 | 是 | 中高(定长矩阵) | 位置短期好；仍受 yaw 漂限制 | 走位/定点、打滑、要位置不确定度 | ✅ 见 `imu-wheel-ekf-fusion.md` |
 | UKF | 无迹变换，免 Jacobian | IMU(+) | 是 | 中高(~200µs/次) | 同 EKF | Jacobian 难写/强非线性 | ⚠️ 多数电赛 overkill |
@@ -38,12 +41,13 @@
 ## 决策流程（自顶向下，命中即停）
 
 1. **只要 roll/pitch、资源极紧** → 一阶互补滤波。
-2. **要四元数、无万向锁、平衡车/四旋翼姿态** → **Mahony**（电赛默认；实现见 mahony 专篇）。
-3. **有磁力计、动态剧烈、要更好 yaw** → Madgwick 或 9 轴 Mahony。
-4. **要平面位置/走位/定点（轮式）** → 先用航位推算（`omni-wheel-odometry.md`）；**打滑严重 / 要位置不确定度 / 长程** → 升 **ESKF 融合编码器**（`imu-wheel-ekf-fusion.md`）。
-5. **要不确定度、要门控异常观测、多传感器异步** → EKF（ESKF 是其在 IMU 场景的更优形态）。
-6. **Jacobian 难写 / 强非线性** → UKF（代价：~200µs/次、sigma 点调参）。
-7. **足式 / 接触辅助 / 研究级** → InEKF（重，MCU 上需大幅优化）。
+2. **要四元数、无万向锁、平衡车/四旋翼、精度够用** → **Mahony**（轻量默认；实现见 mahony 专篇）。
+3. **要解算很准 / 强动态加速度 / 磁扰严重** → **VQF**（SOTA，定参开箱）；纯姿态要卡尔曼/不确定度 → **MEKF**。详见 `attitude-estimation-sota.md`。
+4. **有磁力计、动态剧烈、要更好 yaw（轻量档内）** → Madgwick 或 9 轴 Mahony。
+5. **要平面位置/走位/定点（轮式）** → 先用航位推算（`omni-wheel-odometry.md`）；**打滑严重 / 要位置不确定度 / 长程** → 升 **ESKF 融合编码器**（`imu-wheel-ekf-fusion.md`）。
+6. **要不确定度、要门控异常观测、多传感器异步** → EKF（ESKF 是其在 IMU 场景的更优形态）。
+7. **Jacobian 难写 / 强非线性** → UKF（代价：~200µs/次、sigma 点调参）。
+8. **足式 / 接触辅助 / 研究级** → InEKF（重，MCU 上需大幅优化）。
 
 ---
 
@@ -63,7 +67,7 @@
 
 ## 电赛默认推荐（按题型）
 
-- **平衡车 / 姿态控制** → Mahony（6 轴）；有磁场条件好可上 9 轴/Madgwick。
+- **平衡车 / 姿态控制** → 精度够用用 Mahony（6 轴）；**要解算很准用 VQF**（见 `attitude-estimation-sota.md`）；有磁场条件好可上 9 轴/Madgwick。
 - **全向/差速走位、定点** → 航位推算起步（`omni-wheel-odometry.md`）；打滑/长程再上 ESKF。
 - **需要绝对 yaw** → 9 轴磁力计 + 校准；无磁场条件则接受漂移或加视觉/编码器约束，别幻想纯陀螺能稳。
 
@@ -73,6 +77,7 @@
 
 ## 交叉引用
 
+- `attitude-estimation-sota.md` —— 高精度深化：VQF/MEKF/UKF-M/InEKF/RIANN
 - `mahony-ahrs-reference.md` —— Mahony/Madgwick 实现、四元数约定
 - `imu-wheel-ekf-fusion.md` —— ESKF 融合 IMU+编码器（第 4 档升级）
 - `omni-wheel-odometry.md` —— 航位推算（融合前的起步方案）

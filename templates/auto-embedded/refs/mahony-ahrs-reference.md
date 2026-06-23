@@ -171,9 +171,9 @@ float yaw_deg   = Yaw_a_Pi   * Rad2Ang;
 | 收敛 | 稳，常规场景够 | 快速旋转/强动态略优 |
 | 零偏 | `twoKi` 积分项隐式估偏 | 需另配偏置估计 |
 | 计算@M4F | ~150 cyc | 略高（梯度+归一化） |
-| 选择 | **电赛默认** | 有磁力计/动态剧烈时替代 |
+| 选择 | **轻量默认** | 有磁力计/动态剧烈时替代 |
 
-> 两者精度常规场景接近；没有特别理由就用 Mahony。要更高层（不确定度/融合编码器）见 `.auto-embedded/refs/imu-fusion-filter-selection.md`。
+> 两者精度常规场景接近；没有特别理由就用 Mahony（轻量档）。**要解算很准 / 强动态加速度 / 磁扰严重 → VQF**，见 `.auto-embedded/refs/attitude-estimation-sota.md`；要不确定度/融合编码器见 `.auto-embedded/refs/imu-fusion-filter-selection.md`。
 
 ### 四元数约定陷阱（移植 x-io/Madgwick/AHRS 库时必查）
 

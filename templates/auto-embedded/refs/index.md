@@ -6,6 +6,7 @@
 | 文件 | 主题 |
 |---|---|
 | `arch-gate.md` | 分层架构门禁（arch-check）使用与强制化 |
+| `attitude-estimation-sota.md` | 高精度姿态解算 SOTA：VQF / MEKF / UKF-M / InEKF / 学习法 |
 | `case-dcar-control-defects.md` | 案例复盘（反例）：四轮全向小车惯导/控制方案缺陷 |
 | `checklist-mechanism.md` | 四文件磁盘记忆机制 |
 | `checklist-templates.md` | 清单格式模板参考 |
