@@ -6,6 +6,7 @@
 | 文件 | 主题 |
 |---|---|
 | `arch-gate.md` | 分层架构门禁（arch-check）使用与强制化 |
+| `case-dcar-control-defects.md` | 案例复盘（反例）：四轮全向小车惯导/控制方案缺陷 |
 | `checklist-mechanism.md` | 四文件磁盘记忆机制 |
 | `checklist-templates.md` | 清单格式模板参考 |
 | `cli-command-framework.md` | CLI 命令解析框架（嵌入式串口命令行） |
@@ -26,7 +27,9 @@
 | `gd32f4xx-api.md` | GD32F4xx 固件库 (Standard Peripheral Library) API 速查手册 |
 | `git-snapshot.md` | Git 备份与回档规则 |
 | `hooks-design.md` | Hooks 设计文档 |
+| `imu-fusion-filter-selection.md` | IMU 姿态/状态估计滤波器选型决策（互补/Mahony/Madgwick/EKF/ESKF/UKF/InEKF） |
 | `imu-gyroscope-checklist.md` | IMU / 陀螺仪模块开发检查清单 |
+| `imu-wheel-ekf-fusion.md` | IMU + 轮速里程计的 ESKF 卡尔曼融合（MCU 落地） |
 | `lqr-example-bicycle-cornell.md` | 进阶示例：纯舵机单车 LQR（Cornell 点质量模型）— MATLAB 重建模 |
 | `lqr-example-segway.md` | 端到端示例：两轮平衡车 LQR 设计 |
 | `mahony-ahrs-reference.md` | Mahony AHRS 姿态解算算法参考 |
@@ -39,6 +42,8 @@
 | `matlab-hello-5min.md` | 5 分钟 Hello World — 零基础也能成功一次 |
 | `mcp-tools.md` | MCP / 外部工具调用细则 |
 | `mspm0g3507-seekfree-api.md` | MSPM0G3507 Seekfree 开源库 API 速查手册 |
+| `omni-wheel-odometry.md` | 全向/麦轮运动学解耦 + 轮式里程计航位推算（限制与验证） |
+| `path-tracking-pure-pursuit-stanley.md` | 路径跟踪横向控制：Pure Pursuit / Stanley / LQR 选型 |
 | `pin-planning.md` | 引脚规划指南 |
 | `platform-compatibility.md` | 平台兼容性 |
 | `platform-migration.md` | 跨平台迁移指南 |
