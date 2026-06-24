@@ -22,6 +22,7 @@
 | `competition-task-router.md` | 竞赛题型路由器（Task Router） |
 | `contracts.md` | 共享约定 |
 | `control-loop-sign-debug.md` | 闭环控制符号陷阱与对照实验诊断法 |
+| `control-safety-limits.md` | 控制安全/限幅/故障：限流限矩·堵转·软限位·急停·看门狗·无扰切换·故障态 |
 | `driver-porting.md` | 驱动库移植完整流程参考 |
 | `embedded-architecture.md` | 嵌入式分层架构规范（避免屎山） |
 | `embed-libs-index.md` | 嵌入式常用开源库速查索引 |
@@ -33,6 +34,7 @@
 | `foc-sensorless.md` | FOC 无感：SMO/磁链观测/HFI/I-F 启动与切换 |
 | `foc-calibration-checklist.md` | FOC 标定清单：电流零偏/电角度对齐/霍尔/死区/参数辨识 |
 | `gd32f4xx-api.md` | GD32F4xx 固件库 (Standard Peripheral Library) API 速查手册 |
+| `gimbal-control.md` | 云台稳定控制（二/三轴：角度环+角速度环串级，IMU 稳像） |
 | `git-snapshot.md` | Git 备份与回档规则 |
 | `hooks-design.md` | Hooks 设计文档 |
 | `imu-fusion-filter-selection.md` | IMU 姿态/状态估计滤波器选型决策（互补/Mahony/Madgwick/VQF/MEKF/EKF/ESKF/UKF/InEKF + 单帧初始对准） |
