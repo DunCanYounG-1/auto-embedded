@@ -8,6 +8,7 @@
 | `arch-gate.md` | 分层架构门禁（arch-check）使用与强制化 |
 | `attitude-estimation-sota.md` | 高精度姿态解算 SOTA：VQF / MEKF / UKF-M / InEKF / 学习法 |
 | `attitude-init-single-frame.md` | 单帧确定性定姿（TRIAD/QUEST/SVD）：滤波器初始对准 |
+| `balance-car-cascade-control.md` | 两轮平衡车串级控制（直立环+速度环+转向环，手调 PID 实战） |
 | `case-dcar-control-defects.md` | 案例复盘（反例）：四轮全向小车惯导/控制方案缺陷 |
 | `checklist-mechanism.md` | 四文件磁盘记忆机制 |
 | `checklist-templates.md` | 清单格式模板参考 |
@@ -48,9 +49,12 @@
 | `matlab-example-thd-meter.md` | 实战示例：失真度分析仪（电赛 2021A） |
 | `matlab-hello-5min.md` | 5 分钟 Hello World — 零基础也能成功一次 |
 | `mcp-tools.md` | MCP / 外部工具调用细则 |
+| `motion-profiling-trajectory.md` | 运动规划/轨迹生成：梯形 / S 曲线(jerk-limited) / 点到点 / 多轴同步 |
+| `motor-drive-simple-actuators.md` | 简单执行器控制：有刷 DC / 方波六步 BLDC / 舵机 / 步进（FOC 之外） |
 | `mspm0g3507-seekfree-api.md` | MSPM0G3507 Seekfree 开源库 API 速查手册 |
 | `omni-wheel-odometry.md` | 全向/麦轮运动学解耦 + 轮式里程计航位推算（限制与验证） |
 | `path-tracking-pure-pursuit-stanley.md` | 路径跟踪横向控制：Pure Pursuit / Stanley / LQR 选型 |
+| `pid-control-reference.md` | PID 控制参考：位置式/增量式 · 抗饱和 · 微分处理 · 离散化时序 · 整定 · 串级 |
 | `pin-planning.md` | 引脚规划指南 |
 | `platform-compatibility.md` | 平台兼容性 |
 | `platform-migration.md` | 跨平台迁移指南 |
