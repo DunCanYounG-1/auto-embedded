@@ -30,10 +30,10 @@ for f in \
 done; ok "7 平台关键文件齐全"
 
 n=$(find "$TMP/.claude/skills" -mindepth 1 -maxdepth 1 -type d | wc -l)
-[ "$n" -eq 27 ] || fail "claude 技能数=$n，应=27（5 工作流 + 22 工具）"; ok "claude 27 技能（5 工作流 + 22 工具）"
+[ "$n" -eq 28 ] || fail "claude 技能数=$n，应=28（5 工作流 + 23 工具）"; ok "claude 28 技能（5 工作流 + 23 工具）"
 
 tn=$(find "$TMP/.auto-embedded/tools" -name '*.py' | wc -l)
-[ "$tn" -ge 25 ] || fail "工具脚本数=$tn，应≥25"; ok "22 工具脚本 + shared 装入运行时"
+[ "$tn" -ge 26 ] || fail "工具脚本数=$tn，应≥26"; ok "23 工具脚本 + shared 装入运行时"
 
 # 知识库与专项流程随框架装入运行时（自上一代 embedded-dev 吸收）
 rn=$(find "$TMP/.auto-embedded/refs" -name '*.md' | wc -l)
