@@ -25,14 +25,21 @@ volatile float invsampleFreq = 1.0f / sampleFreq;
 volatile float twoKp = twoKpDef, twoKi = twoKiDef;
 float Pitch_a_Pi, Roll_a_Pi, Yaw_a_Pi;     // 输出欧拉角（弧度）
 
-// —— Quake III 快速 1/sqrt ——
-static float invSqrt(float x) {
-    float halfx = 0.5f * x, y = x;
-    long i = *(long*)&y;
-    i = 0x5f3759df - (i >> 1);
-    y = *(float*)&i;
-    return y * (1.5f - (halfx * y * y));
-}
+// —— 1/sqrt ——
+// Cortex-M4F/M7（有 FPU）：直接用硬件 VSQRT.F32，最快且正确舍入（约 20+ cycle）。
+// 不要在 M4F 上用 Quake III 快速平方根——那是反优化（更慢且有 ~0.17% 误差）。
+static inline float invSqrt(float x) { return 1.0f / sqrtf(x); }
+
+// 无 FPU 退路（Cortex-M0/M0+/M3 才考虑，牺牲精度）：Quake III 快速平方根。
+// 用 memcpy 做 type-pun——禁用 `*(long*)&x`（违反严格别名 UB，-O2 可能被优化坏；
+// 且裸 long 在 LP64 主机仿真即坏，见 coding-standards.md）。需 #include <stdint.h> <string.h>。
+//   static float invSqrt_nofpu(float x) {
+//       float halfx = 0.5f * x, y = x;
+//       uint32_t i; memcpy(&i, &y, sizeof i);
+//       i = 0x5f3759df - (i >> 1);
+//       memcpy(&y, &i, sizeof i);
+//       return y * (1.5f - (halfx * y * y));
+//   }
 
 // —— 核心更新 ——
 void MahonyAHRSupdateIMU(float gx, float gy, float gz,   // 角速度 °/s
@@ -90,10 +97,12 @@ void MahonyAHRSupdateIMU(float gx, float gy, float gz,   // 角速度 °/s
     float r31 = 2.0f * (q0*q3 + q1*q2);
     float r32 = 1.0f - 2.0f * (q2*q2 + q3*q3);
     Yaw_a_Pi   = atan2f(r31, r32);
-    Pitch_a_Pi = -asinf(r21);   // 注意负号
+    Pitch_a_Pi = asinf(r21);    // 标准 ZYX：r21 已是 sin(pitch)，不要再取负
     Roll_a_Pi  = atan2f(r11, r12);
 }
 ```
+
+> ✅ **欧拉角提取自测（防回归）**：欧拉角 → 四元数 → 再用上式提取，应数值闭合。输入 `pitch=+0.3 rad` 必须还原为 `+0.3`（不是 `−0.3`）。历史上这里曾多写一个负号导致俯仰上下颠倒，照抄到平衡车/四旋翼会让俯仰反馈反向——务必跑这个往返测试守门。
 
 > **9 轴版本（含磁力计）**：用 `MahonyAHRSupdate(gx,gy,gz, ax,ay,az, mx,my,mz)` — 多加磁场归一化和误差项；不需要的话**保持 IMU 版即可，但 yaw 会缓慢漂移**（无外部参考）。
 
@@ -155,7 +164,7 @@ float yaw_deg   = Yaw_a_Pi   * Rad2Ang;
 | 抖动 / 角度跳变 | 加速度计噪声 / Kp 过大 | Kp 减半、加 DLPF 或 biquad 低通 |
 | 振动环境角度跑飞 | 加速度计被结构共振污染 | 减 Kp 或机械减振 |
 | Yaw 不准 / 漂移 | IMU 版本只用加速度，无 yaw 参考 | 上 9 轴版（加磁力计）；磁场环境差则接受漂移或加视觉/编码器 |
-| 初始几秒发散 | 初值 q=(1,0,0,0) 与实际偏差大 + Kp 太小 | 上电前 1–2s 用 Kp=5 加速收敛后切回正常值 |
+| 初始几秒发散 | 初值 q=(1,0,0,0) 与实际偏差大 + Kp 太小 | 上电前 1–2s 用 Kp=5 加速收敛后切回正常值；**更优解**：上电用 TRIAD/单矢量定姿直接解出初值 q₀，免去硬收敛瞬态（见 `.auto-embedded/refs/attitude-init-single-frame.md`） |
 | 倾斜方向反 | 轴映射错 | 在传入 Mahony 前 negate 对应轴，不要改 Mahony 内部公式 |
 
 ---
@@ -169,7 +178,7 @@ float yaw_deg   = Yaw_a_Pi   * Rad2Ang;
 | 机理 | 重力/磁误差做 **PI 反馈** 修正陀螺 | 对加计/磁残差做 **梯度下降** 修正四元数 |
 | 参数 | `twoKp` / `twoKi` | 单一 `β`（步长） |
 | 收敛 | 稳，常规场景够 | 快速旋转/强动态略优 |
-| 零偏 | `twoKi` 积分项隐式估偏 | 需另配偏置估计 |
+| 零偏 | `twoKi` 积分项隐式估偏 | 原版自带 `ζ`(zeta) 零偏估计（与 Mahony Ki 对偶）；但常见 x-io `MadgwickAHRS.c` 省略 `ζ` 只留 `β`，照抄那份则无零偏补偿，需自加 `ζ` 项或上电零偏标定 |
 | 计算@M4F | ~150 cyc | 略高（梯度+归一化） |
 | 选择 | **轻量默认** | 有磁力计/动态剧烈时替代 |
 

@@ -44,10 +44,12 @@
 2. **要四元数、无万向锁、平衡车/四旋翼、精度够用** → **Mahony**（轻量默认；实现见 mahony 专篇）。
 3. **要解算很准 / 强动态加速度 / 磁扰严重** → **VQF**（SOTA，定参开箱）；纯姿态要卡尔曼/不确定度 → **MEKF**。详见 `attitude-estimation-sota.md`。
 4. **有磁力计、动态剧烈、要更好 yaw（轻量档内）** → Madgwick 或 9 轴 Mahony。
-5. **要平面位置/走位/定点（轮式）** → 先用航位推算（`omni-wheel-odometry.md`）；**打滑严重 / 要位置不确定度 / 长程** → 升 **ESKF 融合编码器**（`imu-wheel-ekf-fusion.md`）。
+5. **要平面位置/走位/定点（轮式）** → 先用航位推算（`omni-wheel-odometry.md`）；**打滑严重 / 要位置不确定度 / 长程** → 升 **ESKF 融合编码器**（`imu-wheel-ekf-fusion.md`，含 ZUPT / NHC / 卡方门控等"免费"观测约束；其中 NHC 仅差速/阿克曼适用，全向/麦轮不适用）。
 6. **要不确定度、要门控异常观测、多传感器异步** → EKF（ESKF 是其在 IMU 场景的更优形态）。
 7. **Jacobian 难写 / 强非线性** → UKF（代价：~200µs/次、sigma 点调参）。
 8. **足式 / 接触辅助 / 研究级** → InEKF（重，MCU 上需大幅优化）。
+
+> ⚠ **正交于上表的一步**：任何卡尔曼类（EKF/ESKF/MEKF/UKF）乃至 Mahony 启动前，先做一次**单帧确定性定姿**（TRIAD/QUEST）求初值 `q₀` 与初始协方差，别用 `q=(1,0,0,0)`+高增益硬等收敛。这不是递推滤波器、不在复杂度阶梯里，是"定姿"而非"滤波"。见 `.auto-embedded/refs/attitude-init-single-frame.md`。
 
 ---
 
@@ -78,6 +80,7 @@
 ## 交叉引用
 
 - `attitude-estimation-sota.md` —— 高精度深化：VQF/MEKF/UKF-M/InEKF/RIANN
+- `attitude-init-single-frame.md` —— 滤波器启动前的单帧确定性初始对准（TRIAD/QUEST/SVD）
 - `mahony-ahrs-reference.md` —— Mahony/Madgwick 实现、四元数约定
 - `imu-wheel-ekf-fusion.md` —— ESKF 融合 IMU+编码器（第 4 档升级）
 - `omni-wheel-odometry.md` —— 航位推算（融合前的起步方案）

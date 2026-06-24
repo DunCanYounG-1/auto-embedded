@@ -98,6 +98,8 @@
        x += dx;  y += dy
 ```
 
+> **里程计旋转式 = R(θ)ᵀ（CW 约定）**：上式 `dx=(vx·cosθ+vy·sinθ)dt、dy=(−vx·sinθ+vy·cosθ)dt` 对应 `R=[[cosθ,sinθ],[−sinθ,cosθ]]=R(θ)ᵀ`，是 **CW 旋转**，仅当 yaw 取第 0 步示例的 **CW 为正** 时自洽。若你的 yaw 是 **CCW 为正**（姿态侧 Mahony / `attitude-init-single-frame.md` 用 ENU/标准 ZYX 即 CCW），改用对照式 `dx=vx·cosθ−vy·sinθ、dy=vx·sinθ+vy·cosθ`。按自身 yaw 符号二选一，并用"直线沿 θ=90° 走一段看 x/y 落点"做一次符号自检（闭合测试也会抓出镜像反向轨迹）。
+
 > **dt 必须来自定时器周期配置，不要写 `dt = 0.01f` 这种裸字面量。** 调度频率一改、或定时器有 jitter，硬编码 dt 会让积分系统性偏。正确：`dt` 由 timer reload 计算得到的命名常量；高要求场景在运行期监测两次调用的实际间隔（jitter），或至少对调度周期加 `static_assert`。阈值/常数的标定溯源规范见 `coding-standards.md` §4.1。
 
 ---
@@ -139,6 +141,8 @@ static inline int16_t enc_delta(uint16_t now, uint16_t last) {
 2. **正反解往返**：给定 `(vx,vy,w)` → 正解 → 反解，应还原回 `(vx,vy,w)`（数值往返测试）。
 3. **直线测距**：让车走已知直线距离，比对里程计 `Δ` 与卷尺，标定 `COUNTS_PER_MM`。
 4. **闭合测试**：走一圈回到起点，看里程计 `(x,y)` 闭合误差和 yaw 净变化（应 ≈0）；闭合误差大 → 查 yaw 漂移 / 打滑 / 标定。
+5. **绝对定位误差**：走已知折线/方阵、经过若干已知锚点，逐点比对里程计 `(x,y)` 与卷尺/激光实测（不是只看终点闭合——闭合会**掩盖"沿途漂出去又漂回来"的中途偏差**）。
+6. **漂移率**：固定速度直线/方阵跑 `T` 秒或 `D` 米，记 `位置误差/路程 [%]` 与 `yaw 漂移率 [°/min]`，作为"是否需升 ESKF/加绝对观测"的跨方案判据。
 
 ---
 
@@ -149,6 +153,8 @@ static inline int16_t enc_delta(uint16_t now, uint16_t last) {
 - 需要**长期绝对位姿**（分钟级以上不重置）
 - 工况**打滑严重**（高速转向、地面摩擦低）
 - 需要**绝对 yaw**（仅靠陀螺积分不够）
+
+> 升 ESKF 后，**差速/阿克曼**车可几乎免费加 **NHC 非完整性约束**（车体侧向速度≈0）持续压横向漂；**全向/麦轮**可侧移、NHC 不适用（详见 `imu-wheel-ekf-fusion.md`）。纯航位推算阶段也可借 NHC 思想做合理性校验：侧向速度异常 → 疑似打滑。
 
 融合后轮速里程计退化为"高频预测源"，由外部观测做校正——这才是鲁棒定位的正确形态。
 
@@ -161,3 +167,5 @@ static inline int16_t enc_delta(uint16_t now, uint16_t last) {
 - `imu-gyroscope-checklist.md` —— 量程/灵敏度/换算、陀螺零偏标定
 - `coding-standards.md` §4.1 —— 控制阈值/死区/限幅的标定溯源（禁裸魔法数字）
 - `case-dcar-control-defects.md` —— 本主题的真实反例复盘（电赛小车把上述妥协写死的后果）
+- `path-tracking-pure-pursuit-stanley.md` —— 下游消费者：本篇输出的 `(x,y,θ)`（在**车体中心**积分）即跟踪器位姿；PP 用后轴 / Stanley 用前轴，参考点偏移换算见该篇
+- `imu-wheel-ekf-fusion.md` —— 何时升融合，及 NHC/ZUPT/卡方门控等观测约束

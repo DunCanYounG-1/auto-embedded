@@ -88,7 +88,7 @@ Ld = k_v · v + Ld_min                 // 前视距离随车速自适应
 | 陷阱 | 说明 / 对策 |
 |---|---|
 | **符号** | 航向误差/横向误差/转向极性任一翻转就发散；按 `control-loop-sign-debug.md` 对照实验验证 |
-| 参考点 | PP 用后轴、Stanley 用前轴；用错点跟踪偏 |
+| 参考点 | PP 用后轴、Stanley 用前轴；而上游 `omni-wheel-odometry.md` 的 `(x,y)` 在**车体中心**积分——三者参考点不同，消费前需按轴距/几何做**偏移换算**，否则跟踪系统性偏 |
 | 坐标系 | 横向误差、切线方向的世界系/车体系要一致 |
 | 航点推进 | 前视点查找 / 航点切换逻辑要稳，避免回跳或跳点 |
 | 速度自适应 | `Ld` 不随速度变 → 高速失稳或低速迟钝 |
@@ -99,7 +99,7 @@ Ld = k_v · v + Ld_min                 // 前视距离随车速自适应
 
 ## 交叉引用
 
-- `omni-wheel-odometry.md` —— 位姿来源；全向底盘的平移+航向解耦/锁头
+- `omni-wheel-odometry.md` —— 位姿来源（其 `(x,y,θ)` 即本篇消费的位姿，在车体中心积分；参考点偏移换算见上"共同陷阱"表）；全向底盘的平移+航向解耦/锁头
 - `control-loop-sign-debug.md` —— 路径跟踪符号陷阱与对照实验（含 PP 案例）
 - `imu-fusion-filter-selection.md` —— 喂给跟踪的位姿估计如何选型
 - `lqr-example-bicycle-cornell.md` / `lqr-example-segway.md` —— 模型法（LQR）路径/平衡控制
