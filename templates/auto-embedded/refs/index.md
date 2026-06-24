@@ -10,10 +10,12 @@
 | `attitude-init-single-frame.md` | 单帧确定性定姿（TRIAD/QUEST/SVD）：滤波器初始对准 |
 | `balance-car-cascade-control.md` | 两轮平衡车串级控制（直立环+速度环+转向环，手调 PID 实战） |
 | `case-dcar-control-defects.md` | 案例复盘（反例）：四轮全向小车惯导/控制方案缺陷 |
+| `chassis-kinematics.md` | 底盘运动学全集：差速/阿克曼/舵轮 4WIS（正反解·限幅·标定） |
 | `checklist-mechanism.md` | 四文件磁盘记忆机制 |
 | `checklist-templates.md` | 清单格式模板参考 |
 | `cli-command-framework.md` | CLI 命令解析框架（嵌入式串口命令行） |
 | `coding-standards.md` | 嵌入式代码规范（风格细则） |
+| `comms-protocol-bus-reliability.md` | 板间通信协议与总线可靠性：UART/CAN/RS485/SPI/I2C 帧·CRC·超时重传·心跳 |
 | `companion-skills.md` | 配套全局技能：电路(multisim-spice) / Simulink(simubridge) 何时用、怎么衔接 RIPER-5 |
 | `competition-ai-max-workflow.md` | 自动完赛极限工作流（AI Max Throughput Mode） |
 | `competition-index.md` | 全国大学生电子设计竞赛赛题索引 |
@@ -40,6 +42,7 @@
 | `imu-fusion-filter-selection.md` | IMU 姿态/状态估计滤波器选型决策（互补/Mahony/Madgwick/VQF/MEKF/EKF/ESKF/UKF/InEKF + 单帧初始对准） |
 | `imu-gyroscope-checklist.md` | IMU / 陀螺仪模块开发检查清单 |
 | `imu-wheel-ekf-fusion.md` | IMU + 轮速里程计的 ESKF 卡尔曼融合（MCU 落地） |
+| `line-follow-vision-sensing.md` | 循迹与竞赛视觉传感：灰度阵列/线阵CCD(TSL1401)/OpenMV 中心线提取 |
 | `lqr-example-bicycle-cornell.md` | 进阶示例：纯舵机单车 LQR（Cornell 点质量模型）— MATLAB 重建模 |
 | `lqr-example-segway.md` | 端到端示例：两轮平衡车 LQR 设计 |
 | `mahony-ahrs-reference.md` | Mahony AHRS 姿态解算算法参考 |
@@ -55,11 +58,14 @@
 | `motor-drive-simple-actuators.md` | 简单执行器控制：有刷 DC / 方波六步 BLDC / 舵机 / 步进（FOC 之外） |
 | `mspm0g3507-seekfree-api.md` | MSPM0G3507 Seekfree 开源库 API 速查手册 |
 | `omni-wheel-odometry.md` | 全向/麦轮运动学解耦 + 轮式里程计航位推算（限制与验证） |
+| `path-planning-obstacle-avoidance.md` | 路径规划与避障：全局 A*/Dijkstra · 局部 DWA/人工势场 · 与跟踪分层 |
 | `path-tracking-pure-pursuit-stanley.md` | 路径跟踪横向控制：Pure Pursuit / Stanley / LQR 选型 |
 | `pid-control-reference.md` | PID 控制参考：位置式/增量式 · 抗饱和 · 微分处理 · 离散化时序 · 整定 · 串级 |
 | `pin-planning.md` | 引脚规划指南 |
 | `platform-compatibility.md` | 平台兼容性 |
 | `platform-migration.md` | 跨平台迁移指南 |
+| `ranging-localization-sensors.md` | 测距/定位传感器选型与融合：ToF/超声/红外/UWB/激光雷达 |
+| `realtime-scheduling-isr-dma.md` | 实时控制调度与 ISR/DMA 架构：控制环频率·定时器-ADC-DMA 同步·裸机 vs RTOS |
 | `riper5-protocol.md` | RIPER-5 嵌入式芯片开发协议 |
 | `riper5-stages.md` | RIPER-5 五阶段详细规则 |
 | `shared-contracts.md` | 共享约定 |
