@@ -7,6 +7,7 @@
 |---|---|
 | `arch-gate.md` | 分层架构门禁（arch-check）使用与强制化 |
 | `attitude-estimation-sota.md` | 高精度姿态解算 SOTA：VQF / MEKF / UKF-M / InEKF / 学习法 |
+| `attitude-init-single-frame.md` | 单帧确定性定姿（TRIAD/QUEST/SVD）：滤波器初始对准 |
 | `case-dcar-control-defects.md` | 案例复盘（反例）：四轮全向小车惯导/控制方案缺陷 |
 | `checklist-mechanism.md` | 四文件磁盘记忆机制 |
 | `checklist-templates.md` | 清单格式模板参考 |
@@ -25,10 +26,15 @@
 | `embed-libs-index.md` | 嵌入式常用开源库速查索引 |
 | `example-siemens-cimc-2025.md` | 端到端示例：2025 CIMC 西门子杯工业嵌入式开发初赛 |
 | `failure-taxonomy.md` | 失败分类 |
+| `foc-control-overview.md` | FOC 矢量控制总览：流水线(Clarke/Park/SVPWM) + 三环 + 选型 + 落地 |
+| `foc-current-loop.md` | FOC 电流环：dq 模型/PI 整定(零极点对消)/解耦前馈/SVPWM/电流采样 |
+| `foc-speed-position-loop.md` | FOC 速度环+位置环：串级、带宽分离、前馈、抗饱和 |
+| `foc-sensorless.md` | FOC 无感：SMO/磁链观测/HFI/I-F 启动与切换 |
+| `foc-calibration-checklist.md` | FOC 标定清单：电流零偏/电角度对齐/霍尔/死区/参数辨识 |
 | `gd32f4xx-api.md` | GD32F4xx 固件库 (Standard Peripheral Library) API 速查手册 |
 | `git-snapshot.md` | Git 备份与回档规则 |
 | `hooks-design.md` | Hooks 设计文档 |
-| `imu-fusion-filter-selection.md` | IMU 姿态/状态估计滤波器选型决策（互补/Mahony/Madgwick/EKF/ESKF/UKF/InEKF） |
+| `imu-fusion-filter-selection.md` | IMU 姿态/状态估计滤波器选型决策（互补/Mahony/Madgwick/VQF/MEKF/EKF/ESKF/UKF/InEKF + 单帧初始对准） |
 | `imu-gyroscope-checklist.md` | IMU / 陀螺仪模块开发检查清单 |
 | `imu-wheel-ekf-fusion.md` | IMU + 轮速里程计的 ESKF 卡尔曼融合（MCU 落地） |
 | `lqr-example-bicycle-cornell.md` | 进阶示例：纯舵机单车 LQR（Cornell 点质量模型）— MATLAB 重建模 |
