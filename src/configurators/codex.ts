@@ -129,14 +129,14 @@ function renderCodexAgentToml(name: string, rawContent: string): string {
 // ---------------------------------------------------------------------------
 // configurator
 // ---------------------------------------------------------------------------
-export const configureCodex: Configurator = (): PlatformPlan => {
+export const configureCodex: Configurator = (_py, sel): PlatformPlan => {
   const ctx = AEMB_TOOLS.codex.templateContext;
   const dir = ".codex";
   const files = new Map<string, string>();
 
   // 命令 + 技能都当技能 → 共享标准技能层（$aemb-<name> 调用）。
   // 用 neutral 渲染：CMD_REF 不带平台前缀，使与 Gemini 同写 .agents/skills 的文件字节一致。
-  for (const s of resolveAllAsSkillsNeutral(ctx)) {
+  for (const s of resolveAllAsSkillsNeutral(ctx, sel)) {
     files.set(`.agents/skills/${s.name}/SKILL.md`, s.content);
   }
 

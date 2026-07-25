@@ -31,7 +31,7 @@ Key design points:
 
 | Class | Content | `aemb update` behavior |
 |---|---|---|
-| **managed** | `scripts/` (engine), `tools/` (22 skills), `refs/`, `modes/`, `workflow.md`, platform wiring files | hash-compared upgrade: template changed → overwrite; you changed it → new version written as `.new`, yours kept |
+| **managed** | `scripts/` (engine), `tools/` (24 skills), `refs/`, `modes/`, `workflow.md`, platform wiring files | hash-compared upgrade: template changed → overwrite; you changed it → new version written as `.new`, yours kept |
 | **seed** | `config.yaml`, `spec/**` (your project's rules), `tasks/`, `workspace/` | never touched (only seeded when missing) |
 
 The clean knowledge-evolution story: upstream knowledge (refs/modes) upgrades with the framework; **project-level** learnings flow through `promote` into spec layers — the two never pollute each other.
@@ -55,13 +55,13 @@ templates/
 ├─ auto-embedded/           the runtime kernel installed into projects
 │  ├─ scripts/              RIPER engine (aemb_core/task/check/get_context + arch-check)
 │  ├─ spec/                 spec seeds (five layers, seed-class)
-│  ├─ tools/                22 tool-skill scripts + shared/ commons + companion tools
+│  ├─ tools/                24 tool-skill scripts + shared/ commons + companion tools
 │  ├─ refs/                 55+ article offline knowledge base (managed)
-│  ├─ modes/                12 specialized workflows (managed)
+│  ├─ modes/                13 specialized workflows (managed)
 │  └─ workflow.md           workflow single source of truth (hooks read breadcrumbs from it)
 ├─ common/                  cross-platform shared bodies (placeholder-rendered per platform)
 │  ├─ commands/ skills/     user ritual commands + auto-trigger skills
-│  ├─ tool-skills/          22 tool-skill SKILL bodies
+│  ├─ tool-skills/          24 tool-skill SKILL bodies
 │  └─ agents/               aemb-scout/builder/verifier + 6 competition roles
 ├─ shared-hooks/            3 platform-agnostic Python injection hooks
 └─ <platform>/              platform-private templates (config.toml / JS plugins, etc.)

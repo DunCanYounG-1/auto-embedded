@@ -24,7 +24,7 @@ aemb init /path/to/firmware-project -u your-name --platforms claude,cursor,codex
 # 也可：--claude --cursor … 逐个；或 --all 装全部已打通平台；不指定则默认 claude
 ```
 `-u` 写开发者身份到 `.auto-embedded/.developer`（注入时显示、`doctor` 可查）。会做三件事：
-1. 写 `.auto-embedded/`：运行时内核（scripts: aemb_core/task/get_context/check）+ spec/ + workflow.md + config.yaml + **tools/**（21 个工具脚本 + shared）。
+1. 写 `.auto-embedded/`：运行时内核（scripts: aemb_core/task/get_context/check）+ spec/ + workflow.md + config.yaml + **tools/**（24 个工具脚本 + shared）。
 2. 为每个选定平台写注入接线 + agents/skills/commands（格式各平台不同：Claude `settings.json`、Cursor/Codex/Copilot `hooks.json`、Codex `config.toml`、OpenCode JS 插件、Gemini `settings.json`、Windsurf workflows）。
 3. **合并**共享配置文件：只增删 aemb 自己的片段，已有配置保留、按命令去重、可重复跑不重复（幂等）。
 

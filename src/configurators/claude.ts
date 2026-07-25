@@ -12,13 +12,13 @@ import { getAgents, renderMarkdownAgent, resolveCommands, resolveSkills } from "
 import { getSharedHooksForPlatform } from "./hooks";
 import { hookCmd, nestedSettingsMerge } from "./merge";
 
-export const configureClaude: Configurator = (): PlatformPlan => {
+export const configureClaude: Configurator = (_py, sel): PlatformPlan => {
   const ctx = AEMB_TOOLS.claude.templateContext;
   const dir = ".claude";
   const files = new Map<string, string>();
 
   for (const c of resolveCommands(ctx)) files.set(`${dir}/commands/aemb/${c.name}.md`, c.content);
-  for (const s of resolveSkills(ctx)) files.set(`${dir}/skills/${s.name}/SKILL.md`, s.content);
+  for (const s of resolveSkills(ctx, sel)) files.set(`${dir}/skills/${s.name}/SKILL.md`, s.content);
   for (const t of getAgents()) {
     const a = renderMarkdownAgent(t, ctx, false);
     files.set(`${dir}/agents/${a.name}.md`, a.content);

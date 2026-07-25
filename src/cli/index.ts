@@ -20,6 +20,7 @@ import { cmdUpdate } from "../commands/update";
 import { cmdUninstall } from "../commands/uninstall";
 import { cmdUpgrade } from "../commands/upgrade";
 import { cmdWorkflow } from "../commands/workflow";
+import { cmdAdd, cmdRemove, cmdProfile } from "../commands/packs";
 import { cmdMem } from "../commands/mem";
 import { dispatchChannel } from "../channel/index";
 import { cmdBackup, cmdCheck, cmdDoctor, cmdStatus } from "../commands/misc";
@@ -28,6 +29,10 @@ const USAGE = `auto-embedded (aemb) —— 全平台嵌入式 AI 开发 harness 
 
 用法:
   aemb init   [工程] [-u 名] [--platforms a,b,... | --<平台> ... | --all] [--force]
+              [--full] [--yes] [--profile k=v]      # profile 感知装配：默认按芯片/构建探测只装相关内容
+  aemb add    <pack...> [-C 工程]                    # 启用内容包（matlab/control/competition/chip:stm32/...）
+  aemb remove <pack...> [-C 工程]                    # 关闭内容包（未改动的落选文件被剪除）
+  aemb profile [工程]                                # 查看当前 profile / selection / 已装计数
   aemb update [工程]
   aemb status [工程]
   aemb doctor [工程]
@@ -41,7 +46,8 @@ const USAGE = `auto-embedded (aemb) —— 全平台嵌入式 AI 开发 harness 
 
 平台（已实现）: ${implementedTools().join(", ")}
 平台（预留位，暂不可装）: ${RESERVED_TOOLS.join(", ")}
-init 不指定平台时默认 claude。--all = 安装全部已实现平台。`;
+init 不指定平台时默认 claude。--all = 安装全部已实现平台。
+init 默认按探测的芯片/构建/OS 精简装（无信号或 --full = 全量）；领域包(matlab/competition/control/bus)默认不装，用 aemb add 启用。`;
 
 function dedupe(xs: AITool[]): AITool[] {
   return [...new Set(xs)];
@@ -141,8 +147,31 @@ function main(argv: string[]): number | void {
     return cmdWorkflow(resolveTarget(tgt), { id, list, force, createNew });
   }
 
+  // add / remove：位置参是内容包名（非平台）。目标默认为 cwd/git 根，可用 -C/--target 指定。
+  if (cmd === "add" || cmd === "remove") {
+    const packs: string[] = [];
+    let tgt: string | undefined;
+    for (let i = 0; i < rest.length; i++) {
+      const a = rest[i];
+      if (a === "-C" || a === "--target") {
+        tgt = rest[++i];
+        continue;
+      }
+      if (a.startsWith("-")) {
+        process.stderr.write(`✗ ${cmd} 未知选项: ${a}\n`);
+        return 1;
+      }
+      packs.push(a);
+    }
+    const t = resolveTarget(tgt);
+    return cmd === "add" ? cmdAdd(t, packs) : cmdRemove(t, packs);
+  }
+
   let user: string | undefined;
   let force = false;
+  let full = false;
+  let yes = false;
+  const profileKV: string[] = [];
   const platforms: AITool[] = [];
   const positional: string[] = [];
   for (let i = 0; i < rest.length; i++) {
@@ -182,7 +211,24 @@ function main(argv: string[]): number | void {
       force = true;
       continue;
     }
-    if (a === "-y" || a === "--yes") continue;
+    if (a === "-y" || a === "--yes") {
+      yes = true;
+      continue;
+    }
+    if (a === "--full") {
+      full = true;
+      continue;
+    }
+    if (a === "--profile") {
+      const v = rest[i + 1];
+      if (v === undefined || v.startsWith("-")) {
+        process.stderr.write("✗ --profile 需要 k=v（如 chips=stm32,gd32 / build=cmake / packs=matlab）\n");
+        return 1;
+      }
+      profileKV.push(v);
+      i++;
+      continue;
+    }
     if (a.startsWith("--")) {
       const id = resolveCliFlag(a.slice(2));
       if (id) {
@@ -202,6 +248,9 @@ function main(argv: string[]): number | void {
         platforms: platforms.length ? dedupe(platforms) : ["claude"],
         user,
         force,
+        full,
+        yes,
+        profileKV: profileKV.length ? profileKV : undefined,
       });
     case "update":
       return cmdUpdate(target);
@@ -209,6 +258,8 @@ function main(argv: string[]): number | void {
       return cmdStatus(target);
     case "doctor":
       return cmdDoctor(target);
+    case "profile":
+      return cmdProfile(target);
     case "backup":
       return cmdBackup(target);
     case "uninstall":

@@ -19,8 +19,25 @@ import {
   isInstalled,
   parentWithinTarget,
   readPlatforms,
+  readProfile,
   runtimeUnsafe,
 } from "./engine";
+import { resolveSelection } from "../content/packs";
+
+/** 删除 fileAbs 因剪除而变空的祖先目录（限于工程根内，遇非空即停）。 */
+function rmEmptyParents(target: string, fileAbs: string): void {
+  const root = path.resolve(target);
+  let dir = path.dirname(fileAbs);
+  while (dir.startsWith(root + path.sep) && dir !== root) {
+    try {
+      if (fs.readdirSync(dir).length > 0) break;
+      fs.rmdirSync(dir);
+    } catch {
+      break;
+    }
+    dir = path.dirname(dir);
+  }
+}
 
 export function cmdUpdate(target: string): number {
   if (!isInstalled(target)) {
@@ -68,16 +85,23 @@ export function cmdUpdate(target: string): number {
   // workflow.md 是路由关键文件（每轮面包屑/子 Agent 注入按它的 [workflow-state] 标签路由）。
   const WORKFLOW_MD_REL = toPosix(`${RUNTIME_DIR}/workflow.md`);
 
+  // profile 感知：按已装 selection 重建 desired（否则会把被 profile 裁掉的文件重新 materialize）。
+  // 无 profile=旧装 → sel undefined → 全装（向后兼容）。
+  const prof = readProfile(target);
+  const sel = prof ? resolveSelection(prof) : undefined;
+  let missingCfg = false;
+
   // 期望的 managed 文件集合：运行时 managed + 各平台 plan.files；顺带重放 merges
   const desired = new Map<string, string>();
-  for (const [rel, c] of getRuntimeManaged()) desired.set(toPosix(rel), c);
+  for (const [rel, c] of getRuntimeManaged(sel)) desired.set(toPosix(rel), c);
   for (const id of platforms) {
     const cfg = getConfigurator(id);
     if (!cfg) {
       process.stderr.write(`  · 平台 ${id} 无 configurator（可能为旧装/预留），跳过其文件\n`);
+      missingCfg = true;
       continue;
     }
-    const plan = cfg(py);
+    const plan = cfg(py, sel);
     for (const [rel, c] of plan.files) desired.set(toPosix(rel), c);
     for (const m of plan.merges) {
       const p = applyMerge(target, m, py); // 含 symlink 防护 + .json 解析失败备份
@@ -135,9 +159,51 @@ export function cmdUpdate(target: string): number {
     }
   }
 
+  // 剪除：manifest.owned 里已不在 desired 的 aemb 文件（profile 收窄/内容删除后的孤儿）。
+  // 仅当 sha256===recorded（未被用户改动）才删；改过的保留 + 告警。
+  // 缺 configurator 时跳过整轮（该平台 desired 不全，防误删其文件）。
+  let pruned = 0;
+  let keptOrphans = 0;
+  if (!missingCfg) {
+    for (const rel of Object.keys(next.owned)) {
+      if (desired.has(rel)) continue;
+      if (rel === WORKFLOW_MD_REL) continue;
+      const abs = path.join(target, rel);
+      if (!parentWithinTarget(target, abs)) continue;
+      try {
+        if (fs.lstatSync(abs).isSymbolicLink()) continue; // 不跟随 symlink
+      } catch {
+        delete next.owned[rel]; // 已不在盘 → 清记账
+        continue;
+      }
+      let cur: string;
+      try {
+        cur = fs.readFileSync(abs, "utf-8");
+      } catch {
+        continue;
+      }
+      if (sha256(cur) === next.owned[rel]) {
+        try {
+          fs.unlinkSync(abs);
+          rmEmptyParents(target, abs);
+          delete next.owned[rel];
+          pruned++;
+        } catch {
+          /* 删除失败忽略 */
+        }
+      } else {
+        keptOrphans++;
+        process.stderr.write(`    ⚠ 孤儿(已不在 profile)但你改过，保留：${rel}\n`);
+      }
+    }
+  }
+
   saveManifest(target, next);
   writeRuntimeVersion(target); // 升级链完成，落地当前布局版本
-  console.log(`  ✓ managed: 更新 ${updated}，已最新 ${same}，保留用户改动 ${preserved}`);
+  console.log(
+    `  ✓ managed: 更新 ${updated}，已最新 ${same}，保留用户改动 ${preserved}` +
+      (pruned || keptOrphans ? `，剪除 ${pruned}，保留改动孤儿 ${keptOrphans}` : ""),
+  );
   for (const [rel, side] of conflicts) {
     if (rel === WORKFLOW_MD_REL) {
       process.stderr.write(

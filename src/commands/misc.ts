@@ -14,9 +14,11 @@ import {
   escapingManagedRoots,
   isInstalled,
   readPlatforms,
+  readProfile,
   runtimeScriptSafe,
   runtimeUnsafe,
 } from "./engine";
+import { resolveSelection } from "../content/packs";
 
 /** 运行时根越界 symlink 时统一拒绝（防读穿/执行工程外脚本/拷工程外内容）。 */
 function refuseEscape(): number {
@@ -91,6 +93,9 @@ export function cmdDoctor(target: string): number {
     return 1;
   }
   console.log(`  平台: ${platforms.join(", ") || "(无)"}`);
+  // profile 感知：按已装 selection 体检（否则会按全集误报"有缺失"）；无 profile=旧装→全集
+  const prof = readProfile(target);
+  const sel = prof ? resolveSelection(prof) : undefined;
   for (const id of platforms) {
     const cfg = getConfigurator(id);
     if (!cfg) {
@@ -98,7 +103,7 @@ export function cmdDoctor(target: string): number {
       ok = false;
       continue;
     }
-    const plan = cfg(py);
+    const plan = cfg(py, sel);
     let filesOk = true;
     for (const rel of plan.files.keys()) {
       if (!fs.existsSync(path.join(target, rel))) {

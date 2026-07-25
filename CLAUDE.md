@@ -15,8 +15,8 @@
 ## 仓库结构（合并后）
 
 - `src/` —— aemb CLI（TypeScript/Node，零运行时依赖）：`cli/` `commands/` `configurators/`（每平台注入接线）`utils/` `types/`。
-- `templates/common/` —— 一套内核、全平台交付的共享 body：`commands/` `skills/` `tool-skills/`（22 工具技能）`agents/`（aemb-scout/builder/verifier + 6 比赛 subagent）。
-- `templates/auto-embedded/` —— 装进工程的运行时内核：`scripts/`（RIPER 引擎）`spec/` `workflow.md` `tools/`（22 工具脚本）`refs/`（55+ 篇知识库）`modes/`（12 专项流程）。
+- `templates/common/` —— 一套内核、全平台交付的共享 body：`commands/` `skills/` `tool-skills/`（24 工具技能）`agents/`（aemb-scout/builder/verifier + 6 比赛 subagent）。
+- `templates/auto-embedded/` —— 装进工程的运行时内核：`scripts/`（RIPER 引擎）`spec/` `workflow.md` `tools/`（24 工具脚本）`refs/`（55+ 篇知识库）`modes/`（13 专项流程）。
 - `templates/<平台>/`、`templates/shared-hooks/` —— 平台私有模板与平台无关 Python hook。
 - `SKILL.md`（协议入口）、`INSTALL.md`（安装）、`README.md`（中文主页）/`README_EN.md`（English）、`docs/`（中英详细文档：quick-start/concepts/architecture）。
 
@@ -27,3 +27,4 @@
 - 改动 `src/configurators/` 或 `templates/` 后，跑 `npm run build && bash tests/test-auto-embedded.sh` 回归（7 平台脚手架/doctor/幂等/内核/工具脚本/refs+modes 装入/注入/卸载全链路）。
 - 新增工具技能：在 `templates/common/tool-skills/` 加带 frontmatter 的 `.md` + 在 `templates/auto-embedded/tools/<x>/` 放脚本；自测计数断言（技能数/脚本数）同步更新。
 - 新增 refs/modes：直接放进 `templates/auto-embedded/refs|modes/`（`workflow.ts` 已按前缀 dir-walk 装入），并在对应 `index.md` 登记。
+- **内容分类（profile 感知装配）**：每新增一个 ref / mode / 工具技能，必须在 `src/content/packs.ts` 的 `CATALOG` 里归类到某个内容包（芯片/OS/构建/探针/领域）或显式进 `core`；否则 `aemb init` 按 profile 精简装时它会回退默认进 `core`（永远装）。`src/content/packs.selftest.ts` 会遍历磁盘断言"每个交付文件恰好被一个 pack 认领"，漏归类 → `node dist/content/packs.selftest.js` 硬失败。分类逻辑（芯片正则、轴回退）也集中在 `packs.ts`。

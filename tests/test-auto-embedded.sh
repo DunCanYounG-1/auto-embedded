@@ -30,10 +30,10 @@ for f in \
 done; ok "7 平台关键文件齐全"
 
 n=$(find "$TMP/.claude/skills" -mindepth 1 -maxdepth 1 -type d | wc -l)
-[ "$n" -eq 28 ] || fail "claude 技能数=$n，应=28（5 工作流 + 23 工具）"; ok "claude 28 技能（5 工作流 + 23 工具）"
+[ "$n" -eq 29 ] || fail "claude 技能数=$n，应=29（5 工作流 + 24 工具）"; ok "claude 29 技能（5 工作流 + 24 工具）"
 
 tn=$(find "$TMP/.auto-embedded/tools" -name '*.py' | wc -l)
-[ "$tn" -ge 26 ] || fail "工具脚本数=$tn，应≥26"; ok "23 工具脚本 + shared 装入运行时"
+[ "$tn" -ge 26 ] || fail "工具脚本数=$tn，应≥26"; ok "24 工具脚本 + shared 装入运行时"
 
 # 知识库与专项流程随框架装入运行时（自上一代 embedded-dev 吸收）
 rn=$(find "$TMP/.auto-embedded/refs" -name '*.md' | wc -l)
@@ -141,5 +141,45 @@ else
   echo "  · 跳过（本环境无法创建 symlink，需管理员/开发者模式）"
 fi
 rm -f "$VICTIM"; rm -rf "$ST"
+
+echo "== 13) 内容包完备性自测（磁盘单元 ↔ CATALOG 一一对应）=="
+node dist/content/packs.selftest.js >/dev/null || fail "packs.ts 完备性自测失败（有文件未归类或悬空登记）"
+ok "packs 完备性自测通过"
+
+echo "== 14) profile gate：STM32+Keil+CMake 只装相关内容 =="
+GT=$(mktemp -d); mkdir -p "$GT/Drivers"
+: > "$GT/board.uvprojx"; : > "$GT/CMakeLists.txt"; : > "$GT/Drivers/stm32f4xx_hal.h"
+"${CLI[@]}" init "$GT" --claude --yes >/dev/null
+n=$(find "$GT/.claude/skills" -mindepth 1 -maxdepth 1 -type d | wc -l)
+[ "$n" -lt 29 ] || fail "gate 未生效：claude 技能=$n 应<29（全量）"
+[ -d "$GT/.claude/skills/aemb-build-cmake" ] && [ -d "$GT/.claude/skills/aemb-build-keil" ] || fail "缺 cmake/keil 构建技能"
+[ ! -d "$GT/.claude/skills/aemb-build-idf" ] || fail "无关技能 aemb-build-idf 不该装"
+[ ! -d "$GT/.claude/skills/aemb-build-scons" ] || fail "无关技能 aemb-build-scons 不该装"
+[ -f "$GT/.auto-embedded/refs/stm32-hal-api.md" ] || fail "缺 stm32 ref"
+[ -d "$GT/.auto-embedded/refs/stm32-hal" ] || fail "缺 stm32-hal 领域包目录"
+[ ! -f "$GT/.auto-embedded/refs/gd32f4xx-api.md" ] || fail "无关 gd32 ref 不该装"
+[ ! -f "$GT/.auto-embedded/refs/matlab-hello-5min.md" ] || fail "matlab ref 默认不该装"
+[ ! -f "$GT/.auto-embedded/refs/foc-control-overview.md" ] || fail "control ref 默认不该装"
+[ ! -f "$GT/.auto-embedded/modes/competition.md" ] || fail "competition mode 默认不该装"
+[ -f "$GT/.auto-embedded/refs/index.md" ] && [ -f "$GT/.auto-embedded/modes/index.md" ] || fail "两个 index.md 必须恒装(core)"
+[ -f "$GT/.auto-embedded/profile.json" ] || fail "缺 profile.json"
+"${CLI[@]}" doctor "$GT" | grep -q "ALL OK" || fail "gated 装后 doctor 未 ALL OK"
+rm -rf "$GT"; ok "gate 生效（skill<29 / stm32 refs+pack / 无 idf·scons·gd32·matlab·foc·competition / doctor OK）"
+
+echo "== 15) add/remove 往返 + prune（未改动剪除 / 改动孤儿保留）=="
+AT=$(mktemp -d); mkdir -p "$AT/Drivers"
+: > "$AT/board.uvprojx"; : > "$AT/Drivers/stm32f4xx_hal.h"
+"${CLI[@]}" init "$AT" --claude --yes >/dev/null
+[ ! -f "$AT/.auto-embedded/refs/matlab-hello-5min.md" ] || fail "初装不应含 matlab"
+"${CLI[@]}" add matlab -C "$AT" >/dev/null 2>&1 || fail "aemb add matlab 失败"
+[ -f "$AT/.auto-embedded/refs/matlab-hello-5min.md" ] || fail "add matlab 未装 matlab ref"
+[ -f "$AT/.auto-embedded/modes/matlab-firmware-pipeline.md" ] || fail "add matlab 未装 matlab mode"
+printf '\nUSER EDIT' >> "$AT/.auto-embedded/refs/matlab-example-iir-filter.md"
+"${CLI[@]}" remove matlab -C "$AT" >/dev/null 2>&1 || fail "aemb remove matlab 失败"
+[ ! -f "$AT/.auto-embedded/refs/matlab-hello-5min.md" ] || fail "remove 未剪除未改动的 matlab ref"
+[ -f "$AT/.auto-embedded/refs/matlab-example-iir-filter.md" ] || fail "remove 误删了用户改动过的孤儿"
+grep -q 'USER EDIT' "$AT/.auto-embedded/refs/matlab-example-iir-filter.md" || fail "改动孤儿内容被动过"
+"${CLI[@]}" doctor "$AT" | grep -q "ALL OK" || fail "add/remove 后 doctor 未 ALL OK"
+rm -rf "$AT"; ok "add/remove 往返 + prune（未改动剪除 / 改动孤儿保留 / doctor OK）"
 
 echo "== ALL PASS =="

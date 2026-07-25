@@ -207,6 +207,7 @@ test -e /dev/null && echo "[embedded-dev] hooks env: ok" \
 | **GD32F4xx 标准外设库** | API + 与 STM32 差异 + DMA × SUB 节选表（完整全量表见 `.auto-embedded/refs/gd32f4xx-api.md` §6 → GD32 仓库内 `doc/DMA_CHANNEL_MAP.md`）+ GD32F470VET6 BSP 引脚 + Bootloader/UART OTA；仓库走四级解析链 | `.auto-embedded/refs/gd32f4xx-api.md`、`.auto-embedded/modes/gd32-board.md` |
 | **MSPM0G3507 + Seekfree 开源库** | Seekfree `zf_driver/zf_device` API + 工程结构（底层基于 TI MSPM0 SDK）；11 外设 API + 21 设备驱动选型 + 11 例程对照；Cortex-M0+ 限制（无 LDREX / 无 FPU / 80 MHz）；仓库走四级解析链 | `.auto-embedded/refs/mspm0g3507-seekfree-api.md`、`.auto-embedded/modes/mspm0-board.md` |
 | **跨平台迁移策略** | 在 STM32/ESP32/Arduino/RISC-V/NXP/TI/国产之间迁移时必须重算的项（时钟 / IRQ 优先级 / 端口隔离），与 `platform-compatibility.md` 互补（前者讲"怎么迁"，后者讲"运行时差异"）| `.auto-embedded/refs/platform-migration.md` |
+| **RT-Thread 带 OS 开发** | RTOS = L4 中间件（`mid_`），业务层不碰内核 API；scons/env/menuconfig/软件包/`rt_device` 设备框架；ISR 只用 ISR-safe API | `.auto-embedded/modes/rtos-rtthread.md`、`.auto-embedded/refs/realtime-scheduling-isr-dma.md` |
 
 ---
 ## 任务文件模板
@@ -239,6 +240,7 @@ test -e /dev/null && echo "[embedded-dev] hooks env: ok" \
 | `逐飞` / `seekfree` / `英飞凌库` | 逐飞开源库管理（搜索→下载→本地索引→移植） | `.auto-embedded/modes/seekfree-lib.md` |
 | `GD32` / `GD32F470` / `GigaDevice` / `兆易` / `MICU 主板` / `CMIC 主板` | GD32F470VET6 主板模板（识别版本→选 Standalone/Bootloader→安装 Pack→拷贝模板→OTA） | `.auto-embedded/modes/gd32-board.md` |
 | `MSPM0` / `MSPM0G3507` / `TI MSPM0` / `逐飞 MSPM0` / `Seekfree MSPM0` | MSPM0G3507 主板模板（定位库→选起点例程→引脚禁用清单→移植到工程→Keil + DAP 烧录） | `.auto-embedded/modes/mspm0-board.md` |
+| `RT-Thread` / `RTThread` / `RTT` / `scons` / `menuconfig` / `finsh` / `软件包` | RT-Thread 带 OS 开发（识别工程→menuconfig→pkgs 软件包→scons 构建→烧录→FinSH/线程调试）| `.auto-embedded/modes/rtos-rtthread.md` |
 | `网表` / `netlist` / `读网表` / `查网表` | 网表读取（检测→解析→提取MCU引脚→比对资源表→应用代码） | `.auto-embedded/modes/netlist-lookup.md` |
 | `检查工具` / `检查mcp` / `测试工具` / `mcp检查` / `工具诊断` / `healthcheck` | MCP 工具健康检查（逐一测试→诊断→尝试修复→生成报告） | `.auto-embedded/modes/mcp-healthcheck.md` |
 | `MATLAB` / `Simulink` / `LQR` / `极点配置` / `卡尔曼` / `系统辨识` / `滤波器设计` / `FFT` / `电机辨识` / `定点化` / `查表生成` / `串口日志分析` / `CAN 日志` / `Embedded Coder` / `MIL` / `SIL` / `PIL` | MATLAB 嵌入式工具箱（10 场景：辨识 / 滤波 / FFT / 控制器 / 观测器 / 电机辨识 / 日志分析 / 定点化 / Simulink 代码生成 / MIL-SIL-PIL 验证），含小白决策树与每场景四段式引导 | `.auto-embedded/modes/matlab-embedded-toolkit.md` |

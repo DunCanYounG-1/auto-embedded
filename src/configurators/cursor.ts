@@ -19,7 +19,7 @@ import { getAgents, renderMarkdownAgent, resolveCommands, resolveSkills } from "
 import { getSharedHooksForPlatform } from "./hooks";
 import { flatHooksJsonMerge } from "./merge";
 
-export const configureCursor: Configurator = (): PlatformPlan => {
+export const configureCursor: Configurator = (_py, sel): PlatformPlan => {
   const ctx = AEMB_TOOLS.cursor.templateContext;
   const dir = ".cursor";
   const files = new Map<string, string>();
@@ -27,7 +27,7 @@ export const configureCursor: Configurator = (): PlatformPlan => {
   // 命令：flat + aemb- 前缀（→ /aemb-<name>）。
   for (const c of resolveCommands(ctx)) files.set(`${dir}/commands/aemb-${c.name}.md`, c.content);
   // 技能：aemb-<name>/SKILL.md。
-  for (const s of resolveSkills(ctx)) files.set(`${dir}/skills/${s.name}/SKILL.md`, s.content);
+  for (const s of resolveSkills(ctx, sel)) files.set(`${dir}/skills/${s.name}/SKILL.md`, s.content);
   // 子 Agent：push 平台，无 prelude。文件名沿用 common 的 aemb-* 名。
   for (const t of getAgents()) {
     const a = renderMarkdownAgent(t, ctx, false);

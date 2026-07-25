@@ -118,7 +118,7 @@ function opencodePackageJsonMerge(): MergeFile {
   };
 }
 
-export const configureOpencode: Configurator = (): PlatformPlan => {
+export const configureOpencode: Configurator = (_py, sel): PlatformPlan => {
   const ctx = AEMB_TOOLS.opencode.templateContext;
   const dir = ".opencode";
   const files = new Map<string, string>();
@@ -126,7 +126,7 @@ export const configureOpencode: Configurator = (): PlatformPlan => {
   // 命令 → .opencode/commands/aemb/<name>.md（/aemb:<name>）
   for (const c of resolveCommands(ctx)) files.set(`${dir}/commands/aemb/${c.name}.md`, c.content);
   // 技能 → .opencode/skills/aemb-<name>/SKILL.md
-  for (const s of resolveSkills(ctx)) files.set(`${dir}/skills/${s.name}/SKILL.md`, s.content);
+  for (const s of resolveSkills(ctx, sel)) files.set(`${dir}/skills/${s.name}/SKILL.md`, s.content);
   // 子 Agent → .opencode/agents/aemb-*.md（push：子 Agent 上下文由 JS 插件注入，无需 prelude）
   for (const t of getAgents()) {
     const a = renderMarkdownAgent(t, ctx, false);

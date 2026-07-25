@@ -6,6 +6,7 @@ import * as path from "path";
 import { RUNTIME_DIR } from "../constants/paths";
 import { AEMB_TOOLS, ALL_TOOLS, getManagedPaths, type AITool } from "../types/ai-tools";
 import { ensureDir, readFileOrNull, writeFile } from "../utils/file-writer";
+import type { Profile } from "../content/packs";
 
 /** 定位工程根：显式参数 > 含 .git 的最近祖先 > CWD。 */
 export function resolveTarget(arg?: string): string {
@@ -38,6 +39,34 @@ export function readPlatforms(target: string): AITool[] {
 
 export function writePlatforms(target: string, platforms: AITool[]): void {
   writeFile(path.join(target, RUNTIME_DIR, ".platforms"), platforms.join("\n") + "\n");
+}
+
+/**
+ * profile 感知装配的工程 profile（.auto-embedded/profile.json）。
+ * JSON（零运行时依赖、可手改，与 .template-manifest.json 一致）；自身若是 symlink 不跟随。
+ * 返回 null = 未装 profile（旧安装）→ 调用方按"全装"处理（向后兼容）。
+ */
+export function readProfile(target: string): Profile | null {
+  const abs = path.join(target, RUNTIME_DIR, "profile.json");
+  try {
+    if (fs.lstatSync(abs).isSymbolicLink()) return null;
+  } catch {
+    /* 不存在 */
+  }
+  const raw = readFileOrNull(abs);
+  if (!raw) return null;
+  try {
+    const o = JSON.parse(raw) as Partial<Profile>;
+    const arr = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
+    const mode = o.mode === "full" || o.mode === "manual" ? o.mode : "auto";
+    return { mode, chips: arr(o.chips), build: arr(o.build), probe: arr(o.probe), rtos: arr(o.rtos), packs: arr(o.packs) };
+  } catch {
+    return null;
+  }
+}
+
+export function writeProfile(target: string, p: Profile): void {
+  writeFile(path.join(target, RUNTIME_DIR, "profile.json"), JSON.stringify(p, null, 2) + "\n");
 }
 
 /** 把开发者名净化成单行安全串。 */

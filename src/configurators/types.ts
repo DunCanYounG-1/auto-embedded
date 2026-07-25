@@ -24,5 +24,8 @@ export interface PlatformPlan {
   merges: MergeFile[];
 }
 
-/** 平台配置器：给定已解析 python 命令，产出安装计划。 */
-export type Configurator = (py: string) => PlatformPlan;
+/**
+ * 平台配置器：给定已解析 python 命令（+ 可选内容包 selection），产出安装计划。
+ * `sel` 给定时按 profile 过滤工具技能；不传 = 全装（向后兼容）。
+ */
+export type Configurator = (py: string, sel?: Set<string>) => PlatformPlan;

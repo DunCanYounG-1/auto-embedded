@@ -68,7 +68,7 @@ function normalizeCopilotAgentTools(content: string): string {
   return `---\n${out.join("\n")}\n---\n\n${sec.body.replace(/^(\r?\n)+/, "")}`;
 }
 
-export const configureCopilot: Configurator = (): PlatformPlan => {
+export const configureCopilot: Configurator = (_py, sel): PlatformPlan => {
   const ctx = AEMB_TOOLS.copilot.templateContext;
   const dir = ".github/copilot"; // configDir：仅 hook 脚本与 hooks.json
   const files = new Map<string, string>();
@@ -78,7 +78,7 @@ export const configureCopilot: Configurator = (): PlatformPlan => {
     files.set(`.github/prompts/aemb-${c.name}.prompt.md`, c.content);
   }
   // 技能 → .github/skills/aemb-<name>/SKILL.md
-  for (const s of resolveSkills(ctx)) files.set(`.github/skills/${s.name}/SKILL.md`, s.content);
+  for (const s of resolveSkills(ctx, sel)) files.set(`.github/skills/${s.name}/SKILL.md`, s.content);
   // 子 Agent → .github/agents/aemb-*.agent.md（pull prelude + tools 归一）
   for (const t of getAgents()) {
     const a = renderMarkdownAgent(t, ctx, true);

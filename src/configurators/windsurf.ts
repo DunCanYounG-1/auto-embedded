@@ -12,7 +12,7 @@ import type { Configurator, PlatformPlan } from "./types";
 import { AEMB_TOOLS } from "../types/ai-tools";
 import { resolveCommands, resolveSkills } from "./shared";
 
-export const configureWindsurf: Configurator = (): PlatformPlan => {
+export const configureWindsurf: Configurator = (_py, sel): PlatformPlan => {
   const ctx = AEMB_TOOLS.windsurf.templateContext;
   const files = new Map<string, string>();
 
@@ -21,7 +21,7 @@ export const configureWindsurf: Configurator = (): PlatformPlan => {
     files.set(`.windsurf/workflows/aemb-${c.name}.md`, c.content);
   }
   // 自动触发技能（resolveSkills 已带 aemb- 前缀与 SKILL frontmatter）
-  for (const s of resolveSkills(ctx)) {
+  for (const s of resolveSkills(ctx, sel)) {
     files.set(`.windsurf/skills/${s.name}/SKILL.md`, s.content);
   }
 

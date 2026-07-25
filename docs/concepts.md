@@ -52,22 +52,23 @@ At task wrap-up, `task.py promote <layer> "<learning>"` distills decisions, gotc
 
 ## ⑤ Tool skills & knowledge base
 
-**22 tool skills** (scripts live in `.auto-embedded/tools/`, auto-triggered by description, registered with the `aemb-` prefix):
+**24 tool skills** (full catalog; `aemb init` installs a profile-scoped subset by chip/build/OS detection — `aemb init --full` for everything, `aemb add/remove <pack>` to adjust, `aemb profile` to inspect. Scripts live in `.auto-embedded/tools/`, auto-triggered by description, registered with the `aemb-` prefix):
 
 | Category | Skills |
 |---|---|
-| Build | `aemb-build-cmake` `-keil` `-iar` `-idf` `-makefile` `-platformio` |
+| Build | `aemb-build-cmake` `-keil` `-iar` `-idf` `-makefile` `-platformio` `-scons` (RT-Thread) |
 | Flash | `aemb-flash-jlink` `-openocd` `-keil` `-idf` `-platformio` |
 | Debug | `aemb-debug-gdb-openocd` `-jlink` `-platformio` |
 | Observe / analyze | `aemb-serial-monitor` `aemb-static-analysis` (MISRA) `aemb-memory-analysis` `aemb-rtos-debug` |
 | Bus / instruments | `aemb-can-debug` `aemb-modbus-debug` `aemb-visa-debug` |
 | Drivers | `aemb-peripheral-driver` (open-source driver search → evaluate → adapt/scaffold) |
+| Search | `aemb-zhihu-search` (Zhihu Q&A search) |
 
 All tools return a uniform Command Outcome (status / summary / evidence / next_action / failure_category); the EXECUTE routing table in `refs/riper5-stages.md` makes calling them mandatory over hand-typed shell commands.
 
 **55+ article offline knowledge base** (`.auto-embedded/refs/`, catalog in `refs/index.md`): STM32/GD32/MSPM0 API quick references, pin planning, IMU debugging checklists, control-loop sign traps, driver porting methodology, competition checklists/contracts, and the `stm32-hal/` domain pack (methodology + BSP templates). Consulted on demand — never bulk-injected.
 
-**12 specialized workflows** (`.auto-embedded/modes/`, catalog in `modes/index.md`): datasheet lookup, netlist reading, competition mode, MATLAB→firmware pipeline, GD32/MSPM0 board templates, Seekfree library management, industrial data acquisition, MCP health check, deterministic orchestration…
+**13 specialized workflows** (full catalog, `.auto-embedded/modes/`, catalog in `modes/index.md`; vendor/OS ones like GD32/MSPM0/RT-Thread board templates install only when the profile matches, MATLAB/competition ones are off by default — enable with `aemb add`): datasheet lookup, netlist reading, competition mode, MATLAB→firmware pipeline, GD32/MSPM0 board templates, RT-Thread OS development, Seekfree library management, industrial data acquisition, MCP health check, deterministic orchestration…
 
 ## ⑥ Competition mode (NUEDC / smart car / Siemens Cup)
 

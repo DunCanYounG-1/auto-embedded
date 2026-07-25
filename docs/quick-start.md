@@ -40,7 +40,7 @@ aemb init /path/to/firmware-project -u your-name --all
 
 `init` does three things:
 
-1. **Writes the runtime** `.auto-embedded/`: workflow engine scripts, spec seeds, 22 tool scripts (`tools/`), the 55+ article knowledge base (`refs/`), 12 specialized workflows (`modes/`), and `workflow.md`
+1. **Writes the runtime** `.auto-embedded/`: workflow engine scripts, spec seeds, 24 tool scripts (`tools/`), the 55+ article knowledge base (`refs/`), 13 specialized workflows (`modes/`), and `workflow.md`
 2. **Wires each platform**: hooks and skills written via each platform's native mechanism (Claude `settings.json`, Cursor/Codex `hooks.json`, Gemini `settings.json`, OpenCode JS plugins…), smart-merged into existing configs — only its own fragments are added/removed
 3. **Detects your chip**: identifies chip / framework / build system and drafts a hardware baseline for you to confirm
 

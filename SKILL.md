@@ -1,6 +1,6 @@
 ---
 name: auto-embedded
-description: "全平台嵌入式 AI 开发框架（对标 Trellis）：把 RIPER-5 五阶段协议 + 四文件记忆 + 分层架构门禁 + Scout/Builder/Verifier 多 Agent + 21 个工具调用技能（build/flash/debug/serial/can/modbus/visa/static/memory/rtos），做成『装进工程、项目级 hook 必然运行、按角色自动注入相关 spec、REVIEW 学习回流』的闭环，并一次写、全平台交付（Claude/Cursor/Codex/OpenCode/Copilot/Gemini/Windsurf）。用 `aemb init` 在固件工程里安装运行时与各平台注入接线。当用户要为 STM32/ESP32/GD32/MSPM0/RISC-V/国产 MCU 工程搭建可复用开发规范基座、让约定自动注入、跨会话可恢复、编译/烧录/调试一体化，或问到 auto-embedded/aemb/spec 注入/项目级 hook/全平台时使用。不适用于纯 Web/移动/桌面软件或与硬件无关的通用 C/C++。"
+description: "全平台嵌入式 AI 开发框架（对标 Trellis）：把 RIPER-5 五阶段协议 + 四文件记忆 + 分层架构门禁 + Scout/Builder/Verifier 多 Agent + 24 个工具调用技能（build/flash/debug/serial/can/modbus/visa/static/memory/rtos/scons），做成『装进工程、项目级 hook 必然运行、按角色自动注入相关 spec、REVIEW 学习回流』的闭环，并一次写、全平台交付（Claude/Cursor/Codex/OpenCode/Copilot/Gemini/Windsurf）。用 `aemb init` 在固件工程里安装运行时与各平台注入接线。当用户要为 STM32/ESP32/GD32/MSPM0/RISC-V/国产 MCU 工程搭建可复用开发规范基座、让约定自动注入、跨会话可恢复、编译/烧录/调试一体化，或问到 auto-embedded/aemb/spec 注入/项目级 hook/全平台时使用。不适用于纯 Web/移动/桌面软件或与硬件无关的通用 C/C++。"
 keywords: "auto-embedded, aemb, 全平台嵌入式框架, 多平台, spec 注入, 项目级 hook, RIPER-5, 四文件记忆, 分层架构门禁, Scout Builder Verifier, hw-lock, promote 回流, 工具技能, build flash debug, STM32, ESP32, GD32, MSPM0, Claude Cursor Codex OpenCode Copilot Gemini Windsurf"
 ---
 
@@ -15,7 +15,7 @@ keywords: "auto-embedded, aemb, 全平台嵌入式框架, 多平台, spec 注入
 - **项目级 spec 库**：`.auto-embedded/spec/`（分层、可版本化、可覆盖），而非全局只读 refs。
 - **相关性自动注入**：会话起始注入阶段+spec 索引；派 Scout/Builder/Verifier 时按 per-task `*.jsonl` 只 push 该角色相关的 spec。
 - **学习回流**：REVIEW 用 `task.py promote` 把决策/约定/坑沉淀回 spec，跨会话/跨任务复利。
-- **工具链一体化**：21 个工具调用技能（编译/烧录/调试/串口/CAN/Modbus/VISA/静态分析/内存分析/RTOS），脚本随框架装进 `.auto-embedded/tools/`，全平台都能调。
+- **工具链一体化**：24 个工具调用技能（编译/烧录/调试/串口/CAN/Modbus/VISA/静态分析/内存分析/RTOS/检索），脚本随框架装进 `.auto-embedded/tools/`，全平台都能调。
 - **一次写、全平台交付**：同一套 common 命令/技能/Agent 经占位符渲染成各平台正确语法，由各平台 configurator 写对应注入接线。
 
 ## 支持平台
@@ -69,22 +69,25 @@ python .auto-embedded/scripts/task.py start "<标题>" | phase PLAN | select bui
 多文件/长任务按 Scout→Builder→Verifier 分权，同一时刻只一个 Builder 写。
 派 Agent：`aemb-scout|aemb-builder|aemb-verifier`，hook（push 平台）或 prelude（pull 平台 Codex/Copilot/Gemini 子 Agent）会按角色注入相关 spec。
 
-## 工具调用技能（22，全平台交付）
+## 工具调用技能（24，全量目录）
+
+> 24 是**全量目录**。`aemb init` 按工程 profile（芯片/构建/OS 探测）精简装：例如纯 STM32+Keil 工程只装 `build-keil`/`flash-*`/`debug-*` 等相关技能，不装 `build-idf`/`build-scons`。全量装用 `aemb init --full`；事后增减用 `aemb add/remove <pack>`；查当前装了什么用 `aemb profile`。
 
 脚本随框架装进 `.auto-embedded/tools/<skill>/scripts/`，按需用 `python` 调；SKILL 描述自动触发：
-- 编译：`build-cmake` `build-iar` `build-idf` `build-keil` `build-makefile` `build-platformio`
+- 编译：`build-cmake` `build-iar` `build-idf` `build-keil` `build-makefile` `build-platformio` `build-scons`（RT-Thread）
 - 烧录：`flash-idf` `flash-jlink` `flash-keil` `flash-openocd` `flash-platformio`
 - 调试：`debug-gdb-openocd` `debug-jlink` `debug-platformio`
 - 观测/分析：`serial-monitor` `static-analysis` `memory-analysis` `rtos-debug`
 - 总线/仪器：`can-debug` `modbus-debug` `visa-debug`
 - 驱动：`peripheral-driver`（开源驱动搜索→评估→适配/骨架；方法论见 `.auto-embedded/refs/stm32-hal/`）
+- 检索：`zhihu-search`（知乎站内问答检索）
 
 ## 知识库与专项流程（自上一代 embedded-dev 全量吸收，按需加载）
 
 上一代 `embedded-dev` 的离线知识库与专项流程已 bundle 进运行时，随 `aemb init` 装入工程，**按需读取**（不自动全量注入，防撑爆上下文）：
 
 - `.auto-embedded/refs/`（55+ 篇）—— STM32/GD32 API、引脚规划、IMU、故障分类、编码规范、驱动移植、竞赛清单/契约…总览见 `refs/index.md`；`refs/stm32-hal/` 为 STM32 HAL 方法论 + BSP 模板领域包。
-- `.auto-embedded/modes/`（12 篇）—— RIPER-5 主干外的专项工作流：`competition`（比赛 6-Agent + CP 门禁）、`datasheet-lookup`、`netlist-lookup`、`gd32-board`、`mspm0-board`、`seekfree-lib`、`matlab-*`、`industrial-data-acquisition`、`mcp-healthcheck`、`workflow-orchestration`。总览见 `modes/index.md`。
+- `.auto-embedded/modes/`（13 篇）—— RIPER-5 主干外的专项工作流：`competition`（比赛 6-Agent + CP 门禁）、`datasheet-lookup`、`netlist-lookup`、`gd32-board`、`mspm0-board`、`rtos-rtthread`、`seekfree-lib`、`matlab-*`、`industrial-data-acquisition`、`mcp-healthcheck`、`workflow-orchestration`。总览见 `modes/index.md`。
 
 **比赛模式**：用户说"启用比赛模式"时进入 `.auto-embedded/modes/competition.md`，由 6 个专职 subagent 并行推进：
 `embedded-arch`（唯一决策者/路由/集成）· `embedded-drv`（驱动）· `embedded-alg`（算法）· `embedded-matlab`（MATLAB 仿真）· `embedded-qa`（验证门）· `embedded-report`（报告），配合 CP-0~CP-5 决策门与 Defect Ticket 回派协议。 并行编排完整支持 Claude；其余平台装入 agent 定义但派发受限（Codex 禁 spawn、Copilot 无 Task 映射），降级为单代理按 modes/competition.md 顺序走 CP 门禁。日常 RIPER-5 仍用 `aemb-scout/builder/verifier` 三角色。

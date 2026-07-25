@@ -9,6 +9,7 @@ import * as path from "path";
 import type { TemplateContext } from "../types/ai-tools";
 import { TPL } from "../constants/paths";
 import { pythonCmd, replacePythonLiterals } from "../utils/python";
+import { isEnabled } from "../content/packs";
 
 // ---------------------------------------------------------------------------
 // 占位符解析
@@ -103,8 +104,10 @@ export function getAgents(): Template[] {
  * 与工作流技能不同：这些文件**自带 frontmatter**（name: aemb-<x> + description，源自 embedded-dev），
  * 正文已机械适配指向 .auto-embedded/tools/<x>/，故 resolveToolSkills 只解析占位符、不再包 frontmatter。
  */
-export function getToolSkills(): Template[] {
-  return loadDir(TPL.commonToolSkills);
+export function getToolSkills(sel?: Set<string>): Template[] {
+  const all = loadDir(TPL.commonToolSkills);
+  if (!sel) return all;
+  return all.filter((t) => isEnabled({ kind: "toolskill", id: t.name }, sel));
 }
 
 // ---------------------------------------------------------------------------
@@ -176,29 +179,29 @@ export function resolveCommands(ctx: TemplateContext): Resolved[] {
  * 工具技能解析（21 个）：文件自带 frontmatter，只解析占位符，不再包 frontmatter。
  * 全平台都交付（嵌入式框架的"动手"层）。
  */
-export function resolveToolSkills(ctx: TemplateContext): Resolved[] {
-  return getToolSkills().map((t) => ({
+export function resolveToolSkills(ctx: TemplateContext, sel?: Set<string>): Resolved[] {
+  return getToolSkills(sel).map((t) => ({
     name: `aemb-${t.name}`,
     content: resolvePlaceholders(t.content, ctx),
   }));
 }
 
-/** 自动触发技能 = 工作流技能(brainstorm/check/break-loop) + 21 个工具技能（aemb- 前缀 + SKILL frontmatter）。 */
-export function resolveSkills(ctx: TemplateContext): Resolved[] {
+/** 自动触发技能 = 工作流技能(brainstorm/check/break-loop) + 工具技能（按 sel 过滤；不传=全装）。 */
+export function resolveSkills(ctx: TemplateContext, sel?: Set<string>): Resolved[] {
   const workflow = getSkills().map((t) => ({
     name: `aemb-${t.name}`,
     content: wrapSkillFrontmatter(`aemb-${t.name}`, resolvePlaceholders(t.content, ctx)),
   }));
-  return [...workflow, ...resolveToolSkills(ctx)];
+  return [...workflow, ...resolveToolSkills(ctx, sel)];
 }
 
 /** 全部（命令 + 工作流技能 + 工具技能）都当技能 —— skill-only 平台（Codex/Kiro/Qoder）。 */
-export function resolveAllAsSkills(ctx: TemplateContext): Resolved[] {
+export function resolveAllAsSkills(ctx: TemplateContext, sel?: Set<string>): Resolved[] {
   const cmdAndWorkflow = [...getCommands(), ...getSkills()].map((t) => ({
     name: `aemb-${t.name}`,
     content: wrapSkillFrontmatter(`aemb-${t.name}`, resolvePlaceholders(t.content, ctx)),
   }));
-  return [...cmdAndWorkflow, ...resolveToolSkills(ctx)];
+  return [...cmdAndWorkflow, ...resolveToolSkills(ctx, sel)];
 }
 
 // ---------------------------------------------------------------------------
@@ -210,26 +213,26 @@ function neutral(content: string, ctx: TemplateContext): string {
 }
 
 /** resolveToolSkills 的 neutral 版（工具技能无 CMD_REF，结果与普通版一致，仅为对称）。 */
-export function resolveToolSkillsNeutral(ctx: TemplateContext): Resolved[] {
-  return getToolSkills().map((t) => ({ name: `aemb-${t.name}`, content: neutral(t.content, ctx) }));
+export function resolveToolSkillsNeutral(ctx: TemplateContext, sel?: Set<string>): Resolved[] {
+  return getToolSkills(sel).map((t) => ({ name: `aemb-${t.name}`, content: neutral(t.content, ctx) }));
 }
 
 /** resolveSkills 的 neutral 版（Gemini 写 .agents/skills 用）。 */
-export function resolveSkillsNeutral(ctx: TemplateContext): Resolved[] {
+export function resolveSkillsNeutral(ctx: TemplateContext, sel?: Set<string>): Resolved[] {
   const workflow = getSkills().map((t) => ({
     name: `aemb-${t.name}`,
     content: wrapSkillFrontmatter(`aemb-${t.name}`, neutral(t.content, ctx)),
   }));
-  return [...workflow, ...resolveToolSkillsNeutral(ctx)];
+  return [...workflow, ...resolveToolSkillsNeutral(ctx, sel)];
 }
 
 /** resolveAllAsSkills 的 neutral 版（Codex 写 .agents/skills 用）。 */
-export function resolveAllAsSkillsNeutral(ctx: TemplateContext): Resolved[] {
+export function resolveAllAsSkillsNeutral(ctx: TemplateContext, sel?: Set<string>): Resolved[] {
   const cmdAndWorkflow = [...getCommands(), ...getSkills()].map((t) => ({
     name: `aemb-${t.name}`,
     content: wrapSkillFrontmatter(`aemb-${t.name}`, neutral(t.content, ctx)),
   }));
-  return [...cmdAndWorkflow, ...resolveToolSkillsNeutral(ctx)];
+  return [...cmdAndWorkflow, ...resolveToolSkillsNeutral(ctx, sel)];
 }
 
 // ---------------------------------------------------------------------------

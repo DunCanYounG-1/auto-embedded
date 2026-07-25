@@ -31,7 +31,7 @@ aemb init ─► 工程内写入 .auto-embedded/（spec/tasks/workspace/scripts/
 
 | 类别 | 内容 | `aemb update` 行为 |
 |---|---|---|
-| **managed** | `scripts/`（流程引擎）、`tools/`（22 工具）、`refs/`、`modes/`、`workflow.md`、各平台接线文件 | hash 比对升级：模板更新→覆盖；你改过→新版写 `.new` 不覆盖 |
+| **managed** | `scripts/`（流程引擎）、`tools/`（24 工具）、`refs/`、`modes/`、`workflow.md`、各平台接线文件 | hash 比对升级：模板更新→覆盖；你改过→新版写 `.new` 不覆盖 |
 | **seed** | `config.yaml`、`spec/**`（你的项目规范）、`tasks/`、`workspace/` | 永不触碰（仅缺失时补种） |
 
 知识演进的正确姿势：上游知识（refs/modes）随框架升级；**项目级**学习走 `promote` 进 spec 层——两者互不污染。
@@ -54,13 +54,13 @@ templates/
 ├─ auto-embedded/           装进工程的运行时内核
 │  ├─ scripts/              RIPER 引擎（aemb_core/task/check/get_context + arch-check）
 │  ├─ spec/                 规范种子（五层，seed）
-│  ├─ tools/                22 工具技能脚本 + shared/ 公共件 + companion 工具
+│  ├─ tools/                24 工具技能脚本 + shared/ 公共件 + companion 工具
 │  ├─ refs/                 55+ 篇离线知识库（managed）
-│  ├─ modes/                12 个专项流程（managed）
+│  ├─ modes/                13 个专项流程（managed）
 │  └─ workflow.md           流程单一事实源（钩子从中取面包屑）
 ├─ common/                  跨平台共享 body（占位符渲染成各平台语法）
 │  ├─ commands/ skills/     用户仪式命令 + 自动触发技能
-│  ├─ tool-skills/          22 个工具技能 SKILL body
+│  ├─ tool-skills/          24 个工具技能 SKILL body
 │  └─ agents/               aemb-scout/builder/verifier + 6 比赛角色
 ├─ shared-hooks/            3 个平台无关 Python 注入钩子
 └─ <平台>/                  平台私有模板（config.toml / JS 插件等）

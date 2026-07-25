@@ -14,5 +14,6 @@
 | `mcp-healthcheck.md` | MCP 工具健康检查模式 |
 | `mspm0-board.md` | MSPM0G3507 主板 / 核心板 工作流（逐飞开源库） |
 | `netlist-lookup.md` | 网表读取模式 |
+| `rtos-rtthread.md` | RT-Thread 带 OS 开发（env/scons/menuconfig/软件包/设备框架/FinSH） |
 | `seekfree-lib.md` | 逐飞开源库管理模式 |
 | `workflow-orchestration.md` | 原生 Workflow 编排模式（确定性骨架 + 自驱叶子） |

@@ -34,7 +34,7 @@ function toGeminiToml(name: string, body: string): string {
   return `description = "${desc}"\n\nprompt = """\n${body}\n"""\n`;
 }
 
-export const configureGemini: Configurator = (): PlatformPlan => {
+export const configureGemini: Configurator = (_py, sel): PlatformPlan => {
   const ctx = AEMB_TOOLS.gemini.templateContext;
   const dir = ".gemini";
   const files = new Map<string, string>();
@@ -45,7 +45,7 @@ export const configureGemini: Configurator = (): PlatformPlan => {
   }
   // 技能 → 跨平台共享技能层 .agents/skills/aemb-<name>/SKILL.md
   // 用 neutral 渲染：与 Codex 同写该目录时字节一致（避免 last-writer-wins 覆盖出错的 CMD_REF）。
-  for (const s of resolveSkillsNeutral(ctx)) files.set(`.agents/skills/${s.name}/SKILL.md`, s.content);
+  for (const s of resolveSkillsNeutral(ctx, sel)) files.set(`.agents/skills/${s.name}/SKILL.md`, s.content);
   // 子 Agent → .gemini/agents/aemb-*.md（pull：builder/verifier 注入 prelude）
   for (const t of getAgents()) {
     const a = renderMarkdownAgent(t, ctx, true);

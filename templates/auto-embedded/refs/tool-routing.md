@@ -46,7 +46,7 @@
 | 需求 | 兄弟 skill | 备注 |
 |---|---|---|
 | **工程画像自动探测** | `python .auto-embedded/tools/shared/project_detect.py <ws>` | EXECUTE 前识别构建系统/芯片/产物，避免手工枚举 |
-| **构建固件** | `aemb-build-cmake` `aemb-build-keil` `aemb-build-iar` `aemb-build-platformio` `aemb-build-idf` `aemb-build-makefile` | 按工程类型选；输出 Project Profile + ELF/HEX/BIN 路径 |
+| **构建固件** | `aemb-build-cmake` `aemb-build-keil` `aemb-build-iar` `aemb-build-platformio` `aemb-build-idf` `aemb-build-makefile` `aemb-build-scons` | 按工程类型选（`scons` → RT-Thread）；输出 Project Profile + ELF/HEX/BIN 路径 |
 | **烧录固件** | `aemb-flash-openocd` `aemb-flash-keil` `aemb-flash-platformio` `aemb-flash-idf` `aemb-flash-jlink` | 烧录前必须有 build 输出的 artifact_path |
 | **GDB 在线调试** | `aemb-debug-gdb-openocd` `aemb-debug-jlink` `aemb-debug-platformio` | 下载后调试 / 仅附着 / 崩溃现场分析 |
 | **串口监视** | `aemb-serial-monitor` | 自动选 COM/tty 端口并抓日志 |

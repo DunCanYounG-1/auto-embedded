@@ -19,7 +19,7 @@ import { detectPython } from "../utils/python";
 import { writeFile } from "../utils/file-writer";
 import { toPosix } from "../utils/posix";
 import { loadManifest, saveManifest, sha256 } from "../utils/manifest";
-import { buildDetectDraft, detectChip } from "../utils/chip-detect";
+import { buildDetectDraft, detectChip, type Hits } from "../utils/chip-detect";
 import {
   applyMerge,
   escapingManagedRoots,
@@ -30,12 +30,58 @@ import {
   safeWrite,
   sanitizeDeveloper,
   writePlatforms,
+  writeProfile,
 } from "./engine";
+import {
+  type Profile,
+  profileFromHits,
+  noSignal,
+  resolveSelection,
+} from "../content/packs";
 
 export interface InitOpts {
   platforms: AITool[];
   user?: string;
   force?: boolean;
+  /** 强制全量安装（跳过 profile 过滤）。 */
+  full?: boolean;
+  /** 非交互：跳过确认提示，按探测/显式 profile 直接装。 */
+  yes?: boolean;
+  /** `--profile k=v` 原始 token（k ∈ chips/build/probe/rtos/packs/mode，v 逗号分隔）。 */
+  profileKV?: string[];
+}
+
+/** 把 `--profile k=v` 覆盖并入 profile。 */
+function applyProfileOverrides(p: Profile, kvs: string[]): void {
+  for (const kv of kvs) {
+    const i = kv.indexOf("=");
+    if (i < 0) continue;
+    const k = kv.slice(0, i).trim();
+    const vals = kv
+      .slice(i + 1)
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (k === "chips") p.chips = vals;
+    else if (k === "build") p.build = vals;
+    else if (k === "probe") p.probe = vals;
+    else if (k === "rtos") p.rtos = vals;
+    else if (k === "packs") p.packs = vals;
+    else if (k === "mode" && (vals[0] === "auto" || vals[0] === "full" || vals[0] === "manual")) p.mode = vals[0];
+  }
+}
+
+/** 交互确认：TTY 且非 --yes 时提示一行 y/N（读失败/无输入默认接受）。 */
+function promptAccept(question: string): boolean {
+  process.stdout.write(question);
+  const buf = Buffer.alloc(256);
+  try {
+    const n = fs.readSync(0, buf, 0, 256, null);
+    const ans = buf.toString("utf8", 0, n).trim().toLowerCase();
+    return ans === "" || ans === "y" || ans === "yes";
+  } catch {
+    return true;
+  }
 }
 
 export function cmdInit(target: string, opts: InitOpts): number {
@@ -93,8 +139,43 @@ export function cmdInit(target: string, opts: InitOpts): number {
     manifest.owned[toPosix(rel)] = sha256(content);
   };
 
-  // 1) 运行时 managed
-  for (const [rel, content] of getRuntimeManaged()) writeOwned(rel, content);
+  // 0) profile 感知装配：探测芯片/框架/构建 → profile → 选内容包 selection
+  let hits: Hits = { framework: [], chip: [], build: [], evidence: [] };
+  try {
+    hits = detectChip(target);
+  } catch {
+    /* 探测失败按无信号处理 */
+  }
+  const profile = profileFromHits(hits);
+  if (opts.profileKV?.length) applyProfileOverrides(profile, opts.profileKV);
+  // 显式给了 profile 覆盖 = 手动模式，抑制"无信号→全装"回退（尊重显式最小 profile）
+  if (opts.profileKV?.length) profile.mode = "manual";
+
+  let full = !!opts.full || (profile.mode !== "manual" && noSignal(hits));
+  const interactive = !!process.stdout.isTTY && !!process.stdin.isTTY && !opts.yes;
+  if (!full && interactive) {
+    const preview = resolveSelection(profile, { full: false });
+    const packs = [...preview].filter((p) => p !== "core").sort();
+    console.log("  探测到工程画像 → 将按内容包精简安装（core 恒装）：");
+    if (profile.chips.length) console.log(`    芯片: ${profile.chips.join(", ")}`);
+    if (profile.build.length) console.log(`    构建: ${profile.build.join(", ")}`);
+    if (profile.rtos.length) console.log(`    RTOS: ${profile.rtos.join(", ")}`);
+    console.log(`    启用包: ${packs.join(", ") || "(仅 core)"}`);
+    if (!promptAccept("  按此精简安装？其余可后续 `aemb add`（Y=精简 / n=全量）[Y/n] ")) {
+      console.log("  → 改为全量安装（可用 --profile / aemb add 精确控制）");
+      full = true;
+    }
+  }
+  if (full) profile.mode = "full";
+  const sel = resolveSelection(profile, { full });
+  writeProfile(target, profile);
+  if (!full) {
+    const packs = [...sel].filter((p) => p !== "core").length;
+    console.log(`  ✓ profile 装配：core + ${packs} 个内容包（全量目录见 --full / aemb profile）`);
+  }
+
+  // 1) 运行时 managed（按 selection 过滤 tools/refs/modes；scripts/workflow.md 永不过滤）
+  for (const [rel, content] of getRuntimeManaged(sel)) writeOwned(rel, content);
 
   // 2) 运行时 seed（缺失才写，属用户内容，不记 hash）
   let seeded = 0;
@@ -129,7 +210,7 @@ export function cmdInit(target: string, opts: InitOpts): number {
 
   // 4) 每个平台
   for (const id of usable) {
-    const plan = getConfigurator(id)!(py);
+    const plan = getConfigurator(id)!(py, sel);
     for (const [rel, content] of plan.files) writeOwned(rel, content);
     for (const m of plan.merges) {
       const p = applyMerge(target, m, py); // 含 symlink 防护 + .json 解析失败备份
@@ -152,9 +233,8 @@ export function cmdInit(target: string, opts: InitOpts): number {
   }
   saveManifest(target, manifest);
 
-  // 6) 芯片探测草案
+  // 6) 芯片探测草案（复用第 0 步的 hits）
   try {
-    const hits = detectChip(target);
     const draft = buildDetectDraft(hits);
     if (draft && safeWrite(target, path.join(target, draft.rel), draft.content)) {
       const sm: string[] = [];
