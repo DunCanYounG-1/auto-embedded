@@ -37,6 +37,8 @@ const DECLARATION_FILES = [
   'SKILL.md',
   'INSTALL.md',
   'CLAUDE.md',
+  'CONTRIBUTING.md',
+  '.github/PULL_REQUEST_TEMPLATE.md',
   'project.yaml',
   'package.json',
   'docs/architecture.md',
@@ -139,8 +141,10 @@ function scanDeclarations(facts) {
     }
 
     const lines = fs.readFileSync(full, 'utf8').split(/\r?\n/);
-    lines.forEach((text, i) => {
-      if (text.includes('claims-ignore')) return;
+    lines.forEach((raw, i) => {
+      if (raw.includes('claims-ignore')) return;
+      // 去掉有序列表的序号，否则 `5. 文档里的 "N 个工具技能" 同步改` 里的 5 会被当成声明值
+      const text = raw.replace(/^(\s*)\d+\.\s+/, '$1');
 
       for (const rule of RULES) {
         rule.re.lastIndex = 0;

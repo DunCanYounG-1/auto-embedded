@@ -42,6 +42,11 @@ mn=$(find "$TMP/.auto-embedded/modes" -name '*.md' | wc -l)
 [ "$mn" -ge 12 ] || fail "modes 专项流程篇数=$mn，应≥12"; ok "modes 专项流程装入运行时（$mn 篇）"
 [ -d "$TMP/.claude/agents" ] && [ -f "$TMP/.claude/agents/embedded-arch.md" ] || fail "缺比赛 subagent embedded-arch"; ok "6 比赛 subagent 随平台安装"
 
+echo "== 3b) 7 平台交付 parity（common 单元 ↔ 各平台落地，复用上面的 init）=="
+PARITY_DIR="$TMP" node scripts/check-parity.mjs >/dev/null \
+  || fail "parity 校验失败（某平台漏装 command/skill/tool-skill/agent，或新平台未声明基线）"
+ok "7 平台交付 parity 与基线一致"
+
 echo "== 4) doctor =="
 "${CLI[@]}" doctor "$TMP" | grep -q "ALL OK" || fail "doctor 未 ALL OK"; ok "doctor ALL OK（7 平台接线）"
 

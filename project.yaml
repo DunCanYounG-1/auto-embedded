@@ -3,7 +3,7 @@ authors: [晚夏三更DuncanY]
 category: Agent
 tags: [嵌入式, 全平台, RIPER-5, spec注入, 分层架构门禁, STM32, GD32, MSPM0, 电赛, MATLAB, 多Agent]
 status: in-progress
-updated: 2026-07-26
+updated: 2026-07-27
 summary: >-
   让 AI 编码助手可靠写嵌入式固件的全平台开发框架（aemb CLI，对标 Trellis 工程内基座）。
   一条命令装进固件工程，Claude/Cursor/Codex/OpenCode/Copilot/Gemini/Windsurf 7 平台即获得：
