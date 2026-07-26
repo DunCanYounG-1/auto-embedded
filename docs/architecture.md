@@ -56,7 +56,7 @@ templates/
 │  ├─ scripts/              RIPER engine (aemb_core/task/check/get_context + arch-check)
 │  ├─ spec/                 spec seeds (five layers, seed-class)
 │  ├─ tools/                24 tool-skill scripts + shared/ commons + companion tools
-│  ├─ refs/                 55+ article offline knowledge base (managed)
+│  ├─ refs/                 80+ article offline knowledge base (managed)
 │  ├─ modes/                13 specialized workflows (managed)
 │  └─ workflow.md           workflow single source of truth (hooks read breadcrumbs from it)
 ├─ common/                  cross-platform shared bodies (placeholder-rendered per platform)

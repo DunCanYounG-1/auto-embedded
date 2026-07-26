@@ -3,12 +3,12 @@ authors: [晚夏三更DuncanY]
 category: Agent
 tags: [嵌入式, 全平台, RIPER-5, spec注入, 分层架构门禁, STM32, GD32, MSPM0, 电赛, MATLAB, 多Agent]
 status: in-progress
-updated: 2026-07-06
+updated: 2026-07-26
 summary: >-
   让 AI 编码助手可靠写嵌入式固件的全平台开发框架（aemb CLI，对标 Trellis 工程内基座）。
   一条命令装进固件工程，Claude/Cursor/Codex/OpenCode/Copilot/Gemini/Windsurf 7 平台即获得：
   RIPER-5 强制五阶段流程、hw-lock 硬件资源冻结与机械冲突检查、四文件磁盘记忆断点续作、
-  22 个编译/烧录/调试工具技能、55+ 篇离线知识库、12 个专项流程（含比赛 6-Agent 模式）、
+  24 个编译/烧录/调试工具技能、80+ 篇离线知识库、13 个专项流程（含比赛 6-Agent 模式）、
   REVIEW 经验回流。项目级 hook 必然注入，不靠模型自觉。
   上一代 embedded-dev（Claude 单插件）已全量吸收，本仓即由其更名而来（旧仓归档于 auto-embedded-legacy）。
 

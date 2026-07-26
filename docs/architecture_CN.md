@@ -55,7 +55,7 @@ templates/
 │  ├─ scripts/              RIPER 引擎（aemb_core/task/check/get_context + arch-check）
 │  ├─ spec/                 规范种子（五层，seed）
 │  ├─ tools/                24 工具技能脚本 + shared/ 公共件 + companion 工具
-│  ├─ refs/                 55+ 篇离线知识库（managed）
+│  ├─ refs/                 80+ 篇离线知识库（managed）
 │  ├─ modes/                13 个专项流程（managed）
 │  └─ workflow.md           流程单一事实源（钩子从中取面包屑）
 ├─ common/                  跨平台共享 body（占位符渲染成各平台语法）

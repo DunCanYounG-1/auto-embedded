@@ -66,7 +66,7 @@ At task wrap-up, `task.py promote <layer> "<learning>"` distills decisions, gotc
 
 All tools return a uniform Command Outcome (status / summary / evidence / next_action / failure_category); the EXECUTE routing table in `refs/riper5-stages.md` makes calling them mandatory over hand-typed shell commands.
 
-**55+ article offline knowledge base** (`.auto-embedded/refs/`, catalog in `refs/index.md`): STM32/GD32/MSPM0 API quick references, pin planning, IMU debugging checklists, control-loop sign traps, driver porting methodology, competition checklists/contracts, and the `stm32-hal/` domain pack (methodology + BSP templates). Consulted on demand — never bulk-injected.
+**80+ article offline knowledge base** (`.auto-embedded/refs/`, catalog in `refs/index.md`): STM32/GD32/MSPM0 API quick references, pin planning, IMU debugging checklists, control-loop sign traps, driver porting methodology, competition checklists/contracts, and the `stm32-hal/` domain pack (methodology + BSP templates). Consulted on demand — never bulk-injected.
 
 **13 specialized workflows** (full catalog, `.auto-embedded/modes/`, catalog in `modes/index.md`; vendor/OS ones like GD32/MSPM0/RT-Thread board templates install only when the profile matches, MATLAB/competition ones are off by default — enable with `aemb add`): datasheet lookup, netlist reading, competition mode, MATLAB→firmware pipeline, GD32/MSPM0 board templates, RT-Thread OS development, Seekfree library management, industrial data acquisition, MCP health check, deterministic orchestration…
 

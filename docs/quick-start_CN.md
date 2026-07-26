@@ -40,7 +40,7 @@ aemb init /path/to/firmware-project -u 你的名字 --all
 
 init 做三件事：
 
-1. **写入运行时** `.auto-embedded/`：流程引擎脚本、规范种子（spec/）、24 个工具脚本（tools/）、55+ 篇知识库（refs/）、13 个专项流程（modes/）、流程定义（workflow.md）
+1. **写入运行时** `.auto-embedded/`：流程引擎脚本、规范种子（spec/）、24 个工具脚本（tools/）、80+ 篇知识库（refs/）、13 个专项流程（modes/）、流程定义（workflow.md）
 2. **接线各平台**：按平台原生机制写入钩子与技能（Claude `settings.json`、Cursor/Codex `hooks.json`、Gemini `settings.json`、OpenCode JS 插件……），智能合并已有配置、只增删自己的片段
 3. **探测芯片**：识别工程里的芯片/框架/构建系统，生成硬件草案待你确认
 

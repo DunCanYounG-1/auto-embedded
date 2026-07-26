@@ -1,0 +1,37 @@
+name: Claim Checks
+
+# 便宜的那一档：秒级、零依赖，任何改动都跑。
+# 文档里写的数量/日期必须能从 templates/ 和 git 推导出来——docs-only 的 PR 也会被查。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  claims:
+    name: 声明一致性
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # updated 日期检查要看「最后一次改动 src/·templates/ 的提交」，浅克隆看不到
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 零依赖脚本，不需要 npm install
+      - name: Check claims
+        env:
+          FAIL_ON_FINDINGS: 'true'
+          # updated 日期落后只告警：不想让「改了 templates 忘了改日期」把 PR 卡死。
+          # 想收紧就把这里改成 'true'。
+          FAIL_ON_STALE_DATE: 'false'
+          OPEN_CLAIM_SLACK: '15'
+        run: npm run check:claims

@@ -1,0 +1,65 @@
+name: E2E Test
+
+# 贵的那一档：build → init --all（7 平台）→ 结构/doctor/幂等/内核/注入/卸载/profile gate 全链路。
+# 用 paths 过滤，改文档不烧这几分钟。
+# （两处 paths 是手工重复的——GitHub Actions 不支持 YAML anchor，改一处记得改另一处。）
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'templates/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'tsconfig.json'
+      - '.github/workflows/test.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'templates/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'tsconfig.json'
+      - '.github/workflows/test.yml'
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    name: e2e (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            required: true
+          # Windows 是本框架的主战场（setup.cmd / install.ps1 / arch-check.ps1），
+          # 但自测脚本里有 symlink、pwsh、py 探测等环境相关分支，首轮先不阻塞。
+          # 跑绿之后把 required 改成 true，即可变成必过门禁。
+          - os: windows-latest
+            required: false
+    continue-on-error: ${{ !matrix.required }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          # 运行时内核与注入 hook 都是 Python；3.12 与配套 MATLAB 引擎技能的上限一致
+          python-version: '3.12'
+
+      # 本仓 .gitignore 掉了 package-lock.json，所以用 install 而不是 ci
+      - name: Install dev deps
+        run: npm install --no-audit --no-fund
+
+      - name: Run e2e suite
+        shell: bash
+        run: bash tests/test-auto-embedded.sh

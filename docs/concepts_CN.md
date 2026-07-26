@@ -66,7 +66,7 @@
 
 所有工具统一返回 Command Outcome（status / summary / evidence / next_action / failure_category），EXECUTE 阶段按 `refs/riper5-stages.md` 的路由表强制优先调用，不手敲命令重造轮子。
 
-**55+ 篇离线知识库**（`.auto-embedded/refs/`，总览 `refs/index.md`）：STM32/GD32/MSPM0 API 速查、引脚规划、IMU 调试清单、控制环符号陷阱、驱动移植方法论、竞赛清单/契约、`stm32-hal/` 领域包（方法论 + BSP 模板）……命中主题按需读取，不自动全量注入。
+**80+ 篇离线知识库**（`.auto-embedded/refs/`，总览 `refs/index.md`）：STM32/GD32/MSPM0 API 速查、引脚规划、IMU 调试清单、控制环符号陷阱、驱动移植方法论、竞赛清单/契约、`stm32-hal/` 领域包（方法论 + BSP 模板）……命中主题按需读取，不自动全量注入。
 
 **13 个专项流程**（全量目录，`.auto-embedded/modes/`，总览 `modes/index.md`；厂商/OS 专项如 GD32/MSPM0/RT-Thread 板级模板按 profile 命中才装，MATLAB/竞赛类默认不装、`aemb add` 启用）：查数据手册、读网表、比赛模式、MATLAB→固件流水线、GD32/MSPM0 板级模板、RT-Thread 带 OS 开发、逐飞库管理、工业数采模板、MCP 健康检查、确定性编排……
 

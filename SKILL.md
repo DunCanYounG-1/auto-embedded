@@ -31,7 +31,7 @@ keywords: "auto-embedded, aemb, 全平台嵌入式框架, 多平台, spec 注入
   ```bash
   aemb init <工程根> -u <开发者名> --platforms claude,cursor,codex   # 或 --claude --cursor …，或 --all
   ```
-  会脚手架 `.auto-embedded/`（运行时内核 + spec + 21 工具脚本）+ 写各平台注入接线/agents/skills/commands + 智能合并配置文件（settings.json/hooks.json/config.toml/package.json，只增删 aemb 片段）。
+  会脚手架 `.auto-embedded/`（运行时内核 + spec + 24 工具脚本）+ 写各平台注入接线/agents/skills/commands + 智能合并配置文件（settings.json/hooks.json/config.toml/package.json，只增删 aemb 片段）。
   安装后在该工程**新开一个会话**，注入 hook 就会自动带出现场。
 - **已有** → 接线已在注入现场。读注入的 `<auto-embedded-session>` 块 + `.auto-embedded/workflow.md`，按 RIPER-5 推进。
 
@@ -86,8 +86,8 @@ python .auto-embedded/scripts/task.py start "<标题>" | phase PLAN | select bui
 
 上一代 `embedded-dev` 的离线知识库与专项流程已 bundle 进运行时，随 `aemb init` 装入工程，**按需读取**（不自动全量注入，防撑爆上下文）：
 
-- `.auto-embedded/refs/`（55+ 篇）—— STM32/GD32 API、引脚规划、IMU、故障分类、编码规范、驱动移植、竞赛清单/契约…总览见 `refs/index.md`；`refs/stm32-hal/` 为 STM32 HAL 方法论 + BSP 模板领域包。
-- `.auto-embedded/modes/`（13 篇）—— RIPER-5 主干外的专项工作流：`competition`（比赛 6-Agent + CP 门禁）、`datasheet-lookup`、`netlist-lookup`、`gd32-board`、`mspm0-board`、`rtos-rtthread`、`seekfree-lib`、`matlab-*`、`industrial-data-acquisition`、`mcp-healthcheck`、`workflow-orchestration`。总览见 `modes/index.md`。
+- `.auto-embedded/refs/`（80+ 篇）—— STM32/GD32 API、引脚规划、IMU、故障分类、编码规范、驱动移植、竞赛清单/契约…总览见 `refs/index.md`；`refs/stm32-hal/` 为 STM32 HAL 方法论 + BSP 模板领域包。
+- `.auto-embedded/modes/`（13 个专项流程）—— RIPER-5 主干外的专项工作流：`competition`（比赛 6-Agent + CP 门禁）、`datasheet-lookup`、`netlist-lookup`、`gd32-board`、`mspm0-board`、`rtos-rtthread`、`seekfree-lib`、`matlab-*`、`industrial-data-acquisition`、`mcp-healthcheck`、`workflow-orchestration`。总览见 `modes/index.md`。
 
 **比赛模式**：用户说"启用比赛模式"时进入 `.auto-embedded/modes/competition.md`，由 6 个专职 subagent 并行推进：
 `embedded-arch`（唯一决策者/路由/集成）· `embedded-drv`（驱动）· `embedded-alg`（算法）· `embedded-matlab`（MATLAB 仿真）· `embedded-qa`（验证门）· `embedded-report`（报告），配合 CP-0~CP-5 决策门与 Defect Ticket 回派协议。 并行编排完整支持 Claude；其余平台装入 agent 定义但派发受限（Codex 禁 spawn、Copilot 无 Task 映射），降级为单代理按 modes/competition.md 顺序走 CP 门禁。日常 RIPER-5 仍用 `aemb-scout/builder/verifier` 三角色。
