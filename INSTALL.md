@@ -1,7 +1,7 @@
 # 安装与使用 auto-embedded
 
 ## 0. 依赖
-- **Node ≥ 18**（必须，aemb CLI 是 TypeScript/Node 包，零运行时依赖）。
+- **Node ≥ 20**（必须，aemb CLI 是 TypeScript/Node 包，零运行时依赖）。
 - **Python ≥ 3.9**（必须，注入 hooks 与运行时/工具脚本用）。Windows 注意：`python3` 常是 Microsoft Store 伪 stub，
   `aemb init` 会**实跑探测**真正可用的 python（py/python/python3），把正确命令写进各平台 hook 接线。
 - **git**（可选，用于定位工程根；无 git 时按传入目录或 CWD）。

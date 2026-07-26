@@ -8,7 +8,7 @@
 
 | Dependency | Version | Used for |
 |---|---|---|
-| Node.js | ≥ 18 | the aemb CLI (zero runtime deps) |
+| Node.js | ≥ 20 | the aemb CLI (zero runtime deps) |
 | Python | ≥ 3.9 | injection hooks & runtime scripts |
 | Any supported AI coding tool | — | Claude Code / Cursor / Codex / OpenCode / Copilot / Gemini CLI / Windsurf |
 

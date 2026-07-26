@@ -89,8 +89,11 @@ function countPlatforms() {
 function collectFacts() {
   const toolSkillBodies = mdFiles(abs('templates/common/tool-skills')).length;
   const toolScriptDirs = subdirs(abs('templates/auto-embedded/tools')).filter((n) => n !== 'shared').length;
+  const pkg = JSON.parse(fs.readFileSync(abs('package.json'), 'utf8'));
+  const nodeMajor = Number.parseInt((pkg.engines?.node || '').match(/(\d+)/)?.[1] ?? '0', 10);
 
   return {
+    nodeMajor,
     toolSkillBodies,
     toolScriptDirs,
     tools: toolSkillBodies,
@@ -110,6 +113,7 @@ const ENTITIES = {
   refs: { label: 'refs 知识库篇数', source: 'templates/auto-embedded/refs/**/*.md（不含 index.md）' },
   modes: { label: 'modes 专项流程数', source: 'templates/auto-embedded/modes/*.md（不含 index.md）' },
   platforms: { label: '已实现平台数', source: 'src/configurators/index.ts → CONFIGURATORS' },
+  nodeMajor: { label: 'Node 最低主版本', source: 'package.json → engines.node' },
 };
 
 /**
@@ -167,6 +171,26 @@ function scanDeclarations(facts) {
               declared: rule.kind === 'open' ? `${declared}+` : declared,
               actual,
               detail: m[0].trim(),
+            });
+          }
+        }
+      }
+
+      // Node 版本要求：文档里的 "Node.js >= N" / "Node ≥ N" 必须等于 package.json engines 的主版本。
+      // 数字离关键词远（`| Node.js | ≥ 20 |`），套不进上面的邻接规则，所以按行匹配。
+      if (/node/i.test(text)) {
+        for (const m of text.matchAll(/(?:>=|≥|>)\s*v?(\d+)/g)) {
+          const declared = Number.parseInt(m[1], 10);
+          checked += 1;
+          if (declared !== facts.nodeMajor) {
+            findings.push({
+              file,
+              line: i + 1,
+              kind: 'node-version',
+              entity: 'node',
+              declared,
+              actual: facts.nodeMajor,
+              detail: `${m[0].trim()} 与 package.json engines.node 不一致`,
             });
           }
         }

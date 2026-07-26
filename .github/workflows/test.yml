@@ -31,8 +31,8 @@ jobs:
       fail-fast: false
       # Windows 是本框架的主战场（setup.cmd / install.ps1 / arch-check.ps1），与 ubuntu 同为必过门禁
       # （f3327aa 首轮即跑绿，含 symlink/pwsh/py 探测分支，故不再 continue-on-error）。
-      # node 双档：20 = 用户实际会用的老环境，24 = 现役。package.json engines 写 >=18，
-      # 18 已 EOL 未纳入——要覆盖真正的下限就把 '18' 加进来，否则把 engines 收到 >=20。
+      # node 双档：20 = package.json engines 声明的下限（必须真的能跑），24 = 现役。
+      # engines 改动时这里要跟着改——check:claims 只管文档与 engines 一致，管不到 matrix。
       matrix:
         os: [ubuntu-latest, windows-latest]
         node: ['20', '24']

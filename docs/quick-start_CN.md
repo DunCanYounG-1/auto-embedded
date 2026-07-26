@@ -8,7 +8,7 @@
 
 | 依赖 | 版本 | 用途 |
 |---|---|---|
-| Node.js | ≥ 18 | aemb CLI 本体（零运行时依赖） |
+| Node.js | ≥ 20 | aemb CLI 本体（零运行时依赖） |
 | Python | ≥ 3.9 | 注入钩子与运行时脚本（与 Trellis 同栈） |
 | 任一 AI 编码工具 | — | Claude Code / Cursor / Codex / OpenCode / Copilot / Gemini CLI / Windsurf |
 
