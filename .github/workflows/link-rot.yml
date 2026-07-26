@@ -1,0 +1,47 @@
+name: Link Rot
+
+# 月度那一档：要打外部 API，不适合每次 PR 跑。
+# templates/ 里的链接是**选型推荐**（SOTA 实现、逐飞库、FOC 参考工程）——上游被删/归档后
+# AI 还会用「查表干活」的姿态把死代码推给做电赛的人，所以要定期主动查，而不是等用户踩坑。
+#
+# 时间选 03:17 UTC（北京 11:17）而不是整点：GitHub 的 cron 整点最挤，容易被推迟很久。
+on:
+  schedule:
+    - cron: '17 3 1 * *'
+  workflow_dispatch:
+    inputs:
+      fail_on_stale:
+        description: '把「停更」也算硬失败'
+        type: boolean
+        default: false
+      check_http:
+        description: '同时探测非 GitHub/Gitee 的普通 URL（只报告）'
+        type: boolean
+        default: false
+
+jobs:
+  link-rot:
+    name: 外链腐化审计
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Audit links
+        env:
+          # 匿名 60 次/小时不够（本仓 68 个仓库形态链接），必须带 token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # gone / archived 硬失败——红一次就是通知
+          FAIL_ON_FINDINGS: 'true'
+          # 停更默认只告警：嵌入式库长期稳定不动是常态，硬失败会让这个审计很快被 disable
+          FAIL_ON_STALE: ${{ inputs.fail_on_stale || 'false' }}
+          CHECK_HTTP: ${{ inputs.check_http || 'false' }}
+          MAX_AGE_MONTHS: '24'
+        run: npm run check:links

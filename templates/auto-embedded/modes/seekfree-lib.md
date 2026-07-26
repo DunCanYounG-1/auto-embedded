@@ -62,7 +62,7 @@ GPL-3.0 是**强 copyleft** 协议，对嵌入式产品有特殊影响：
 
 | 芯片/库名称 | Gitee 仓库地址 | 本地路径 | 下载日期 | 备注 |
 |------------|---------------|---------|---------|------|
-| TC264 开源库 | https://gitee.com/seekfree/seekfree_tc264_opensource_library | D:\seekfree\seekfree_tc264 | 2026-03-11 | 智能车竞赛常用 |
+| TC264 开源库 | https://gitee.com/seekfree/TC264_Library | D:\seekfree\seekfree_tc264 | 2026-03-11 | 智能车竞赛常用 |
 ```
 
 ---
@@ -98,7 +98,7 @@ GPL-3.0 是**强 copyleft** 协议，对嵌入式产品有特殊影响：
 
 ```bash
 # 在 Gitee seekfree 组织下搜索对应芯片的仓库
-# 常见仓库命名规律：seekfree_<芯片型号>_opensource_library
+# 现行命名规律：<芯片型号>_Library（旧的 seekfree_<型号>_opensource_library 已全部改名下架）
 
 # 用 git clone 下载到统一目录
 git clone https://gitee.com/seekfree/<仓库名>.git <本地保存路径>
@@ -110,16 +110,21 @@ git clone https://gitee.com/seekfree/<仓库名>.git <本地保存路径>
 
 **逐飞常见仓库对照表**：
 
-| 芯片系列 | 仓库名（参考） |
-|---------|--------------|
-| TC264 | `seekfree_tc264_opensource_library` |
-| TC377 | `seekfree_tc377_opensource_library` |
-| TC387 | 需在 Gitee 确认 |
-| RT1064 | `seekfree_rt1064_opensource_library` |
-| MM32F327X | `seekfree_mm32f327x_opensource_library` |
-| CH32V307 | `seekfree_ch32v307_opensource_library` |
+| 芯片系列 | 仓库名 | 最后更新 |
+|---------|--------|---------|
+| TC264 | `TC264_Library` | 2026-05 |
+| TC364 | `TC364_Library` | 2026-05 |
+| TC377 | `TC377_Library` | 2026-05 |
+| TC387 | `TC387_Library` | 2026-05 |
+| RT1064 | `RT1064_Library` | 2026-07 |
+| MSPM0G3507 | `MSPM0G3507_Library` | 2026-07 |
+| MSPM0G3519 | `MSPM0G3519_Library` | 2026-07 |
+| MM32F327X | `MM32F327X_G8P_Library` / `MM32F327X_G9P_Library`（按封装选） | 2023-05 |
+| CH32V307 | `CHV307_Library`（逐飞用 CHV307 简写） | 2024-07 |
 
-> 如果表中没有对应芯片，用 grok-search 搜索 `site:gitee.com/seekfree <芯片型号>` 获取实际仓库地址。
+> 上表按 `https://gitee.com/api/v5/users/seekfree/repos` 全量核对，核对日期 2026-07-26。
+> 如果表中没有对应芯片，用 grok-search 搜索 `site:gitee.com/seekfree <芯片型号>` 获取实际仓库地址，
+> 或直接看组织仓库列表 `https://gitee.com/seekfree`（79 个仓库，含 BLDC/无线充等 Project 类）。
 
 ### 4b. 记录到索引文件
 
@@ -146,7 +151,7 @@ git clone https://gitee.com/seekfree/<仓库名>.git <本地保存路径>
 ## 逐飞库典型目录结构
 
 ```
-seekfree_tc264_opensource_library/
+TC264_Library/
 ├── doc/                    # 文档和说明
 ├── libraries/
 │   ├── infineon_libraries/ # 英飞凌官方底层库

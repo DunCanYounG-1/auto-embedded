@@ -53,7 +53,9 @@
     "build": "tsc",
     "prepare": "tsc",
     "test": "bash tests/test-auto-embedded.sh",
-    "check:claims": "node scripts/check-claims.mjs"
+    "check:claims": "node scripts/check-claims.mjs",
+    "check:index": "node scripts/check-index.mjs",
+    "check:links": "node scripts/check-links.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

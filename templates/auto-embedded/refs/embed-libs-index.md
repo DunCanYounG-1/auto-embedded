@@ -123,7 +123,7 @@
 |------|------|------|
 | **CodeBrick** | https://gitee.com/moluo-tech/CodeBrick | 无 OS 的 MCU 实用软件管理系统 |
 | **BabyOS** | https://gitee.com/notrynohigh/BabyOS | 专为 MCU 开发提速的代码框架 |
-| **AMetal** | https://github.com/zlgopen/ametal | 芯片级裸机软件包，跨平台通用接口 |
+| **AMetal** | https://github.com/zlgopen/ametal_applictions | 芯片级裸机软件包，跨平台通用接口。⚠️ 官方主仓 `zlgopen/ametal` 已下架（2026-07 核实 404），只剩这个应用例程仓且 2020 后停更——新项目不建议选，看思路可以 |
 
 ---
 

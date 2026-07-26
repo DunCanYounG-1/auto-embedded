@@ -1,7 +1,9 @@
-name: Claim Checks
+name: Static Checks
 
 # 便宜的那一档：秒级、零依赖，任何改动都跑。
-# 文档里写的数量/日期必须能从 templates/ 和 git 推导出来——docs-only 的 PR 也会被查。
+#   · 声明一致性 —— 文档里写的数量/日期必须能从 templates/ 和 git 推导出来（docs-only 的 PR 也查）
+#   · 索引双向   —— refs/·modes/ 的 index.md 与磁盘互为充要（漏登记＝没交付，悬空登记＝AI 读空路径）
+# 贵的那一档（e2e）在 test.yml；外链腐化审计在 link-rot.yml（月度 cron）。
 on:
   push:
     branches: [main]
@@ -9,8 +11,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  claims:
-    name: 声明一致性
+  static:
+    name: 声明 + 索引一致性
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,7 +28,7 @@ jobs:
         with:
           node-version: '20'
 
-      # 零依赖脚本，不需要 npm install
+      # 两个 checker 都零依赖，不需要 npm install
       - name: Check claims
         env:
           FAIL_ON_FINDINGS: 'true'
@@ -35,3 +37,10 @@ jobs:
           FAIL_ON_STALE_DATE: 'false'
           OPEN_CLAIM_SLACK: '15'
         run: npm run check:claims
+
+      # always()：上一步红了也把索引问题一次看全，不用来回推两趟
+      - name: Check indexes
+        if: always()
+        env:
+          FAIL_ON_FINDINGS: 'true'
+        run: npm run check:index

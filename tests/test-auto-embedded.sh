@@ -146,6 +146,10 @@ echo "== 13) 内容包完备性自测（磁盘单元 ↔ CATALOG 一一对应）
 node dist/content/packs.selftest.js >/dev/null || fail "packs.ts 完备性自测失败（有文件未归类或悬空登记）"
 ok "packs 完备性自测通过"
 
+echo "== 13b) 索引双向校验（refs/·modes/ index.md ↔ 磁盘）=="
+node scripts/check-index.mjs >/dev/null || fail "索引双向校验失败（漏登记 / 悬空登记 / 领域包未登记）"
+ok "refs·modes 索引双向一致"
+
 echo "== 14) profile gate：STM32+Keil+CMake 只装相关内容 =="
 GT=$(mktemp -d); mkdir -p "$GT/Drivers"
 : > "$GT/board.uvprojx"; : > "$GT/CMakeLists.txt"; : > "$GT/Drivers/stm32f4xx_hal.h"
