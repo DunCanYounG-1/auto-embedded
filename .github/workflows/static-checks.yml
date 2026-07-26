@@ -18,15 +18,15 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # updated 日期检查要看「最后一次改动 src/·templates/ 的提交」，浅克隆看不到
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
 
       # 两个 checker 都零依赖，不需要 npm install
       - name: Check claims
